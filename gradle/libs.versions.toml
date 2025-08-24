@@ -8,6 +8,24 @@ espressoCore = "3.7.0"
 lifecycleRuntimeKtx = "2.9.2"
 activityCompose = "1.10.1"
 composeBom = "2024.04.01"
+navigationCompose = "2.8.7"
+kotlinxSerializationJson = "1.8.0"
+ksp = "2.0.0-1.0.24"
+room = "2.6.1"
+hilt = "2.55"
+gService = "4.4.2"
+firebaseBom = "33.9.0"
+playServices = "21.3.0"
+credentialsPlayServiceAuth = "1.5.0-alpha05"
+googleid = "1.1.1"
+hiltFragment = "1.2.0"
+retrofit = "2.11.0"
+converterGson = "2.11.0"
+coilCompose = "2.6.0"
+paging = "3.3.2"
+pagerVersion = "1.7.2"
+accompanistSystemuicontrollerVersion = "0.32.0"
+accompanistPermissionsVersion = "0.37.3"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -24,9 +42,38 @@ androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-toolin
 androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
+accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissionsVersion" }
+google-accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanistSystemuicontrollerVersion" }
+androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
+androidx-room-runtime = {group = "androidx.room", name ="room-runtime", version.ref="room"}
+androidx-room-compiler = {group = "androidx.room", name ="room-compiler", version.ref = "room"}
+androidx-room-ktx = {group = "androidx.room", name ="room-ktx", version.ref = "room"}
+androidx-room-paging = {group = "androidx.room", name="room-paging", version.ref="room"}
+hilt-android = {group="com.google.dagger", name="hilt-android", version.ref="hilt"}
+hilt-compiler = { group="com.google.dagger", name="hilt-compiler", version.ref="hilt"}
+hilt-navigation-compose = {group ="androidx.hilt", name="hilt-navigation-compose", version.ref = "hiltFragment"}
+firebase-bom = {group = "com.google.firebase", name="firebase-bom", version.ref = "firebaseBom"}
+firebase-analytics = {group = "com.google.firebase", name="firebase-analytics"}
+firebase-auth = {group = "com.google.firebase", name="firebase-auth"}
+firebase-firestore = {group = "com.google.firebase", name="firebase-firestore"}
+play-services-auth = {group = "com.google.android.gms", name ="play-services-auth", version.ref="playServices"}
+androidx-credentials = {module="androidx.credentials:credentials", version.ref="credentialsPlayServiceAuth"}
+androidx-credentials-play-services-auth = {module = "androidx.credentials:credentials-play-services-auth", version.ref="credentialsPlayServiceAuth"}
+googleid = {module ="com.google.android.libraries.identity.googleid:googleid", version.ref="googleid"}
+retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
+converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
+coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
+paging-runtime = {group = "androidx.paging", name="paging-runtime", version.ref = "paging"}
+paging-compose = {group = "androidx.paging", name="paging-compose", version.ref = "paging"}
+foundation-pager = { group = "androidx.compose.foundation", name = "foundation", version.ref = "pagerVersion" }
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+devtools-ksp = {id = "com.google.devtools.ksp", version.ref = "ksp"}
+hiltAndroid = { id="com.google.dagger.hilt.android", version.ref="hilt"}
+google-services = {id="com.google.gms.google-services", version.ref="gService"}
 
