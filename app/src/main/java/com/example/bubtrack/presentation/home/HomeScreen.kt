@@ -1,0 +1,306 @@
+package com.example.bubtrack.presentation.home
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import com.example.bubtrack.R
+import com.example.bubtrack.presentation.common.GrowthItem
+import com.example.bubtrack.presentation.common.ScheduleCard
+import com.example.bubtrack.ui.theme.AppBlue
+import com.example.bubtrack.ui.theme.AppLightBlue
+import com.example.bubtrack.ui.theme.AppLightPurple
+import com.example.bubtrack.ui.theme.AppPink
+import com.example.bubtrack.ui.theme.AppPurple
+import com.example.bubtrack.ui.theme.BubTrackTheme
+
+@Composable
+fun HomeScreen(
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(Color.White)
+    ) {
+        Box(
+            modifier = modifier
+                .fillMaxWidth()
+                .height(250.dp)
+        ) {
+            Row(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .height(180.dp)
+                    .clip(
+                        RoundedCornerShape(
+                            topStart = 0.dp,
+                            topEnd = 0.dp,
+                            bottomStart = 30.dp,
+                            bottomEnd = 30.dp
+                        )
+                    )
+                    .background(color = AppPurple)
+                    .padding(top = 24.dp)
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(Color.White)
+                    )
+                    Spacer(modifier.width(12.dp))
+                    Column {
+                        Text(
+                            "BabyGrow",
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = Color.White
+                        )
+                        Text(
+                            "Halo, Sarah",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.White
+                        )
+                    }
+                }
+                Box(
+                    modifier = modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(Color.White)
+                )
+            }
+            Row(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .height(130.dp)
+                    .padding(
+                        start = 20.dp,
+                        end = 20.dp,
+                        bottom = 18.dp
+                    )
+                    .clip(
+                        RoundedCornerShape(18.dp)
+                    )
+                    .background(color = AppBlue)
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = 14.dp, vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(
+                    modifier = modifier.fillMaxHeight(),
+                    verticalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        "Bayimu Sekarang",
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
+                    )
+                    Text(
+                        "8 Bulan, 2 Minggu",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Box(
+                        modifier = modifier
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color(0xFF93C5FD))
+                            .padding(
+                                vertical = 6.dp,
+                                horizontal = 8.dp
+                            )
+                    ) {
+                        Text(
+                            "Growing Well",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.White
+                        )
+                    }
+                }
+                Box(
+                    modifier = modifier
+                        .size(80.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(Color.White)
+                )
+            }
+        }
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(
+                    horizontal = 14.dp
+                )
+        ) {
+            Text(
+                "Smart Baby Care",
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
+            )
+            Spacer(modifier.height(12.dp))
+            Row(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .height(150.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(
+                    modifier = modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(0.5f)
+
+                        .clip(
+                            RoundedCornerShape(24.dp)
+                        )
+                        .background(color = AppLightPurple)
+                        .padding(14.dp)
+                ) {
+                    Box(
+                        modifier = modifier
+                            .size(46.dp)
+                            .clip(CircleShape)
+                            .background(
+                                color = Color(0xFFA78BFA)
+                            )
+                    )
+                    Spacer(modifier.height(12.dp))
+                    Text(
+                        "Cry Analyzer",
+                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
+                    )
+                    Text(
+                        "Understand baby's \n need",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+                Spacer(modifier.width(12.dp))
+                Column(
+                    modifier = modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(1f)
+
+                        .clip(
+                            RoundedCornerShape(24.dp)
+                        )
+                        .background(color = AppLightBlue)
+                        .padding(14.dp)
+                ) {
+                    Box(
+                        modifier = modifier
+                            .size(46.dp)
+                            .clip(CircleShape)
+                            .background(
+                                color = Color(0xFF93C5FD)
+                            )
+                    )
+                    Spacer(modifier.height(12.dp))
+                    Text(
+                        "Sleep Monitor",
+                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
+                    )
+                    Text(
+                        "Monitor baby's sleep",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+            Spacer(modifier.height(22.dp))
+            Row(
+                modifier = modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    "Pertumbuhan Anak",
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
+                )
+                Text(
+                    "Lihat Semua",
+                    style = MaterialTheme.typography.bodyMedium.copy(color = AppPurple)
+                )
+            }
+            Spacer(modifier.height(22.dp))
+            Row(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 22.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                GrowthItem(
+                    title = "Berat Badan",
+                    value = "30 Kg",
+                    bgColor = AppPink,
+                    icon = R.drawable.ic_weightscale
+                )
+                GrowthItem(
+                    title = "Berat Badan",
+                    value = "30 Kg",
+                    bgColor = AppPink,
+                    icon = R.drawable.ic_weightscale
+                )
+                GrowthItem(
+                    title = "Berat Badan",
+                    value = "30 Kg",
+                    bgColor = AppPink,
+                    icon = R.drawable.ic_weightscale
+                )
+            }
+            Spacer(modifier.height(22.dp))
+            Row(
+                modifier = modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    "Jadwal Terdekat",
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
+                )
+                Text(
+                    "Lihat Semua",
+                    style = MaterialTheme.typography.bodyMedium.copy(color = AppPurple)
+                )
+            }
+            Spacer(modifier.height(22.dp))
+            ScheduleCard(
+                title = "Vaksin Polio",
+                location = "Puskesmas Glonggong",
+                date = "12 Mei 2023"
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun PrevHome() {
+    BubTrackTheme {
+        HomeScreen()
+    }
+}
