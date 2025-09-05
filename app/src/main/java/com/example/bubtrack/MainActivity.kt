@@ -13,6 +13,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.bubtrack.presentation.home.HomeScreen
 import com.example.bubtrack.presentation.navigation.MainNavigation
+import com.example.bubtrack.presentation.navigation.OnBoardingNavigation
+import com.example.bubtrack.presentation.onboarding.CreateProfileScreen
+import com.example.bubtrack.presentation.onboarding.OnBoardingScreen
 import com.example.bubtrack.ui.theme.BubTrackTheme
 
 class MainActivity : ComponentActivity() {
@@ -21,7 +24,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             BubTrackTheme {
-                MainNavigation()
+                OnBoardingNavigation()
             }
         }
     }

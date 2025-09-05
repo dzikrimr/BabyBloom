@@ -14,8 +14,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import com.example.bubtrack.presentation.ai.AiScreen
+import com.example.bubtrack.presentation.article.ArticleDetailScreen
 import com.example.bubtrack.presentation.article.ArticleScreen
 import com.example.bubtrack.presentation.diary.DiaryScreen
 import com.example.bubtrack.presentation.home.HomeScreen
@@ -39,7 +41,7 @@ fun MainNavigation(modifier: Modifier = Modifier) {
                 selectedItem = selectedItem,
                 onItemClick = {
                     selectedItem = it
-                    when (it){
+                    when (it) {
                         0 -> navController.navigate(HomeRoute)
                         1 -> navController.navigate(DiaryRoute)
                         2 -> navController.navigate(AiRoute)
@@ -56,19 +58,28 @@ fun MainNavigation(modifier: Modifier = Modifier) {
             startDestination = HomeRoute,
             modifier = modifier.padding(bottom = bottomPadding)
         ) {
-            composable<HomeRoute>{
+            composable<HomeRoute> {
                 HomeScreen()
             }
-            composable<DiaryRoute>{
+            composable<DiaryRoute> {
                 DiaryScreen()
             }
-            composable<AiRoute>{
+            composable<AiRoute> {
                 AiScreen()
             }
-            composable<ArticleRoute>{
-                ArticleScreen()
+            navigation<ArticleRoute>(startDestination = ArticleHomeRoute) {
+                composable<ArticleHomeRoute> {
+                    ArticleScreen(
+                        navController = navController
+                    )
+                }
+                composable<ArticleDetailRoute> {
+                    ArticleDetailScreen(
+                        navController = navController
+                    )
+                }
             }
-            composable<ProfileRoute>{
+            composable<ProfileRoute> {
                 ProfileScreen()
             }
         }
