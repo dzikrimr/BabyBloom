@@ -5,5 +5,5 @@ data class DiaryModel(
     val title: String,
     val desc: String,
     val date: Long,
-    val imgUrl : String
+    val imgUrl : String?
 )

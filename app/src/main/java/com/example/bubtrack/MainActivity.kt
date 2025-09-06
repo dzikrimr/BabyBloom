@@ -17,8 +17,11 @@ import com.example.bubtrack.presentation.navigation.OnBoardingNavigation
 import com.example.bubtrack.presentation.onboarding.CreateProfileScreen
 import com.example.bubtrack.presentation.onboarding.OnBoardingScreen
 import com.example.bubtrack.ui.theme.BubTrackTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

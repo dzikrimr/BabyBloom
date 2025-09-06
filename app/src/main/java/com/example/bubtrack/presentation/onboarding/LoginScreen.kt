@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.bubtrack.R
 import com.example.bubtrack.presentation.common.CommonTextField
+import com.example.bubtrack.presentation.navigation.MainRoute
 import com.example.bubtrack.presentation.navigation.RegisterRoute
 import com.example.bubtrack.ui.theme.AppPurple
 import com.example.bubtrack.ui.theme.BubTrackTheme
@@ -42,7 +43,7 @@ import com.example.bubtrack.ui.theme.BubTrackTheme
 @Composable
 fun LoginScreen(
     modifier: Modifier = Modifier,
-    navController: NavController
+    navController: NavController,
 ) {
 
     var email by remember {
@@ -93,7 +94,9 @@ fun LoginScreen(
         }
         Spacer(modifier.height(32.dp))
         OutlinedButton(
-            onClick = {},
+            onClick = {
+                navController.navigate(MainRoute)
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(55.dp),

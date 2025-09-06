@@ -13,8 +13,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
@@ -48,10 +50,13 @@ fun DiaryScreen(modifier: Modifier = Modifier) {
     var selectedTab by remember {
         mutableStateOf("Development")
     }
+    val scrollState = rememberScrollState()
+
     Column(
         modifier = modifier
             .fillMaxSize()
             .background(AppBackground)
+
     ) {
         Column(
             modifier = modifier
@@ -108,7 +113,7 @@ fun DiaryScreen(modifier: Modifier = Modifier) {
                     }
                     Spacer(modifier = modifier.width(8.dp))
                     Text(
-                        "15 Maret 2024",
+                        "15 Maret, 2024",
                         style = MaterialTheme.typography.bodyLarge.copy(
                             fontWeight = FontWeight.SemiBold
                         )
@@ -176,8 +181,12 @@ fun DiaryScreen(modifier: Modifier = Modifier) {
             }
         }
         when (selectedTab) {
-            "Development" -> DevelopmentScreen()
-            "Growth Chart" -> GrowthChartScreen()
+            "Development" -> DevelopmentScreen(
+                modifier = modifier.padding(horizontal = 14.dp)
+            )
+            "Growth Chart" -> GrowthChartScreen(
+                modifier = modifier.padding(horizontal = 14.dp)
+            )
         }
 
     }

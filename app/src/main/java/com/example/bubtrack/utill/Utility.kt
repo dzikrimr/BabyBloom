@@ -21,6 +21,15 @@ object Utility {
         return currentDate
     }
 
+    fun getCurrentTimestamp(): Long {
+        return System.currentTimeMillis()
+    }
+
+    fun formatPrettyDate(millis: Long): String {
+        val formatter = SimpleDateFormat("dd MMMM, yyyy", Locale("id", "ID"))
+        return formatter.format(Date(millis))
+    }
+
     fun createNonce() : String {
         val rawNonce = UUID.randomUUID().toString()
         val bytes = rawNonce.toByteArray()

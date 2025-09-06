@@ -27,8 +27,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.bubtrack.R
+import com.example.bubtrack.domain.growth.GrowthStats
 import com.example.bubtrack.presentation.common.GrowthItem
 import com.example.bubtrack.presentation.common.ScheduleCard
+import com.example.bubtrack.presentation.diary.comps.StatsCard
+import com.example.bubtrack.presentation.diary.comps.StatsCardItem
+import com.example.bubtrack.ui.theme.AppBackground
 import com.example.bubtrack.ui.theme.AppBlue
 import com.example.bubtrack.ui.theme.AppLightBlue
 import com.example.bubtrack.ui.theme.AppLightPurple
@@ -40,10 +44,50 @@ import com.example.bubtrack.ui.theme.BubTrackTheme
 fun HomeScreen(
     modifier: Modifier = Modifier
 ) {
+
+    val stats = GrowthStats(
+        weight = 20.0,
+        height = 22.0,
+        headCircum = 50.2,
+        armCircum = 33.2
+    )
+
+    val statsList = listOf(
+        StatsCardItem(
+            title = "Berat",
+            value = stats.weight,
+            icon = R.drawable.ic_weightscale,
+            unit = "kg",
+            bgColor = AppPurple
+        ),
+        StatsCardItem(
+            title = "Tinggi",
+            value = stats.height,
+            icon = R.drawable.ic_height,
+            unit = "cm",
+            bgColor = AppBlue
+        ),
+        StatsCardItem(
+            title = "L. Kepala",
+            value = stats.headCircum,
+            icon = R.drawable.ic_head,
+            unit = "cm",
+            bgColor = AppPink
+        ),
+        StatsCardItem(
+            title = "L. Lengan",
+            value = stats.armCircum,
+            icon = R.drawable.ic_head,
+            unit = "cm",
+            bgColor = AppLightPurple
+        ),
+    )
+
+
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(AppBackground)
     ) {
         Box(
             modifier = modifier
@@ -249,28 +293,17 @@ fun HomeScreen(
             Row(
                 modifier = modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 22.dp),
+                   ,
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                GrowthItem(
-                    title = "Berat Badan",
-                    value = "30 Kg",
-                    bgColor = AppPink,
-                    icon = R.drawable.ic_weightscale
-                )
-                GrowthItem(
-                    title = "Berat Badan",
-                    value = "30 Kg",
-                    bgColor = AppPink,
-                    icon = R.drawable.ic_weightscale
-                )
-                GrowthItem(
-                    title = "Berat Badan",
-                    value = "30 Kg",
-                    bgColor = AppPink,
-                    icon = R.drawable.ic_weightscale
-                )
+                statsList.forEach {
+                    StatsCard(
+                        statsCardItem = it,
+                        width = 90,
+                        height = 90
+                    )
+                }
             }
             Spacer(modifier.height(22.dp))
             Row(
