@@ -36,3 +36,6 @@ data object ArticleDetailRoute : AppRoute
 
 @Serializable
 data object ProfileRoute : AppRoute
+
+@Serializable
+data object ActivitiesRoute : AppRoute

@@ -6,6 +6,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -35,10 +36,12 @@ fun NumberTextField(
             )
         },
         singleLine = singleLine,
-        colors = TextFieldDefaults.outlinedTextFieldColors(
+        colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = Color(0xFFE5E7EB),
             unfocusedBorderColor = Color(0xFFE5E7EB),
-            containerColor = Color.White
+            disabledContainerColor = Color.White,
+            focusedContainerColor = Color.White,
+            unfocusedContainerColor = Color.White
         ),
         shape = RoundedCornerShape(18.dp),
         keyboardOptions = KeyboardOptions(

@@ -14,8 +14,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
+import com.example.bubtrack.presentation.activities.ActivitiesScreen
 import com.example.bubtrack.presentation.ai.AiScreen
 import com.example.bubtrack.presentation.article.ArticleDetailScreen
 import com.example.bubtrack.presentation.article.ArticleScreen
@@ -32,24 +34,38 @@ fun MainNavigation(modifier: Modifier = Modifier) {
     }
     val insets = WindowInsets.statusBars.asPaddingValues()
 
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination
+
+    val screenWithoutNavbar = listOf(
+        ActivitiesRoute::class.qualifiedName!!
+    )
+    val showBottomBar = currentDestination?.route?.let { currentRoute ->
+        !screenWithoutNavbar.any() { routeWithoutNavbar ->
+            currentRoute.startsWith(routeWithoutNavbar)
+        }
+    } ?: true
+
     Scaffold(
         modifier = modifier
             .fillMaxSize()
             .padding(insets),
         bottomBar = {
-            BottomNavBar(
-                selectedItem = selectedItem,
-                onItemClick = {
-                    selectedItem = it
-                    when (it) {
-                        0 -> navController.navigate(HomeRoute)
-                        1 -> navController.navigate(DiaryRoute)
-                        2 -> navController.navigate(AiRoute)
-                        3 -> navController.navigate(ArticleRoute)
-                        4 -> navController.navigate(ProfileRoute)
+            if (showBottomBar){
+                BottomNavBar(
+                    selectedItem = selectedItem,
+                    onItemClick = {
+                        selectedItem = it
+                        when (it) {
+                            0 -> navController.navigate(HomeRoute)
+                            1 -> navController.navigate(DiaryRoute)
+                            2 -> navController.navigate(AiRoute)
+                            3 -> navController.navigate(ArticleRoute)
+                            4 -> navController.navigate(ProfileRoute)
+                        }
                     }
-                }
-            )
+                )
+            }
         }
     ) {
         val bottomPadding = it.calculateBottomPadding()
@@ -59,7 +75,12 @@ fun MainNavigation(modifier: Modifier = Modifier) {
             modifier = modifier.padding(bottom = bottomPadding)
         ) {
             composable<HomeRoute> {
-                HomeScreen()
+                HomeScreen(
+                    navController = navController
+                )
+            }
+            composable<ActivitiesRoute> {
+                ActivitiesScreen()
             }
             composable<DiaryRoute> {
                 DiaryScreen()

@@ -3,6 +3,7 @@ package com.example.bubtrack.utill
 import java.security.MessageDigest
 import java.text.SimpleDateFormat
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Date
@@ -29,6 +30,9 @@ object Utility {
         val formatter = SimpleDateFormat("dd MMMM, yyyy", Locale("id", "ID"))
         return formatter.format(Date(millis))
     }
+
+    fun Long.toLocalDate(): LocalDate =
+        Instant.ofEpochMilli(this).atZone(ZoneId.systemDefault()).toLocalDate()
 
     fun createNonce() : String {
         val rawNonce = UUID.randomUUID().toString()

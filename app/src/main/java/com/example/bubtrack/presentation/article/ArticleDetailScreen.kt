@@ -2,7 +2,6 @@ package com.example.bubtrack.presentation.article
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,7 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,18 +18,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.bubtrack.R
-import com.example.bubtrack.domain.article.ArticleModel
 import com.example.bubtrack.domain.article.dummyArticle
-import com.example.bubtrack.presentation.article.comps.ArticleCard
 import com.example.bubtrack.ui.theme.AppBackground
-import com.example.bubtrack.ui.theme.AppPurple
-import com.example.bubtrack.ui.theme.BubTrackTheme
 
 @Composable
 fun ArticleDetailScreen(

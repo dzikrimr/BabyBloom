@@ -20,7 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.bubtrack.domain.growth.BabyGrowthModel
+import com.example.bubtrack.domain.growth.BabyGrowth
 import com.example.bubtrack.ui.theme.AppGray
 import com.example.bubtrack.ui.theme.BubTrackTheme
 import com.example.bubtrack.utill.Utility
@@ -28,7 +28,7 @@ import com.example.bubtrack.utill.Utility
 @Composable
 fun GrowthCard(
     modifier: Modifier = Modifier,
-    babyGrowth: BabyGrowthModel,
+    babyGrowth: BabyGrowth,
 ) {
     Column(
         modifier = modifier
@@ -89,7 +89,7 @@ private fun Test() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             GrowthCard(
-                babyGrowth = BabyGrowthModel(
+                babyGrowth = BabyGrowth(
                     id = "1",
                     date = System.currentTimeMillis(),
                     weight = 3.2,

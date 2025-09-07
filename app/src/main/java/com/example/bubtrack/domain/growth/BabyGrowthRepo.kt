@@ -7,5 +7,5 @@ interface BabyGrowthRepo {
 
     suspend fun getStats() : Flow<Resource<GrowthStats>>
     suspend fun updateStats(growthStats: GrowthStats) : Flow<Resource<Boolean>>
-    suspend fun getBabyGrowth() : Flow<Resource<List<BabyGrowthModel>>>
+    suspend fun getBabyGrowth() : Flow<Resource<List<BabyGrowth>>>
 }

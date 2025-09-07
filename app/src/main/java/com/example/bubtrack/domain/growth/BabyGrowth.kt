@@ -1,8 +1,6 @@
 package com.example.bubtrack.domain.growth
 
-import java.util.Date
-
-data class BabyGrowthModel(
+data class BabyGrowth(
     val id: String = "",
     val date: Long,
     val weight: Double? = null,

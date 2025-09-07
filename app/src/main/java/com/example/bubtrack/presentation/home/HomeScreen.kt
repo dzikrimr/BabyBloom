@@ -26,12 +26,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.bubtrack.R
 import com.example.bubtrack.domain.growth.GrowthStats
 import com.example.bubtrack.presentation.common.GrowthItem
 import com.example.bubtrack.presentation.common.ScheduleCard
 import com.example.bubtrack.presentation.diary.comps.StatsCard
 import com.example.bubtrack.presentation.diary.comps.StatsCardItem
+import com.example.bubtrack.presentation.navigation.ActivitiesRoute
 import com.example.bubtrack.ui.theme.AppBackground
 import com.example.bubtrack.ui.theme.AppBlue
 import com.example.bubtrack.ui.theme.AppLightBlue
@@ -42,7 +44,8 @@ import com.example.bubtrack.ui.theme.BubTrackTheme
 
 @Composable
 fun HomeScreen(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    navController : NavController
 ) {
 
     val stats = GrowthStats(
@@ -317,7 +320,10 @@ fun HomeScreen(
                 )
                 Text(
                     "Lihat Semua",
-                    style = MaterialTheme.typography.bodyMedium.copy(color = AppPurple)
+                    style = MaterialTheme.typography.bodyMedium.copy(color = AppPurple),
+                    modifier = modifier.clickable {
+                        navController.navigate(ActivitiesRoute)
+                    }
                 )
             }
             Spacer(modifier.height(22.dp))
@@ -327,13 +333,5 @@ fun HomeScreen(
                 date = "12 Mei 2023"
             )
         }
-    }
-}
-
-@Preview
-@Composable
-private fun PrevHome() {
-    BubTrackTheme {
-        HomeScreen()
     }
 }

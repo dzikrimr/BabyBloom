@@ -8,6 +8,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -43,10 +44,12 @@ fun PasswordTextField(
         onValueChange = {onValueChange(it)},
         modifier = modifier
             .fillMaxWidth(),
-        colors = TextFieldDefaults.outlinedTextFieldColors(
+        colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = Color(0xFFE5E7EB),
             unfocusedBorderColor = Color(0xFFE5E7EB),
-            containerColor = Color.White
+            disabledContainerColor = Color.White,
+            focusedContainerColor = Color.White,
+            unfocusedContainerColor = Color.White
         ),
         singleLine = true,
         placeholder = {

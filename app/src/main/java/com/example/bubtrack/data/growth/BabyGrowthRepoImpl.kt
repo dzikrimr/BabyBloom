@@ -1,6 +1,6 @@
 package com.example.bubtrack.data.growth
 
-import com.example.bubtrack.domain.growth.BabyGrowthModel
+import com.example.bubtrack.domain.growth.BabyGrowth
 import com.example.bubtrack.domain.growth.BabyGrowthRepo
 import com.example.bubtrack.domain.growth.GrowthStats
 import com.example.bubtrack.utill.Resource
@@ -18,7 +18,7 @@ class BabyGrowthRepoImpl @Inject constructor() : BabyGrowthRepo {
         TODO("Not yet implemented")
     }
 
-    override suspend fun getBabyGrowth(): Flow<Resource<List<BabyGrowthModel>>> {
+    override suspend fun getBabyGrowth(): Flow<Resource<List<BabyGrowth>>> {
         val calendar = Calendar.getInstance()
         return flow {
             emit(Resource.Loading())
@@ -39,7 +39,7 @@ class BabyGrowthRepoImpl @Inject constructor() : BabyGrowthRepo {
             //     )
             // )
             val data =  listOf(
-                BabyGrowthModel(
+                BabyGrowth(
                     id = "1",
                     date = System.currentTimeMillis(),
                     weight = 3.2,
@@ -48,7 +48,7 @@ class BabyGrowthRepoImpl @Inject constructor() : BabyGrowthRepo {
                     armLength = 18.0,
                     ageInMonths = 0
                 ),
-                BabyGrowthModel(
+                BabyGrowth(
                     id = "2",
                     date = System.currentTimeMillis(),
                     weight = 4.1,
@@ -57,7 +57,7 @@ class BabyGrowthRepoImpl @Inject constructor() : BabyGrowthRepo {
                     armLength = 20.0,
                     ageInMonths = 1
                 ),
-                BabyGrowthModel(
+                BabyGrowth(
                     id = "3",
                     date = System.currentTimeMillis(),
                     weight = 5.3,

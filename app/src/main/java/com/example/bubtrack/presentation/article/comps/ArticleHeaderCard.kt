@@ -21,18 +21,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.example.bubtrack.domain.article.ArticleModel
-import com.example.bubtrack.domain.article.dummyArticle
-import com.example.bubtrack.ui.theme.AppPurple
-import com.example.bubtrack.ui.theme.BubTrackTheme
+import com.example.bubtrack.domain.article.Article
 
 @Composable
 fun ArticleHeaderCard(
     modifier: Modifier = Modifier,
-    article: ArticleModel,
+    article: Article,
     onClick: () -> Unit
 ) {
     Column(

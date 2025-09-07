@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,7 +23,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.example.bubtrack.domain.diary.DiaryModel
+import com.example.bubtrack.domain.diary.Diary
 import com.example.bubtrack.ui.theme.AppBlue
 import com.example.bubtrack.ui.theme.AppPurple
 import com.example.bubtrack.ui.theme.BubTrackTheme
@@ -33,7 +32,7 @@ import com.example.bubtrack.utill.Utility
 @Composable
 fun DiaryCard(
     modifier: Modifier = Modifier,
-    diary: DiaryModel
+    diary: Diary
 ) {
     Column(
         modifier = modifier
@@ -102,7 +101,7 @@ private fun Preview() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             DiaryCard(
-                diary = DiaryModel(
+                diary = Diary(
                     title = "Test Title",
                     desc = "Test Description aowkaowkaowkoawkwa keren mantep anjay banget askdjasl askldjas asdlkajsd asdlkajs asdlkjasas adskjsa kdajdkas asdkjask adskj",
                     id = "1",
