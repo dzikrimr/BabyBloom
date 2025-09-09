@@ -1,5 +1,6 @@
 package com.example.bubtrack.presentation.activities
 
+import AddSchedulePopUp
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -15,14 +16,17 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Card
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -33,6 +37,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -72,140 +77,170 @@ fun ActivitiesScreen(
         firstVisibleMonth = currentMonth
     )
     val coroutineScope = rememberCoroutineScope()
+    var showDialog by remember { mutableStateOf(false) }
 
-
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(AppBackground)
-    ) {
-        Row(
-            modifier = modifier
-                .fillMaxWidth()
-                .background(Color.White)
-                .statusBarsPadding()
-                .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            IconButton(
-                onClick = {},
-                modifier = modifier.width(25.dp)
+    Scaffold(
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    showDialog = !showDialog
+                },
+                shape = CircleShape,
+                containerColor = AppPurple
             ) {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                    contentDescription = "back button",
-                    modifier = modifier.fillMaxSize()
+                    painter = painterResource(id = com.example.bubtrack.R.drawable.ic_add),
+                    contentDescription = "add activity",
+                    tint = Color.White,
+                    modifier = modifier.size(20.dp)
                 )
             }
-            Text(
-                "Activities",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-            )
-            Spacer(modifier = modifier.width(25.dp))
         }
-        Spacer(modifier.height(18.dp))
-
-        Row(
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Icon(
-                Icons.AutoMirrored.Default.KeyboardArrowLeft,
-                contentDescription = "back button",
-                modifier = modifier
-                    .size(36.dp)
-                    .clickable {
-                        coroutineScope.launch {
-                            val prevMonth = calendarState.firstVisibleMonth.yearMonth.minusMonths(1)
-                            calendarState.animateScrollToMonth(prevMonth)
-                        }
-                    },
-                tint = AppPurple
-
-            )
-            Text(
-                calendarState.firstVisibleMonth.yearMonth
-                    .month
-                    .getDisplayName(TextStyle.FULL, Locale.getDefault()) +
-                        " " + calendarState.firstVisibleMonth.yearMonth.year,
-                style = MaterialTheme.typography.titleSmall.copy(
-                    fontWeight = FontWeight.SemiBold
-                )
-            )
-            Icon(
-                Icons.AutoMirrored.Default.KeyboardArrowRight,
-                contentDescription = "back button",
-                modifier = modifier
-                    .size(36.dp)
-                    .clickable {
-                        coroutineScope.launch {
-                            val prevMonth = calendarState.firstVisibleMonth.yearMonth.plusMonths(1)
-                            calendarState.animateScrollToMonth(prevMonth)
-                        }
-                    },
-                tint = AppPurple
-            )
-
-        }
-
-        Box(
-            modifier = Modifier
-                .padding(14.dp) // padding di luar container
-        ) {
-            ActivityCalendar(
-                activities = uiState.allActivities,
-                onDateSelected = { date ->
-                    viewModel.onDateSelected(date)
-                },
-                modifier = Modifier.fillMaxWidth(),
-                calendarState = calendarState
-            )
-        }
-
+    ) {
+        val bottomPadding = it.calculateBottomPadding()
         Column(
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxSize()
-                .padding(14.dp),
+                .background(AppBackground)
+                .padding(bottom = bottomPadding)
         ) {
-            Text(
-                "Activities on This Day",
-                style = MaterialTheme.typography.titleSmall.copy(
-                    fontWeight = FontWeight.SemiBold
-                )
-            )
-            when {
-                uiState.isLoading -> {
-                    Text("Loading...")
-                }
-
-                uiState.isError != null -> {
-                    Text("Error: ${uiState.isError}")
-                }
-
-                uiState.activitiesForSelectedDate.isEmpty() -> {
-                    Text("No activities on this date")
-                }
-
-                else -> {
-                    Spacer(modifier = modifier.height(18.dp))
-                    val data = uiState.activitiesForSelectedDate
-                    LazyColumn(
+            Row(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                IconButton(
+                    onClick = {},
+                    modifier = modifier.width(25.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                        contentDescription = "back button",
                         modifier = modifier.fillMaxSize()
-                    ) {
-                        items(data.size) {
-                            ActivityCard(activity = data[it])
+                    )
+                }
+                Text(
+                    "Schedule",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                )
+                Spacer(modifier = modifier.width(25.dp))
+            }
+            Spacer(modifier.height(18.dp))
+
+            Row(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .padding(14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Icon(
+                    Icons.AutoMirrored.Default.KeyboardArrowLeft,
+                    contentDescription = "back button",
+                    modifier = modifier
+                        .size(36.dp)
+                        .clickable {
+                            coroutineScope.launch {
+                                val prevMonth =
+                                    calendarState.firstVisibleMonth.yearMonth.minusMonths(1)
+                                calendarState.animateScrollToMonth(prevMonth)
+                            }
+                        },
+                    tint = AppPurple
+
+                )
+                Text(
+                    calendarState.firstVisibleMonth.yearMonth
+                        .month
+                        .getDisplayName(TextStyle.FULL, Locale.getDefault()) +
+                            " " + calendarState.firstVisibleMonth.yearMonth.year,
+                    style = MaterialTheme.typography.titleSmall.copy(
+                        fontWeight = FontWeight.SemiBold
+                    )
+                )
+                Icon(
+                    Icons.AutoMirrored.Default.KeyboardArrowRight,
+                    contentDescription = "back button",
+                    modifier = modifier
+                        .size(36.dp)
+                        .clickable {
+                            coroutineScope.launch {
+                                val prevMonth =
+                                    calendarState.firstVisibleMonth.yearMonth.plusMonths(1)
+                                calendarState.animateScrollToMonth(prevMonth)
+                            }
+                        },
+                    tint = AppPurple
+                )
+
+            }
+
+            Box(
+                modifier = Modifier
+                    .padding(14.dp) // padding di luar container
+            ) {
+                ActivityCalendar(
+                    activities = uiState.allActivities,
+                    onDateSelected = { date ->
+                        viewModel.onDateSelected(date)
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    calendarState = calendarState
+                )
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(14.dp),
+            ) {
+                Text(
+                    "Activities on This Day",
+                    style = MaterialTheme.typography.titleSmall.copy(
+                        fontWeight = FontWeight.SemiBold
+                    )
+                )
+                when {
+                    uiState.isLoading -> {
+                        Text("Loading...")
+                    }
+
+                    uiState.isError != null -> {
+                        Text("Error: ${uiState.isError}")
+                    }
+
+                    uiState.activitiesForSelectedDate.isEmpty() -> {
+                        Text("No activities on this date")
+                    }
+
+                    else -> {
+                        Spacer(modifier = modifier.height(18.dp))
+                        val data = uiState.activitiesForSelectedDate
+                        LazyColumn(
+                            modifier = modifier.fillMaxSize()
+                        ) {
+                            items(data.size) {
+                                ActivityCard(activity = data[it])
+                            }
                         }
                     }
                 }
+
             }
 
         }
-
     }
+
+    if (showDialog){
+        AddSchedulePopUp {
+            showDialog = !showDialog
+        }
+    }
+
+
 }
 
 @Preview

@@ -107,7 +107,8 @@ fun CreateProfileScreen(modifier: Modifier = Modifier) {
                             .align(Alignment.Start)
                             .padding(bottom = 5.dp)
                     )
-                    DatePickerModal(date = date) {
+                    DatePickerModal(
+                        date = date) {
                         it?.let { millis ->
                             dateMillis = millis
                             date = Utility.formatDate(millis)

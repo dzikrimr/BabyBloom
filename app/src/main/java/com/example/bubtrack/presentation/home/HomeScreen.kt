@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -34,6 +36,7 @@ import com.example.bubtrack.presentation.common.ScheduleCard
 import com.example.bubtrack.presentation.diary.comps.StatsCard
 import com.example.bubtrack.presentation.diary.comps.StatsCardItem
 import com.example.bubtrack.presentation.navigation.ActivitiesRoute
+import com.example.bubtrack.presentation.navigation.DiaryRoute
 import com.example.bubtrack.ui.theme.AppBackground
 import com.example.bubtrack.ui.theme.AppBlue
 import com.example.bubtrack.ui.theme.AppLightBlue
@@ -221,7 +224,6 @@ fun HomeScreen(
                     modifier = modifier
                         .fillMaxHeight()
                         .fillMaxWidth(0.5f)
-
                         .clip(
                             RoundedCornerShape(24.dp)
                         )
@@ -233,9 +235,16 @@ fun HomeScreen(
                             .size(46.dp)
                             .clip(CircleShape)
                             .background(
-                                color = Color(0xFFA78BFA)
+                                color = AppPurple.copy(alpha = 0.2f)
                             )
-                    )
+                    ){
+                        Icon(
+                            painter = painterResource(R.drawable.ic_mic),
+                            contentDescription = "cry analyzer",
+                            tint = Color.Unspecified,
+                            modifier = modifier.size(20.dp).align(Alignment.Center)
+                        )
+                    }
                     Spacer(modifier.height(12.dp))
                     Text(
                         "Cry Analyzer",
@@ -251,7 +260,6 @@ fun HomeScreen(
                     modifier = modifier
                         .fillMaxHeight()
                         .fillMaxWidth(1f)
-
                         .clip(
                             RoundedCornerShape(24.dp)
                         )
@@ -263,16 +271,23 @@ fun HomeScreen(
                             .size(46.dp)
                             .clip(CircleShape)
                             .background(
-                                color = Color(0xFF93C5FD)
+                                color = Color(0xFF93C5FD).copy(alpha = 0.2f)
                             )
-                    )
+                    ){
+                        Icon(
+                            painter = painterResource(R.drawable.ic_moon),
+                            contentDescription = "cry analyzer",
+                            tint = Color.Unspecified,
+                            modifier = modifier.size(20.dp).align(Alignment.Center)
+                        )
+                    }
                     Spacer(modifier.height(12.dp))
                     Text(
                         "Sleep Monitor",
                         style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
                     )
                     Text(
-                        "Monitor baby's sleep",
+                        "Monitor baby's sleep \n ",
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -289,7 +304,10 @@ fun HomeScreen(
                 )
                 Text(
                     "Lihat Semua",
-                    style = MaterialTheme.typography.bodyMedium.copy(color = AppPurple)
+                    style = MaterialTheme.typography.bodyMedium.copy(color = AppPurple),
+                    modifier = modifier.clickable{
+                        navController.navigate(DiaryRoute)
+                    }
                 )
             }
             Spacer(modifier.height(22.dp))

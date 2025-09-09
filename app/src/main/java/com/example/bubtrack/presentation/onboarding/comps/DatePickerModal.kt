@@ -4,9 +4,11 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -33,7 +35,8 @@ import com.example.bubtrack.R
 fun DatePickerModal(
     modifier: Modifier = Modifier,
     date: String,
-    onDateSelected: (Long?) -> Unit,
+    showIcon: Boolean = true,
+    onDateSelected: (Long?) -> Unit
 ) {
 
     val datePickerState = rememberDatePickerState()
@@ -61,11 +64,16 @@ fun DatePickerModal(
             text = date,
             style = MaterialTheme.typography.bodyMedium
         )
-        Icon(
-            painter = painterResource(R.drawable.ic_calendar),
-            contentDescription = "calendar",
-            tint = Color.Unspecified
-        )
+        if (showIcon){
+            Icon(
+                painter = painterResource(R.drawable.ic_calendar),
+                contentDescription = "calendar",
+                tint = Color.Unspecified
+            )
+        } else {
+            Spacer(modifier.width(12.dp))
+        }
+
     }
 
     if (showDialog){
