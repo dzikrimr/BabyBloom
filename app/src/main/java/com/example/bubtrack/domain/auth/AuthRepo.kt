@@ -1,6 +1,7 @@
 package com.example.bubtrack.domain.auth
 
 import com.example.bubtrack.utill.Resource
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.firebase.auth.AuthResult
 import kotlinx.coroutines.flow.Flow
 
@@ -14,4 +15,5 @@ interface AuthRepo {
         confirmPassword: String
     ) : Flow<Resource<AuthResult>>
     suspend fun forgotPassword (email: String) : Resource<Unit>
+    suspend fun loginWithGoogle(account: GoogleSignInAccount): Flow<Resource<AuthResult>>
 }

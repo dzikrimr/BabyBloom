@@ -15,17 +15,15 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,8 +32,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.example.bubtrack.R
 import com.example.bubtrack.presentation.common.CommonTextField
 import com.example.bubtrack.presentation.common.PasswordTextField
@@ -43,20 +41,18 @@ import com.example.bubtrack.presentation.navigation.MainRoute
 import com.example.bubtrack.presentation.navigation.RegisterRoute
 import com.example.bubtrack.ui.theme.AppPurple
 import com.example.bubtrack.ui.theme.BubTrackTheme
-import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.launch
 import android.widget.Toast
+import androidx.navigation.compose.rememberNavController
 
 @Composable
 fun LoginScreen(
     modifier: Modifier = Modifier,
-    navController: NavController,
+    navController: NavController
 ) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+    val viewModel: LoginViewModel = hiltViewModel()
+    val state by viewModel.state.collectAsState()
+
     val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
-    val auth = FirebaseAuth.getInstance()
 
     Column(
         modifier = modifier
@@ -67,25 +63,25 @@ fun LoginScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            "Selamat Datang, Parent",
+            text = "Selamat Datang, Parent",
             style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
             modifier = Modifier.padding(bottom = 12.dp)
         )
         Text(
-            "Masuk untuk terus mendampingi si kecil.",
+            text = "Masuk untuk terus mendampingi si kecil.",
             style = MaterialTheme.typography.bodyMedium
         )
         Spacer(modifier = Modifier.height(32.dp))
         CommonTextField(
-            value = email,
+            value = state.email,
             placeholder = "Email",
-            onValueChange = { email = it }
+            onValueChange = { viewModel.onEmailChange(it) }
         )
         Spacer(modifier = Modifier.height(12.dp))
         PasswordTextField(
-            value = password,
+            value = state.password,
             placeholder = "Password",
-            onValueChange = { password = it }
+            onValueChange = { viewModel.onPasswordChange(it) }
         )
         TextButton(
             onClick = {
@@ -95,51 +91,42 @@ fun LoginScreen(
             modifier = Modifier.align(Alignment.End)
         ) {
             Text(
-                "Lupa Sandi?",
+                text = "Lupa Sandi?",
                 style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
                 color = AppPurple,
             )
         }
         Spacer(modifier = Modifier.height(32.dp))
-        OutlinedButton(
-            onClick = {
-                if (email.isBlank() || password.isBlank()) {
-                    Toast.makeText(context, "Lengkapi email dan password!", Toast.LENGTH_SHORT).show()
-                } else {
-                    coroutineScope.launch {
-                        auth.signInWithEmailAndPassword(email, password)
-                            .addOnCompleteListener { task ->
-                                if (task.isSuccessful) {
-                                    Toast.makeText(context, "Login berhasil!", Toast.LENGTH_SHORT).show()
-                                    navController.navigate(MainRoute) {
-                                        popUpTo(navController.graph.startDestinationId) {
-                                            inclusive = true
-                                        }
-                                    }
-                                } else {
-                                    Toast.makeText(context, "Login gagal: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                    }
-                }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(55.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = AppPurple,
-            ),
-            shape = RoundedCornerShape(18.dp),
-            border = BorderStroke(width = 0.dp, color = Color.Transparent)
-        ) {
+        if (state.isLoading) {
+            CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+        } else {
+            OutlinedButton(
+                onClick = { viewModel.login(navController) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(55.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = AppPurple,
+                ),
+                shape = RoundedCornerShape(18.dp),
+                border = BorderStroke(width = 0.dp, color = Color.Transparent)
+            ) {
+                Text(
+                    text = "Masuk",
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                    color = Color.White
+                )
+            }
+        }
+        if (state.errorMessage != null) {
             Text(
-                "Masuk",
-                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                color = Color.White
+                text = state.errorMessage!!,
+                color = Color.Red,
+                modifier = Modifier.padding(top = 8.dp)
             )
         }
         Text(
-            "Atau",
+            text = "Atau",
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(vertical = 16.dp)
         )
@@ -168,7 +155,7 @@ fun LoginScreen(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    "Masuk dengan Google",
+                    text = "Masuk dengan Google",
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                     color = AppPurple
                 )
@@ -179,19 +166,26 @@ fun LoginScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                "Belum punya akun?",
+                text = "Belum punya akun?",
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(end = 4.dp)
             )
             Text(
-                "Daftar",
+                text = "Daftar",
                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                 color = AppPurple,
                 modifier = Modifier.clickable {
-                    navController.navigate(RegisterRoute)
+                    navController.navigate("register") {
+                        popUpTo(navController.graph.startDestinationId)
+                        launchSingleTop = true
+                    }
                 }
             )
         }
+    }
+
+    if (state.isSuccess) {
+        Toast.makeText(context, "Login berhasil!", Toast.LENGTH_SHORT).show()
     }
 }
 
