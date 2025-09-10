@@ -86,6 +86,7 @@ fun GrowthChart(
                 DropdownMenu(
                     expanded = isDropdownExpanded,
                     onDismissRequest = { isDropdownExpanded = false },
+                    containerColor = Color.White
 
                 ) {
                     listOf(

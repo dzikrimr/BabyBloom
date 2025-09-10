@@ -24,49 +24,51 @@ class BabyGrowthRepoImpl @Inject constructor() : BabyGrowthRepo {
             emit(Resource.Loading())
 
             // Scenario 1: Empty data (comment/uncomment to test different scenarios)
-            // return emptyList()
+             val data = emptyList<BabyGrowth>()
 
             // Scenario 2: Single data point
-            // return listOf(
-            //     BabyGrowthModel(
-            //         id = "1",
-            //         date = calendar.time,
-            //         weight = 3.2f,
-            //         height = 52f,
-            //         headCircumference = 35f,
-            //         armLength = 18f,
-            //         ageInMonths = 0
-            //     )
-            // )
-            val data =  listOf(
-                BabyGrowth(
-                    id = "1",
-                    date = System.currentTimeMillis(),
-                    weight = 3.2,
-                    height = 52.0,
-                    headCircumference = 35.0,
-                    armLength = 18.0,
-                    ageInMonths = 0
-                ),
-                BabyGrowth(
-                    id = "2",
-                    date = System.currentTimeMillis(),
-                    weight = 4.1,
-                    height = 55.0,
-                    headCircumference = 36.0,
-                    armLength = 20.0,
-                    ageInMonths = 1
-                ),
-                BabyGrowth(
-                    id = "3",
-                    date = System.currentTimeMillis(),
-                    weight = 5.3,
-                    height = null, // Some missing data
-                    headCircumference = 37.0,
-                    armLength = null,
-                    ageInMonths = 2
-                )
-            )
+//             val data =  listOf(
+//                 BabyGrowth(
+//                     id = "1",
+//                    date = System.currentTimeMillis(),
+//                    weight = 3.2,
+//                    height = 52.0,
+//                    headCircumference = 35.0,
+//                    armLength = 18.0,
+//                    ageInMonths = 0
+//                 )
+//             )
+
+            // Scenario 3
+//            val data =  listOf(
+//                BabyGrowth(
+//                    id = "1",
+//                    date = System.currentTimeMillis(),
+//                    weight = 3.2,
+//                    height = 52.0,
+//                    headCircumference = 35.0,
+//                    armLength = 18.0,
+//                    ageInMonths = 0
+//                ),
+//                BabyGrowth(
+//                    id = "2",
+//                    date = System.currentTimeMillis(),
+//                    weight = 4.1,
+//                    height = 55.0,
+//                    headCircumference = 36.0,
+//                    armLength = 20.0,
+//                    ageInMonths = 1
+//                ),
+//                BabyGrowth(
+//                    id = "3",
+//                    date = System.currentTimeMillis(),
+//                    weight = 5.3,
+//                    height = null, // Some missing data
+//                    headCircumference = 37.0,
+//                    armLength = null,
+//                    ageInMonths = 2
+//                )
+//            )
             emit(Resource.Success(data))
         }
     }
