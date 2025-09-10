@@ -1,9 +1,12 @@
 package com.example.bubtrack.presentation.diary
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,11 +38,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
 import com.example.bubtrack.R
 import com.example.bubtrack.domain.diary.Diary
 import com.example.bubtrack.presentation.diary.comps.DiaryCard
@@ -47,15 +53,31 @@ import com.example.bubtrack.ui.theme.AppBackground
 import com.example.bubtrack.ui.theme.AppGray
 import com.example.bubtrack.ui.theme.AppPurple
 import com.example.bubtrack.ui.theme.BubTrackTheme
+import android.widget.Toast
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.layout.ContentScale
 
 @Composable
-fun DevelopmentScreen(modifier: Modifier = Modifier) {
-
+fun DevelopmentScreen(
+    modifier: Modifier = Modifier,
+    viewModel: DiaryViewModel = hiltViewModel()
+) {
     var isExpanded by rememberSaveable { mutableStateOf(false) }
     var diaryTitle by rememberSaveable { mutableStateOf("") }
     var diaryDescription by rememberSaveable { mutableStateOf("") }
+    var selectedImageUri by rememberSaveable { mutableStateOf<String?>(null) }
 
-    val diary: List<Diary> = emptyList()
+    val context = LocalContext.current
+    val pickImageLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let {
+            selectedImageUri = it.toString()
+        }
+    }
+
+    val diaryList by viewModel.diaryState.collectAsState()
+
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
@@ -63,11 +85,9 @@ fun DevelopmentScreen(modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
         item {
-            // Button buat expand
+            // Button to expand
             OutlinedButton(
-                onClick = {
-                    isExpanded = !isExpanded
-                },
+                onClick = { isExpanded = !isExpanded },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(60.dp),
@@ -111,15 +131,14 @@ fun DevelopmentScreen(modifier: Modifier = Modifier) {
                     }
                     Icon(
                         painter = painterResource(if (isExpanded) R.drawable.ic_arrowup else R.drawable.ic_arrowdown),
-                        "arrow",
+                        contentDescription = "arrow",
                         tint = AppGray
                     )
                 }
             }
         }
-
         item {
-            // Konten expandable
+            // Expandable content
             AnimatedVisibility(
                 modifier = modifier
                     .fillMaxWidth()
@@ -132,7 +151,7 @@ fun DevelopmentScreen(modifier: Modifier = Modifier) {
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(14.dp))
                         .background(Color.White)
-                        .padding(top = 12.dp),
+                        .padding(top = 12.dp, start = 16.dp, end = 16.dp, bottom = 16.dp),
                     horizontalAlignment = Alignment.Start
                 ) {
                     Text(
@@ -156,7 +175,7 @@ fun DevelopmentScreen(modifier: Modifier = Modifier) {
                             disabledBorderColor = AppGray
                         ),
                         keyboardOptions = KeyboardOptions(
-                            imeAction = ImeAction.Done
+                            imeAction = ImeAction.Next
                         ),
                         singleLine = true
                     )
@@ -210,19 +229,44 @@ fun DevelopmentScreen(modifier: Modifier = Modifier) {
                                 )
                                 .clip(RoundedCornerShape(14.dp))
                                 .background(Color(0xFFF3F4F6))
+                                .clickable { pickImageLauncher.launch("image/*") }
                         ) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_camera),
-                                contentDescription = "camera button",
-                                tint = Color.Unspecified,
-                                modifier = modifier
-                                    .align(Alignment.Center)
-                                    .size(30.dp)
-                            )
+                            if (selectedImageUri != null) {
+                                AsyncImage(
+                                    model = selectedImageUri,
+                                    contentDescription = "Selected Image",
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_camera),
+                                    contentDescription = "camera button",
+                                    tint = Color.Unspecified,
+                                    modifier = modifier
+                                        .align(Alignment.Center)
+                                        .size(30.dp)
+                                )
+                            }
                         }
                     }
                     OutlinedButton(
-                        onClick = {},
+                        onClick = {
+                            if (diaryTitle.isBlank() || diaryDescription.isBlank()) {
+                                Toast.makeText(context, "Judul dan deskripsi harus diisi!", Toast.LENGTH_SHORT).show()
+                            } else {
+                                viewModel.addDiaryEntry(
+                                    title = diaryTitle,
+                                    description = diaryDescription,
+                                    imageUri = selectedImageUri,
+                                    context = context
+                                )
+                                diaryTitle = ""
+                                diaryDescription = ""
+                                selectedImageUri = null
+                                isExpanded = false
+                            }
+                        },
                         modifier = Modifier
                             .padding(top = 12.dp)
                             .fillMaxWidth()
@@ -242,12 +286,10 @@ fun DevelopmentScreen(modifier: Modifier = Modifier) {
                 }
             }
         }
-
-        // Konten Diary
-        if (!diary.isNullOrEmpty()) {
-
-            items(diary.size) {
-                DiaryCard(diary = diary[it]!!)
+        // Diary content
+        if (diaryList.isNotEmpty()) {
+            items(diaryList.size) { index ->
+                DiaryCard(diary = diaryList[index])
             }
         } else {
             item {

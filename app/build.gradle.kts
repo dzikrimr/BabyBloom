@@ -54,6 +54,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.compose.android)
+    implementation(libs.play.services.cast.tv)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -114,4 +115,7 @@ dependencies {
 
     //calendar
     implementation("com.kizitonwose.calendar:compose:2.6.1")
+
+    //cloudinary
+    implementation ("com.cloudinary:cloudinary-android:3.0.2")
 }

@@ -29,6 +29,7 @@ accompanistSystemuicontrollerVersion = "0.32.0"
 accompanistPermissionsVersion = "0.37.3"
 splash ="1.0.1"
 navigationComposeAndroidVersion = "2.9.3"
+playServicesCastTvVersion = "21.1.1"
 
 [libraries]
 
@@ -73,6 +74,7 @@ paging-compose = {group = "androidx.paging", name="paging-compose", version.ref 
 foundation-pager = { group = "androidx.compose.foundation", name = "foundation", version.ref = "pagerVersion" }
 core-splashscreen = { group = "androidx.core", name="core-splashscreen", version.ref="splash"}
 androidx-navigation-compose-android = { group = "androidx.navigation", name = "navigation-compose-android", version.ref = "navigationComposeAndroidVersion" }
+play-services-cast-tv = { group = "com.google.android.gms", name = "play-services-cast-tv", version.ref = "playServicesCastTvVersion" }
 
 
 [plugins]

@@ -13,19 +13,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.bubtrack.presentation.diary.helper.GrowthUiState
 import com.example.bubtrack.ui.theme.AppPurple
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import com.example.bubtrack.utill.Utility
 import kotlin.math.roundToInt
 
 @Composable
@@ -36,8 +34,7 @@ fun GrowthChart(
     var isDropdownExpanded by remember { mutableStateOf(false) }
 
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = Modifier.fillMaxWidth()
     ) {
         // Header
         Row(
@@ -51,7 +48,6 @@ fun GrowthChart(
                     fontWeight = FontWeight.SemiBold
                 )
             )
-
             // Dropdown Button
             Box {
                 Card(
@@ -82,11 +78,9 @@ fun GrowthChart(
                         )
                     }
                 }
-
                 DropdownMenu(
                     expanded = isDropdownExpanded,
-                    onDismissRequest = { isDropdownExpanded = false },
-
+                    onDismissRequest = { isDropdownExpanded = false }
                 ) {
                     listOf(
                         ChartType.Weight,
@@ -100,15 +94,13 @@ fun GrowthChart(
                                 selectedChartType = chartType
                                 isDropdownExpanded = false
                             },
-                            modifier = Modifier.background(Color.White)
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                         )
                     }
                 }
             }
         }
-
         Spacer(modifier = Modifier.height(18.dp))
-
         // Chart Card
         Card(
             modifier = Modifier
@@ -135,18 +127,16 @@ fun GrowthChart(
                     }
                 }
                 else -> {
-                    val chartData = state.isSuccess.map {
-                        val formatted = SimpleDateFormat("MM/yyyy", Locale.getDefault())
-                            .format(Date(it.date))
+                    // Sort data by date (ascending)
+                    val chartData = state.isSuccess.sortedBy { it.date }.map {
                         ChartData(
-                            month = formatted,
+                            date = it.date,
                             weight = it.weight?.toFloat() ?: 0f,
                             height = it.height?.toFloat() ?: 0f,
                             headCircumference = it.headCircumference?.toFloat() ?: 0f,
                             armLength = it.armLength?.toFloat() ?: 0f
                         )
                     }
-
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
@@ -157,19 +147,23 @@ fun GrowthChart(
                                 "Data masih terbatas (${chartData.size} entri)",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = Color.Gray,
-                                modifier = Modifier.padding(bottom = 8.dp)
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 8.dp),
+                                textAlign = TextAlign.Center
                             )
                         }
-
                         Text(
                             text = "${selectedChartType.displayName} (${selectedChartType.unit})",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Medium,
-                            color = Color.Black
+                            color = Color.Black,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 8.dp),
+                            textAlign = TextAlign.Center
                         )
-
-                        Spacer(modifier = Modifier.height(24.dp))
-
+                        Spacer(modifier = Modifier.height(16.dp))
                         LineChart(
                             data = chartData,
                             chartType = selectedChartType,
@@ -189,10 +183,9 @@ fun LineChart(
     modifier: Modifier = Modifier
 ) {
     val density = LocalDensity.current
-
     Canvas(modifier = modifier) {
         val canvasWidth = size.width
-        val canvasHeight = size.height - 30.dp.toPx() // Space for labels
+        val canvasHeight = size.height - 40.dp.toPx()
 
         // Get values based on chart type
         val values = data.map { chartData ->
@@ -206,14 +199,13 @@ fun LineChart(
 
         val maxValue = values.maxOrNull() ?: 0f
         val minValue = values.minOrNull() ?: 0f
-        val valueRange = maxValue - minValue
+        val valueRange = if (maxValue == minValue) 1f else maxValue - minValue
 
         // Draw grid lines and Y-axis labels
         val gridLines = 5
         for (i in 0..gridLines) {
             val y = canvasHeight - (i * canvasHeight / gridLines)
             val value = minValue + (i * valueRange / gridLines)
-
             // Draw grid line
             drawLine(
                 color = Color(0xFFE5E7EB),
@@ -221,13 +213,12 @@ fun LineChart(
                 end = Offset(canvasWidth, y),
                 strokeWidth = 1.dp.toPx()
             )
-
             // Draw Y-axis label
             drawContext.canvas.nativeCanvas.drawText(
                 "${value.roundToInt()}",
                 -40f,
                 y + 5f,
-                Paint().asFrameworkPaint().apply {
+                android.graphics.Paint().apply {
                     color = android.graphics.Color.GRAY
                     textSize = 12.sp.toPx()
                     isAntiAlias = true
@@ -237,7 +228,11 @@ fun LineChart(
 
         // Calculate points
         val points = values.mapIndexed { index, value ->
-            val x = (index * canvasWidth / (values.size - 1))
+            val x = if (values.size > 1) {
+                index * canvasWidth / (values.size - 1)
+            } else {
+                canvasWidth / 2
+            }
             val y = canvasHeight - ((value - minValue) / valueRange * canvasHeight)
             Offset(x, y)
         }
@@ -250,7 +245,6 @@ fun LineChart(
                 path.lineTo(points[i].x, points[i].y)
             }
         }
-
         drawPath(
             path = path,
             color = AppPurple,
@@ -268,16 +262,20 @@ fun LineChart(
 
         // Draw X-axis labels
         data.forEachIndexed { index, chartData ->
-            val x = index * canvasWidth / (data.size - 1)
+            val x = if (data.size > 1) {
+                index * canvasWidth / (data.size - 1)
+            } else {
+                canvasWidth / 2
+            }
             val y = canvasHeight + 30.dp.toPx()
-
+            val formattedDate = Utility.formatDate(chartData.date)
             drawContext.canvas.nativeCanvas.drawText(
-                chartData.month,
-                x - 20f,
+                formattedDate,
+                x - 40f,
                 y,
-                Paint().asFrameworkPaint().apply {
+                android.graphics.Paint().apply {
                     color = android.graphics.Color.GRAY
-                    textSize = 12.sp.toPx()
+                    textSize = 10.sp.toPx()
                     isAntiAlias = true
                 }
             )
@@ -286,7 +284,7 @@ fun LineChart(
 }
 
 data class ChartData(
-    val month: String,
+    val date: Long,
     val weight: Float,
     val height: Float,
     val headCircumference: Float,
@@ -299,4 +297,3 @@ sealed class ChartType(val displayName: String, val unit: String) {
     object HeadCircumference : ChartType("L. Kepala", "cm")
     object ArmLength : ChartType("L. Lengan", "cm")
 }
-
