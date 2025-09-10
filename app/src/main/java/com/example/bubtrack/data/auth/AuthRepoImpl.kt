@@ -2,7 +2,6 @@ package com.example.bubtrack.data.auth
 
 import android.widget.Toast
 import com.example.bubtrack.domain.auth.AuthRepo
-import com.example.bubtrack.presentation.navigation.CreateProfileRoute
 import com.example.bubtrack.utill.Resource
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
@@ -59,6 +58,42 @@ class AuthRepoImpl @Inject constructor(
     }
 
     override suspend fun forgotPassword(email: String): Resource<Unit> {
-        TODO("Not yet implemented")
+        return try {
+            auth.sendPasswordResetEmail(email).result
+            Resource.Success(Unit)
+        } catch (e: Exception) {
+            Resource.Error(e.localizedMessage)
+        }
+    }
+
+    override suspend fun createBabyProfile(
+        babyName: String,
+        dateMillis: Long,
+        selectedGender: String,
+        weight: String,
+        height: String,
+        headCircumference: String,
+        armCircumference: String
+    ): Resource<Unit> {
+        val userId = auth.currentUser?.uid ?: return Resource.Error("Pengguna tidak ditemukan!")
+        val babyProfile: Map<String, Any> = mapOf(
+            "babyName" to babyName,
+            "birthDate" to dateMillis,
+            "gender" to selectedGender,
+            "weight" to weight,
+            "height" to height,
+            "headCircumference" to headCircumference,
+            "armCircumference" to armCircumference,
+            "createdAt" to System.currentTimeMillis()
+        )
+        return try {
+            firestore.collection("users").document(userId)
+                .collection("babyProfiles").document("primary")
+                .set(babyProfile)
+                .await()
+            Resource.Success(Unit)
+        } catch (e: Exception) {
+            Resource.Error("Gagal menyimpan profil: ${e.message}")
+        }
     }
 }
