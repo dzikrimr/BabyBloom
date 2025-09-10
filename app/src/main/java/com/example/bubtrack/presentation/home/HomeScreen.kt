@@ -49,6 +49,7 @@ import com.example.bubtrack.ui.theme.AppPurple
 import com.example.bubtrack.ui.theme.BubTrackTheme
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -62,11 +63,12 @@ fun HomeScreen(
 ) {
     var babyProfile by remember { mutableStateOf<Map<String, Any>?>(null) }
     var babyAge by remember { mutableStateOf("") }
+    var latestGrowthStats by remember { mutableStateOf(GrowthStats()) }
     val context = LocalContext.current
     val auth = FirebaseAuth.getInstance()
     val firestore = FirebaseFirestore.getInstance()
 
-    // Fetch baby profile data using LaunchedEffect
+    // Fetch baby profile data (for name and age)
     LaunchedEffect(Unit) {
         val userId = auth.currentUser?.uid
         if (userId != null) {
@@ -95,40 +97,57 @@ fun HomeScreen(
         }
     }
 
-    val stats = babyProfile?.let {
-        GrowthStats(
-            weight = it["weight"] as? Double ?: 0.0,
-            height = it["height"] as? Double ?: 0.0,
-            headCircum = it["headCircumference"] as? Double ?: 0.0,
-            armCircum = it["armCircumference"] as? Double ?: 0.0
-        )
-    } ?: GrowthStats(weight = 0.0, height = 0.0, headCircum = 0.0, armCircum = 0.0)
+    // Fetch latest growth stats from growthRecords
+    LaunchedEffect(Unit) {
+        val userId = auth.currentUser?.uid
+        if (userId != null) {
+            firestore.collection("users").document(userId)
+                .collection("growthRecords")
+                .orderBy("date", Query.Direction.DESCENDING)
+                .limit(1)
+                .addSnapshotListener { snapshot, error ->
+                    if (error != null) {
+                        Toast.makeText(context, "Gagal mengambil data pertumbuhan: ${error.message}", Toast.LENGTH_SHORT).show()
+                        return@addSnapshotListener
+                    }
+                    val latestGrowth = snapshot?.documents?.firstOrNull()?.let { doc ->
+                        GrowthStats(
+                            weight = doc.getDouble("weight") ?: 0.0,
+                            height = doc.getDouble("height") ?: 0.0,
+                            headCircum = doc.getDouble("headCircumference") ?: 0.0,
+                            armCircum = doc.getDouble("armLength") ?: 0.0
+                        )
+                    } ?: GrowthStats()
+                    latestGrowthStats = latestGrowth
+                }
+        }
+    }
 
     val statsList = listOf(
         StatsCardItem(
             title = "Berat",
-            value = stats.weight,
+            value = latestGrowthStats.weight,
             icon = R.drawable.ic_weightscale,
             unit = "kg",
             bgColor = AppPurple
         ),
         StatsCardItem(
             title = "Tinggi",
-            value = stats.height,
+            value = latestGrowthStats.height,
             icon = R.drawable.ic_height,
             unit = "cm",
             bgColor = AppBlue
         ),
         StatsCardItem(
             title = "L. Kepala",
-            value = stats.headCircum,
+            value = latestGrowthStats.headCircum,
             icon = R.drawable.ic_head,
             unit = "cm",
             bgColor = AppPink
         ),
         StatsCardItem(
             title = "L. Lengan",
-            value = stats.armCircum,
+            value = latestGrowthStats.armCircum,
             icon = R.drawable.ic_head,
             unit = "cm",
             bgColor = AppLightPurple
