@@ -17,6 +17,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
+import com.example.babymonitor.ui.screens.SleepMonitorScreen
 import com.example.bubtrack.presentation.activities.ActivitiesScreen
 import com.example.bubtrack.presentation.ai.AiScreen
 import com.example.bubtrack.presentation.article.ArticleDetailScreen
@@ -37,7 +38,8 @@ fun MainNavigation(modifier: Modifier = Modifier) {
     val currentDestination = navBackStackEntry?.destination
 
     val screenWithoutNavbar = listOf(
-        ActivitiesRoute::class.qualifiedName!!
+        ActivitiesRoute::class.qualifiedName!!,
+        SleepMonitorRoute::class.qualifiedName!!
     )
     val showBottomBar = currentDestination?.route?.let { currentRoute ->
         !screenWithoutNavbar.any { routeWithoutNavbar ->
@@ -87,7 +89,13 @@ fun MainNavigation(modifier: Modifier = Modifier) {
                 DiaryScreen()
             }
             composable<AiRoute> {
-                AiScreen()
+                AiScreen(navController = navController)
+            }
+            composable<SleepMonitorRoute> {
+                SleepMonitorScreen(
+                    navController = navController,
+                    onBackClick = { navController.popBackStack() }
+                )
             }
             navigation<ArticleRoute>(startDestination = ArticleHomeRoute) {
                 composable<ArticleHomeRoute> {
