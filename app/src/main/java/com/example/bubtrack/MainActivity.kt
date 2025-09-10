@@ -10,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+<<<<<<< HEAD
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -25,9 +26,25 @@ import com.example.bubtrack.utils.NotificationHelper
 import com.example.bubtrack.viewmodel.SleepDetectionViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+=======
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.bubtrack.presentation.activities.ActivitiesScreen
+import com.example.bubtrack.presentation.home.HomeScreen
+import com.example.bubtrack.presentation.navigation.MainNavigation
+import com.example.bubtrack.presentation.navigation.OnBoardingNavigation
+import com.example.bubtrack.presentation.onboarding.CreateProfileScreen
+import com.example.bubtrack.presentation.onboarding.OnBoardingScreen
+import com.example.bubtrack.ui.theme.BubTrackTheme
+import dagger.hilt.android.AndroidEntryPoint
+>>>>>>> 0605efe6db813be54e885793a75ec4c10fec73d6
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+<<<<<<< HEAD
     @OptIn(ExperimentalPermissionsApi::class)
+=======
+
+>>>>>>> 0605efe6db813be54e885793a75ec4c10fec73d6
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -60,6 +77,7 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
+<<<<<<< HEAD
             MaterialTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -67,10 +85,15 @@ class MainActivity : ComponentActivity() {
                 ) {
                     AppNavigation(viewModelFactory = viewModelFactory)
                 }
+=======
+            BubTrackTheme {
+                OnBoardingNavigation()
+>>>>>>> 0605efe6db813be54e885793a75ec4c10fec73d6
             }
         }
     }
 }
+<<<<<<< HEAD
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -112,3 +135,5 @@ fun AppNavigation(viewModelFactory: ViewModelProvider.Factory) {
         Text("Memerlukan izin kamera dan notifikasi untuk memulai monitoring")
     }
 }
+=======
+>>>>>>> 0605efe6db813be54e885793a75ec4c10fec73d6

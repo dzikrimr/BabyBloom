@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "528926580104",
+    "project_id": "possible-bolt-464410-g6",
+    "storage_bucket": "possible-bolt-464410-g6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:528926580104:android:34adf17427fe14b9c32e3d",
+        "android_client_info": {
+          "package_name": "com.example.bubtrack"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "528926580104-ea0rfokf8g9rvlo28vjh7ufleglsl5i1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.bubtrack",
+            "certificate_hash": "69242f281d4fabb82993926a377f57dffba83f73"
+          }
+        },
+        {
+          "client_id": "528926580104-t4oedo8gf2dmk9ik6tkna9u4ll38vvb7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCOLyWY92S56k5FVSWlXv0asoVwXKFKq4g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "528926580104-t4oedo8gf2dmk9ik6tkna9u4ll38vvb7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
