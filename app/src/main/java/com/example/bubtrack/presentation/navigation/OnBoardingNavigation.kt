@@ -6,6 +6,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.bubtrack.presentation.onboarding.CreateProfileScreen
 import com.example.bubtrack.presentation.onboarding.LoginScreen
 import com.example.bubtrack.presentation.onboarding.OnBoardingScreen
 import com.example.bubtrack.presentation.onboarding.RegisterScreen
@@ -32,6 +33,11 @@ fun OnBoardingNavigation(modifier: Modifier = Modifier) {
         }
         composable<RegisterRoute>{
             RegisterScreen(
+                navController = navController
+            )
+        }
+        composable<CreateProfileRoute>{
+            CreateProfileScreen(
                 navController = navController
             )
         }

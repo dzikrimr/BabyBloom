@@ -28,6 +28,7 @@ pagerVersion = "1.7.2"
 accompanistSystemuicontrollerVersion = "0.32.0"
 accompanistPermissionsVersion = "0.37.3"
 splash ="1.0.1"
+navigationComposeAndroidVersion = "2.9.3"
 
 [libraries]
 
@@ -71,6 +72,7 @@ paging-runtime = {group = "androidx.paging", name="paging-runtime", version.ref 
 paging-compose = {group = "androidx.paging", name="paging-compose", version.ref = "paging"}
 foundation-pager = { group = "androidx.compose.foundation", name = "foundation", version.ref = "pagerVersion" }
 core-splashscreen = { group = "androidx.core", name="core-splashscreen", version.ref="splash"}
+androidx-navigation-compose-android = { group = "androidx.navigation", name = "navigation-compose-android", version.ref = "navigationComposeAndroidVersion" }
 
 
 [plugins]

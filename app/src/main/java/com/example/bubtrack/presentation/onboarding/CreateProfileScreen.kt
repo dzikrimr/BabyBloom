@@ -22,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,8 +32,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.bubtrack.presentation.common.CommonTextField
 import com.example.bubtrack.presentation.common.NumberTextField
+import com.example.bubtrack.presentation.navigation.MainRoute
 import com.example.bubtrack.presentation.onboarding.comps.DatePickerModal
 import com.example.bubtrack.ui.theme.AppBlue
 import com.example.bubtrack.ui.theme.AppLightBlue
@@ -41,24 +45,28 @@ import com.example.bubtrack.ui.theme.AppPink
 import com.example.bubtrack.ui.theme.AppPurple
 import com.example.bubtrack.ui.theme.BubTrackTheme
 import com.example.bubtrack.utill.Utility
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.launch
 
 @Composable
-fun CreateProfileScreen(modifier: Modifier = Modifier) {
-
+fun CreateProfileScreen(
+    modifier: Modifier = Modifier,
+    navController: NavController
+) {
     var babyName by remember { mutableStateOf("") }
     var date by remember { mutableStateOf("dd/mm/yyyy") }
-    var dateMillis by remember { mutableLongStateOf(0) }
+    var dateMillis by remember { mutableLongStateOf(0L) }
     var selectedGender by remember { mutableStateOf("Laki-Laki") }
-
     var weight by remember { mutableStateOf("") }
     var height by remember { mutableStateOf("") }
     var headCircumference by remember { mutableStateOf("") }
     var armCircumference by remember { mutableStateOf("") }
-
-    // state page (0 = page 1, 1 = page 2)
     var currentPage by remember { mutableStateOf(0) }
-
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val auth = FirebaseAuth.getInstance()
+    val firestore = FirebaseFirestore.getInstance()
 
     Column(
         modifier = modifier
@@ -83,7 +91,6 @@ fun CreateProfileScreen(modifier: Modifier = Modifier) {
                 textAlign = TextAlign.Center
             )
         }
-
         when (currentPage) {
             0 -> {
                 Column {
@@ -162,7 +169,6 @@ fun CreateProfileScreen(modifier: Modifier = Modifier) {
                     }
                 }
             }
-
             1 -> {
                 Column {
                     Text(
@@ -219,7 +225,6 @@ fun CreateProfileScreen(modifier: Modifier = Modifier) {
                 }
             }
         }
-
         Column {
             OutlinedButton(
                 onClick = {
@@ -233,8 +238,37 @@ fun CreateProfileScreen(modifier: Modifier = Modifier) {
                         if (weight.isBlank() || height.isBlank() || headCircumference.isBlank() || armCircumference.isBlank()) {
                             Toast.makeText(context, "Lengkapi semua data pada form ini!", Toast.LENGTH_SHORT).show()
                         } else {
-                            Toast.makeText(context, "Profil berhasil dibuat!", Toast.LENGTH_SHORT).show()
-                            // TODO: submit ke server / ViewModel
+                            coroutineScope.launch {
+                                val userId = auth.currentUser?.uid
+                                if (userId != null) {
+                                    val babyProfile: Map<String, Any> = mapOf(
+                                        "babyName" to babyName,
+                                        "birthDate" to dateMillis,
+                                        "gender" to selectedGender,
+                                        "weight" to (weight.toDoubleOrNull() ?: 0.0),
+                                        "height" to (height.toDoubleOrNull() ?: 0.0),
+                                        "headCircumference" to (headCircumference.toDoubleOrNull() ?: 0.0),
+                                        "armCircumference" to (armCircumference.toDoubleOrNull() ?: 0.0),
+                                        "createdAt" to System.currentTimeMillis()
+                                    )
+                                    firestore.collection("users").document(userId)
+                                        .collection("babyProfiles").document("primary")
+                                        .set(babyProfile)
+                                        .addOnSuccessListener {
+                                            Toast.makeText(context, "Profil berhasil dibuat!", Toast.LENGTH_SHORT).show()
+                                            navController.navigate(MainRoute) {
+                                                popUpTo(navController.graph.startDestinationId) {
+                                                    inclusive = true
+                                                }
+                                            }
+                                        }
+                                        .addOnFailureListener {
+                                            Toast.makeText(context, "Gagal menyimpan profil: ${it.message}", Toast.LENGTH_SHORT).show()
+                                        }
+                                } else {
+                                    Toast.makeText(context, "Pengguna tidak ditemukan!", Toast.LENGTH_SHORT).show()
+                                }
+                            }
                         }
                     }
                 },
@@ -269,15 +303,13 @@ fun CreateProfileScreen(modifier: Modifier = Modifier) {
                 }
             }
         }
-
-
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
-private fun Preview() {
+fun CreateProfileScreenPreview() {
     BubTrackTheme {
-        CreateProfileScreen()
+        CreateProfileScreen(navController = rememberNavController())
     }
 }
