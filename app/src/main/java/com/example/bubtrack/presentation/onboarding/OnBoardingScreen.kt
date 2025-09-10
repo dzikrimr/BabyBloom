@@ -182,3 +182,12 @@ data class OnBoardingItem(
     val title: String,
     val desc: String,
 )
+
+@Preview
+@Composable
+private fun OnBoardingScreenPreview() {
+    BubTrackTheme {
+        OnBoardingScreen(navigateLogin = {})
+    }
+
+}

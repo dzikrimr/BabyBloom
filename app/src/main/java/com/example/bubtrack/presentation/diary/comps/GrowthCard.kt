@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -36,40 +35,39 @@ fun GrowthCard(
             .clip(RoundedCornerShape(14.dp))
             .background(Color.White)
             .padding(12.dp)
-    ){
+    ) {
         Text(
             Utility.formatPrettyDate(babyGrowth.date),
             style = MaterialTheme.typography.bodyMedium.copy(
                 fontWeight = FontWeight.SemiBold
             )
         )
-        Spacer(modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(12.dp))
         Row(
-            modifier = modifier
-                .fillMaxWidth(),
+            modifier = modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column {
                 Text(
-                    "Berat: ${babyGrowth.weight?.toInt()} kg",
+                    "Berat: ${babyGrowth.weight?.toInt() ?: 0} kg",
                     style = MaterialTheme.typography.bodyMedium,
                     color = AppGray
                 )
                 Text(
-                    "Tinggi: ${babyGrowth.height?.toInt()} cm",
+                    "Tinggi: ${babyGrowth.height?.toInt() ?: 0} cm",
                     style = MaterialTheme.typography.bodyMedium,
                     color = AppGray
                 )
             }
             Column {
                 Text(
-                    "L. Kepala: ${babyGrowth.weight?.toInt()} cm",
+                    "L. Kepala: ${babyGrowth.headCircumference?.toInt() ?: 0} cm",
                     style = MaterialTheme.typography.bodyMedium,
                     color = AppGray
                 )
                 Text(
-                    "L. Lengan: ${babyGrowth.height?.toInt()} cm",
+                    "L. Lengan: ${babyGrowth.armLength?.toInt() ?: 0} cm",
                     style = MaterialTheme.typography.bodyMedium,
                     color = AppGray
                 )
@@ -78,27 +76,21 @@ fun GrowthCard(
     }
 }
 
-
-@Preview
+@Preview(showBackground = true)
 @Composable
-private fun Test() {
+private fun GrowthCardPreview() {
     BubTrackTheme {
-        Column(
-            modifier = Modifier.fillMaxSize().padding(14.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            GrowthCard(
-                babyGrowth = BabyGrowth(
-                    id = "1",
-                    date = System.currentTimeMillis(),
-                    weight = 3.2,
-                    height = 52.0,
-                    headCircumference = 35.0,
-                    armLength = 18.0,
-                    ageInMonths = 0
-                )
-            )
-        }
+        GrowthCard(
+            babyGrowth = BabyGrowth(
+                id = "1",
+                date = System.currentTimeMillis(),
+                weight = 3.2,
+                height = 52.0,
+                headCircumference = 35.0,
+                armLength = 18.0,
+                ageInMonths = 0
+            ),
+            modifier = Modifier.padding(16.dp)
+        )
     }
 }
