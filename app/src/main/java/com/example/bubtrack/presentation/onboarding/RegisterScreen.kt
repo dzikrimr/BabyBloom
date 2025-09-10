@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.bubtrack.presentation.common.CommonTextField
 import com.example.bubtrack.presentation.common.PasswordTextField
+import com.example.bubtrack.presentation.navigation.CreateProfileRoute
 import com.example.bubtrack.presentation.navigation.LoginRoute
 import com.example.bubtrack.ui.theme.AppPurple
 import com.example.bubtrack.ui.theme.BubTrackTheme
@@ -126,7 +127,9 @@ fun RegisterScreen(
         )
         Spacer(modifier.height(32.dp))
         OutlinedButton(
-            onClick = {},
+            onClick = {
+                navController.navigate(CreateProfileRoute)
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(55.dp),

@@ -49,6 +49,7 @@ import com.example.bubtrack.R
 import com.example.bubtrack.domain.activities.ActivityType
 import com.example.bubtrack.presentation.common.CommonTextField
 import com.example.bubtrack.presentation.onboarding.comps.DatePickerModal
+import com.example.bubtrack.ui.theme.AppBackground
 import com.example.bubtrack.ui.theme.AppBlue
 import com.example.bubtrack.ui.theme.AppPurple
 import com.example.bubtrack.ui.theme.BubTrackTheme
@@ -155,7 +156,8 @@ fun AddSchedulePopUp(
                     )
                     ExposedDropdownMenu(
                         expanded = expanded,
-                        onDismissRequest = { expanded = false }
+                        onDismissRequest = { expanded = false },
+                        containerColor = AppBackground
                     ) {
                         activityTypes.forEach { type ->
                             DropdownMenuItem(

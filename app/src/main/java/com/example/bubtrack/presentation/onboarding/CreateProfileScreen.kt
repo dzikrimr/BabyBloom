@@ -31,8 +31,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.bubtrack.presentation.common.CommonTextField
 import com.example.bubtrack.presentation.common.NumberTextField
+import com.example.bubtrack.presentation.navigation.MainRoute
 import com.example.bubtrack.presentation.onboarding.comps.DatePickerModal
 import com.example.bubtrack.ui.theme.AppBlue
 import com.example.bubtrack.ui.theme.AppLightBlue
@@ -43,7 +45,10 @@ import com.example.bubtrack.ui.theme.BubTrackTheme
 import com.example.bubtrack.utill.Utility
 
 @Composable
-fun CreateProfileScreen(modifier: Modifier = Modifier) {
+fun CreateProfileScreen(
+    modifier: Modifier = Modifier,
+    navController : NavController
+) {
 
     var babyName by remember { mutableStateOf("") }
     var date by remember { mutableStateOf("dd/mm/yyyy") }
@@ -235,7 +240,11 @@ fun CreateProfileScreen(modifier: Modifier = Modifier) {
                             Toast.makeText(context, "Lengkapi semua data pada form ini!", Toast.LENGTH_SHORT).show()
                         } else {
                             Toast.makeText(context, "Profil berhasil dibuat!", Toast.LENGTH_SHORT).show()
-                            // TODO: submit ke server / ViewModel
+                            navController.navigate(MainRoute){
+                                popUpTo(navController.graph.startDestinationId){
+                                    inclusive = true
+                                }
+                            }
                         }
                     }
                 },
@@ -275,10 +284,4 @@ fun CreateProfileScreen(modifier: Modifier = Modifier) {
     }
 }
 
-@Preview
-@Composable
-private fun Preview() {
-    BubTrackTheme {
-        CreateProfileScreen()
-    }
-}
+
