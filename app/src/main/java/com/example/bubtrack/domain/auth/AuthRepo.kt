@@ -26,4 +26,5 @@ interface AuthRepo {
         armCircumference: String
     ): Resource<Unit>
     suspend fun loginWithGoogle(account: GoogleSignInAccount): Flow<Resource<AuthResult>>
+    suspend fun checkOnBoardingStatus(): Resource<Boolean>
 }

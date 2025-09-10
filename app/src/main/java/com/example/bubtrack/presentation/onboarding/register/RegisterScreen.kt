@@ -1,4 +1,4 @@
-package com.example.bubtrack.presentation.onboarding
+package com.example.bubtrack.presentation.onboarding.register
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -31,12 +31,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.bubtrack.presentation.common.CommonTextField
 import com.example.bubtrack.presentation.common.PasswordTextField
-import com.example.bubtrack.presentation.navigation.CreateProfileRoute
 import com.example.bubtrack.ui.theme.AppPurple
 import com.example.bubtrack.ui.theme.BubTrackTheme
 import android.widget.Toast
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
+import com.example.bubtrack.presentation.navigation.CreateProfileRoute
+import com.example.bubtrack.presentation.navigation.LoginRoute
 
 @Composable
 fun RegisterScreen(
@@ -47,6 +49,16 @@ fun RegisterScreen(
     val state by viewModel.state.collectAsState()
 
     val context = LocalContext.current
+
+    LaunchedEffect(state.isSuccess) {
+        if (state.isSuccess) {
+            Toast.makeText(context, "Registrasi berhasil!", Toast.LENGTH_SHORT).show()
+            navController.navigate(CreateProfileRoute) {
+                popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                launchSingleTop = true
+            }
+        }
+    }
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -122,7 +134,7 @@ fun RegisterScreen(
             CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
         } else {
             OutlinedButton(
-                onClick = { viewModel.register(navController) },
+                onClick = { viewModel.register() },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(55.dp),
@@ -160,10 +172,7 @@ fun RegisterScreen(
                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                 color = AppPurple,
                 modifier = Modifier.clickable {
-                    navController.navigate("login") {
-                        popUpTo(navController.graph.startDestinationId)
-                        launchSingleTop = true
-                    }
+                    navController.navigate(LoginRoute)
                 }
             )
         }

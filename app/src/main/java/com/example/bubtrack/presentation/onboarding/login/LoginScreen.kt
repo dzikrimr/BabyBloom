@@ -1,5 +1,6 @@
 package com.example.bubtrack.presentation.onboarding.login
 
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -51,19 +52,19 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.bubtrack.presentation.navigation.AppRoute
 
 @Composable
 fun LoginScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
+    navigate : (AppRoute) -> Unit,
     loginViewModel: LoginViewModel = hiltViewModel()
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val context = LocalContext.current
     val uiState by loginViewModel.loginState.collectAsState()
-
-
 
     Box(
         modifier = modifier
@@ -208,20 +209,16 @@ fun LoginScreen(
             )
         }
         if (uiState.isSuccess) {
-            LaunchedEffect(Unit) {
-                navController.navigate(MainRoute)
-            }
+
         }
         if (uiState.errorMessage != null) {
             Toast.makeText(context, uiState.errorMessage, Toast.LENGTH_SHORT).show()
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun LoginScreenPreview() {
-    BubTrackTheme {
-        LoginScreen(navController = rememberNavController())
+        LaunchedEffect(uiState.navDestination) {
+            uiState.navDestination?.let {
+                navigate(it)
+                Log.d("LoginScreen", "Navigating to $it")
+            }
+        }
     }
 }

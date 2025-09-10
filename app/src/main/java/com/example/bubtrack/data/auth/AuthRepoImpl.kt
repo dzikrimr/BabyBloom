@@ -2,6 +2,7 @@ package com.example.bubtrack.data.auth
 
 import com.example.bubtrack.domain.auth.AuthRepo
 import com.example.bubtrack.utill.Resource
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
@@ -102,6 +103,22 @@ class AuthRepoImpl @Inject constructor(
             Resource.Success(Unit)
         } catch (e: Exception) {
             Resource.Error("Gagal menyimpan profil: ${e.message}")
+        }
+    }
+
+    override suspend fun loginWithGoogle(account: GoogleSignInAccount): Flow<Resource<AuthResult>> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun checkOnBoardingStatus(): Resource<Boolean> {
+        val userId = auth.currentUser?.uid ?: return Resource.Error("Pengguna tidak ditemukan!")
+        try {
+            val data = firestore.collection("users").document(userId)
+                .collection("babyProfiles").document("primary")
+                .get().await()
+            return Resource.Success(data.exists())
+        } catch (e: Exception) {
+            return Resource.Error("${e.message}")
         }
     }
 }

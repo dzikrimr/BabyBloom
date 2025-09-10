@@ -1,8 +1,16 @@
 package com.example.bubtrack.presentation.onboarding.login
 
+import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.bubtrack.domain.auth.AuthRepo
+import com.example.bubtrack.presentation.navigation.AppRoute
+import com.example.bubtrack.presentation.navigation.CreateProfileRoute
+import com.example.bubtrack.presentation.navigation.LoginRoute
+import com.example.bubtrack.presentation.navigation.MainRoute
 import com.example.bubtrack.utill.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,29 +26,27 @@ class LoginViewModel @Inject constructor(
     private var _loginState = MutableStateFlow(LoginUiState())
     val loginState = _loginState.asStateFlow()
 
+    var navDestination by mutableStateOf<AppRoute>(LoginRoute)
+
 
     fun loginWithEmailPassword(email: String, password: String) {
         viewModelScope.launch {
             authRepo.loginEmail(email, password).collect {
                 when (it) {
                     is Resource.Loading -> {
-                        _loginState.value.copy(
+                        _loginState.value = _loginState.value.copy(
                             isLoading = true
                         )
                     }
                     is Resource.Error -> {
-                        _loginState.value.copy(
+                        _loginState.value = _loginState.value.copy(
                             isLoading = false,
                             isSuccess = false,
                             errorMessage = it.msg
                         )
                     }
                     is Resource.Success -> {
-                        _loginState.value.copy(
-                            isLoading = false,
-                            isSuccess = true,
-                            errorMessage = null
-                        )
+                        checkOnBoarding()
                     }
                     else -> {
 
@@ -48,6 +54,19 @@ class LoginViewModel @Inject constructor(
                 }
             }
 
+        }
+    }
+
+    private fun checkOnBoarding(){
+        viewModelScope.launch {
+            val res = authRepo.checkOnBoardingStatus().data
+            val destination = if (res == true) MainRoute else CreateProfileRoute
+            _loginState.value = _loginState.value.copy(
+                isLoading = false,
+                isSuccess = true,
+                errorMessage = null,
+                navDestination = destination
+            )
         }
     }
 }
