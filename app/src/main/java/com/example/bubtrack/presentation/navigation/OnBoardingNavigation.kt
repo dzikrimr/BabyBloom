@@ -7,9 +7,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.bubtrack.presentation.onboarding.CreateProfileScreen
-import com.example.bubtrack.presentation.onboarding.LoginScreen
+import com.example.bubtrack.presentation.onboarding.login.LoginScreen
 import com.example.bubtrack.presentation.onboarding.OnBoardingScreen
-import com.example.bubtrack.presentation.onboarding.RegisterScreen
+import com.example.bubtrack.presentation.onboarding.register.RegisterScreen
 
 @Composable
 fun OnBoardingNavigation(modifier: Modifier = Modifier) {
@@ -28,7 +28,14 @@ fun OnBoardingNavigation(modifier: Modifier = Modifier) {
         }
         composable<LoginRoute>{
             LoginScreen(
-                navController = navController
+                navController = navController,
+                navigate = {
+                    navController.navigate(it){
+                        popUpTo(LoginRoute){
+                            inclusive = true
+                        }
+                    }
+                }
             )
         }
         composable<RegisterRoute>{

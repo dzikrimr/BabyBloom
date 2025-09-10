@@ -79,10 +79,57 @@ class AuthRepoImpl @Inject constructor(
 
     override suspend fun forgotPassword(email: String): Resource<Unit> {
         return try {
-            auth.sendPasswordResetEmail(email).await()
+            auth.sendPasswordResetEmail(email).result
             Resource.Success(Unit)
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Failed to send reset email")
+            Resource.Error(e.localizedMessage)
+        }
+    }
+
+    override suspend fun createBabyProfile(
+        babyName: String,
+        dateMillis: Long,
+        selectedGender: String,
+        weight: String,
+        height: String,
+        headCircumference: String,
+        armCircumference: String
+    ): Resource<Unit> {
+        val userId = auth.currentUser?.uid ?: return Resource.Error("Pengguna tidak ditemukan!")
+        val babyProfile: Map<String, Any> = mapOf(
+            "babyName" to babyName,
+            "birthDate" to dateMillis,
+            "gender" to selectedGender,
+            "weight" to weight,
+            "height" to height,
+            "headCircumference" to headCircumference,
+            "armCircumference" to armCircumference,
+            "createdAt" to System.currentTimeMillis()
+        )
+        return try {
+            firestore.collection("users").document(userId)
+                .collection("babyProfiles").document("primary")
+                .set(babyProfile)
+                .await()
+            Resource.Success(Unit)
+        } catch (e: Exception) {
+            Resource.Error("Gagal menyimpan profil: ${e.message}")
+        }
+    }
+
+    override suspend fun loginWithGoogle(account: GoogleSignInAccount): Flow<Resource<AuthResult>> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun checkOnBoardingStatus(): Resource<Boolean> {
+        val userId = auth.currentUser?.uid ?: return Resource.Error("Pengguna tidak ditemukan!")
+        try {
+            val data = firestore.collection("users").document(userId)
+                .collection("babyProfiles").document("primary")
+                .get().await()
+            return Resource.Success(data.exists())
+        } catch (e: Exception) {
+            return Resource.Error("${e.message}")
         }
     }
 

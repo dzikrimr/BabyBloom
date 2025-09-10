@@ -15,5 +15,16 @@ interface AuthRepo {
         confirmPassword: String
     ) : Flow<Resource<AuthResult>>
     suspend fun forgotPassword (email: String) : Resource<Unit>
+
+    suspend fun createBabyProfile(
+        babyName: String,
+        dateMillis: Long,
+        selectedGender: String,
+        weight: String,
+        height: String,
+        headCircumference: String,
+        armCircumference: String
+    ): Resource<Unit>
     suspend fun loginWithGoogle(account: GoogleSignInAccount): Flow<Resource<AuthResult>>
+    suspend fun checkOnBoardingStatus(): Resource<Boolean>
 }

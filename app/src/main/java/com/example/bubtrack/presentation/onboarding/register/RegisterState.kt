@@ -1,6 +1,6 @@
-package com.example.bubtrack.domain.auth
+package com.example.bubtrack.presentation.onboarding.register
 
-data class RegisterState(
+data class RegisterUiState(
     val name: String = "",
     val email: String = "",
     val password: String = "",
