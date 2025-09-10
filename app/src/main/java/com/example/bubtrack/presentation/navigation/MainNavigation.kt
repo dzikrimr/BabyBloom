@@ -27,7 +27,6 @@ import com.example.bubtrack.presentation.profile.ProfileScreen
 
 @Composable
 fun MainNavigation(modifier: Modifier = Modifier) {
-
     val navController = rememberNavController()
     var selectedItem by rememberSaveable {
         mutableIntStateOf(0)
@@ -41,7 +40,7 @@ fun MainNavigation(modifier: Modifier = Modifier) {
         ActivitiesRoute::class.qualifiedName!!
     )
     val showBottomBar = currentDestination?.route?.let { currentRoute ->
-        !screenWithoutNavbar.any() { routeWithoutNavbar ->
+        !screenWithoutNavbar.any { routeWithoutNavbar ->
             currentRoute.startsWith(routeWithoutNavbar)
         }
     } ?: true
@@ -51,7 +50,7 @@ fun MainNavigation(modifier: Modifier = Modifier) {
             .fillMaxSize()
             .padding(insets),
         bottomBar = {
-            if (showBottomBar){
+            if (showBottomBar) {
                 BottomNavBar(
                     selectedItem = selectedItem,
                     onItemClick = {
@@ -80,7 +79,9 @@ fun MainNavigation(modifier: Modifier = Modifier) {
                 )
             }
             composable<ActivitiesRoute> {
-                ActivitiesScreen()
+                ActivitiesScreen(
+                    navController = navController
+                )
             }
             composable<DiaryRoute> {
                 DiaryScreen()

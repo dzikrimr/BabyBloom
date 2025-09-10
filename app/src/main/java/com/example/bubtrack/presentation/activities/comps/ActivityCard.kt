@@ -49,6 +49,8 @@ fun ActivityCard(
     }
     val formatter = SimpleDateFormat("dd MMMM", Locale("id", "ID"))
     val currentDate = formatter.format(activity.date)
+    val formattedTime = String.format("%02d:%02d", activity.hour, activity.minute)
+
     Card(
         modifier = modifier
             .fillMaxWidth(),
@@ -88,7 +90,7 @@ fun ActivityCard(
                         color = Color(0xFF6B7280)
                     )
                     Text(
-                        text = "$currentDate • ${activity.hour}:${activity.minute}",
+                        text = "$currentDate • $formattedTime",
                         style = MaterialTheme.typography.bodySmall,
                         color = Color(0xFF6B7280)
                     )
@@ -117,14 +119,14 @@ private fun Preview() {
         ) {
             ActivityCard(
                 activity = Activity(
-                    2,
-                    "user1",
-                    "Check-up rutin",
-                    "Pediatric visit",
-                    System.currentTimeMillis() + 86400000,
+                    id = 2,
+                    userId = "user1",
+                    title = "Check-up rutin",
+                    description = "Pediatric visit",
+                    date = System.currentTimeMillis() + 86400000,
                     hour = 12,
                     minute = 30,
-                    ActivityType.CHECKUP.value,
+                    type = ActivityType.CHECKUP.value
                 )
             )
         }

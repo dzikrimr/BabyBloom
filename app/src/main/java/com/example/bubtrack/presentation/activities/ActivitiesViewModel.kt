@@ -32,7 +32,6 @@ class ActivitiesViewModel @Inject constructor(
                     is Resource.Loading -> {
                         _uiState.update { it.copy(isLoading = true) }
                     }
-
                     is Resource.Success -> {
                         val data = res.data.orEmpty()
                         _uiState.update {
@@ -44,7 +43,6 @@ class ActivitiesViewModel @Inject constructor(
                             )
                         }
                     }
-
                     is Resource.Error -> {
                         _uiState.update {
                             it.copy(
@@ -55,7 +53,7 @@ class ActivitiesViewModel @Inject constructor(
                         }
                     }
 
-                    else -> {}
+                    is Resource.Idle -> TODO()
                 }
             }
         }
@@ -63,5 +61,28 @@ class ActivitiesViewModel @Inject constructor(
 
     fun onDateSelected(date: LocalDate) {
         _uiState.update { it.copy(selectedDate = date) }
+    }
+
+    fun addActivity(activity: Activity) {
+        viewModelScope.launch {
+            activitiesRepo.addActivity(activity).collect { res ->
+                when (res) {
+                    is Resource.Loading -> {
+                        _uiState.update { it.copy(isLoading = true) }
+                    }
+                    is Resource.Success -> {
+                        getAllActivities() // Refresh activities
+                        _uiState.update { it.copy(isLoading = false, isError = null) }
+                    }
+                    is Resource.Error -> {
+                        _uiState.update {
+                            it.copy(isLoading = false, isError = res.msg)
+                        }
+                    }
+
+                    is Resource.Idle -> TODO()
+                }
+            }
+        }
     }
 }

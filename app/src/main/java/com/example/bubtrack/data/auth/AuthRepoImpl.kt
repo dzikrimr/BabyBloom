@@ -2,11 +2,14 @@ package com.example.bubtrack.data.auth
 
 import com.example.bubtrack.domain.auth.AuthRepo
 import com.example.bubtrack.utill.Resource
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
+import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -18,14 +21,23 @@ class AuthRepoImpl @Inject constructor(
 
     override suspend fun loginEmail(email: String, password: String): Flow<Resource<AuthResult>> = flow {
         emit(Resource.Loading())
-        try {
-            val result = auth.signInWithEmailAndPassword(email, password).await()
-            emit(Resource.Success(result))
-        } catch (e: FirebaseAuthException) {
-            emit(Resource.Error(e.message ?: "Login failed"))
+        val result = try {
+            auth.signInWithEmailAndPassword(email, password).await()
         } catch (e: Exception) {
-            emit(Resource.Error(e.message ?: "An unknown error occurred"))
+            throw e // Re-throw to be caught by .catch
         }
+        emit(Resource.Success(result))
+    }.catch { e ->
+        val message = when (e) {
+            is FirebaseAuthException -> when (e.errorCode) {
+                "ERROR_INVALID_EMAIL" -> "Invalid email!"
+                "ERROR_WRONG_PASSWORD" -> "Wrong password!"
+                "ERROR_USER_NOT_FOUND" -> "User not found!"
+                else -> "Login failed: ${e.message}"
+            }
+            else -> "An unexpected error occurred: ${e.message}"
+        }
+        emit(Resource.Error(message))
     }
 
     override suspend fun registerEmail(
@@ -72,5 +84,18 @@ class AuthRepoImpl @Inject constructor(
         } catch (e: Exception) {
             Resource.Error(e.message ?: "Failed to send reset email")
         }
+    }
+
+    override suspend fun loginWithGoogle(account: GoogleSignInAccount): Flow<Resource<AuthResult>> = flow {
+        emit(Resource.Loading())
+        val result = try {
+            val credential = GoogleAuthProvider.getCredential(account.idToken, null)
+            auth.signInWithCredential(credential).await()
+        } catch (e: Exception) {
+            throw e
+        }
+        emit(Resource.Success(result))
+    }.catch { e ->
+        emit(Resource.Error("Google Sign-In failed: ${e.message}"))
     }
 }

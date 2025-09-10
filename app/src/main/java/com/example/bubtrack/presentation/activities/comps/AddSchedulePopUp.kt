@@ -1,3 +1,5 @@
+package com.example.bubtrack.presentation.activities.comps
+
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
@@ -29,7 +31,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TimePickerDefaults
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -55,16 +56,14 @@ import com.example.bubtrack.ui.theme.AppPurple
 import com.example.bubtrack.ui.theme.BubTrackTheme
 import com.example.bubtrack.utill.Utility
 import java.time.LocalTime
-import kotlin.math.exp
-import kotlin.text.isBlank
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddSchedulePopUp(
     modifier: Modifier = Modifier,
     onDismiss: () -> Unit,
+    onSave: (String, String, Long, LocalTime?, String) -> Unit
 ) {
-
     var activityName by remember { mutableStateOf("") }
     var showTimePicker by remember { mutableStateOf(false) }
     var expanded by remember { mutableStateOf(false) }
@@ -73,23 +72,17 @@ fun AddSchedulePopUp(
     var dateMillis by remember { mutableLongStateOf(0) }
     var selectedTime by remember { mutableStateOf<LocalTime?>(null) }
     var notes by remember { mutableStateOf("") }
-    val activityTypes = listOf(
-        ActivityType.CHECKUP.value,
-        ActivityType.FEEDING.value,
-        ActivityType.PLAYTIME.value,
-        ActivityType.VACCINE.value
-    )
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    val activityTypes = ActivityType.values().map { it.value }
 
     Dialog(
-        onDismissRequest = {onDismiss()}
+        onDismissRequest = { onDismiss() }
     ) {
         Card(
             shape = RoundedCornerShape(16.dp),
             modifier = modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = Color.White
-            )
-        ){
+            colors = CardDefaults.cardColors(containerColor = Color.White)
+        ) {
             Column(
                 modifier = modifier.padding(12.dp)
             ) {
@@ -112,22 +105,18 @@ fun AddSchedulePopUp(
                 Spacer(modifier.height(24.dp))
                 Text(
                     "Activity Name",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontWeight = FontWeight.Medium
-                    ),
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
                     modifier = modifier.padding(bottom = 8.dp)
                 )
                 CommonTextField(
                     value = activityName,
                     placeholder = "Enter Activity Name",
-                    onValueChange = { activityName = it}
+                    onValueChange = { activityName = it }
                 )
                 Spacer(modifier.height(14.dp))
                 Text(
                     "Activity Type",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontWeight = FontWeight.Medium
-                    ),
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
                     modifier = modifier.padding(bottom = 8.dp)
                 )
                 ExposedDropdownMenuBox(
@@ -181,9 +170,7 @@ fun AddSchedulePopUp(
                     ) {
                         Text(
                             "Date",
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                fontWeight = FontWeight.Medium
-                            ),
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
                             modifier = modifier.padding(bottom = 8.dp)
                         )
                         DatePickerModal(
@@ -192,19 +179,18 @@ fun AddSchedulePopUp(
                                 it?.let {
                                     date = Utility.formatDate(it)
                                     dateMillis = it
+                                    errorMessage = null // Clear error on valid input
                                 }
                             },
                             showIcon = false
                         )
                     }
-                    Column (
+                    Column(
                         modifier = modifier.weight(1f)
-                    ){
+                    ) {
                         Text(
                             "Time",
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                fontWeight = FontWeight.Medium
-                            ),
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
                             modifier = modifier.padding(bottom = 8.dp)
                         )
                         Row(
@@ -224,17 +210,12 @@ fun AddSchedulePopUp(
                                 selectedTime?.toString() ?: "--:--"
                             )
                         }
-
-
                     }
-
                 }
                 Spacer(modifier.height(14.dp))
                 Text(
                     "Additional Notes",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontWeight = FontWeight.Medium
-                    ),
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
                     modifier = modifier.padding(bottom = 8.dp)
                 )
                 OutlinedTextField(
@@ -253,10 +234,23 @@ fun AddSchedulePopUp(
                     ),
                     shape = RoundedCornerShape(18.dp),
                 )
-                Spacer(modifier.height(14.dp))
+                Spacer(modifier.height(8.dp))
+                if (errorMessage != null) {
+                    Text(
+                        text = errorMessage!!,
+                        color = Color.Red,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+                Spacer(modifier.height(8.dp))
                 OutlinedButton(
                     onClick = {
-
+                        if (activityName.isBlank() || activityType.isBlank() || dateMillis == 0L || selectedTime == null) {
+                            errorMessage = "Please fill all fields"
+                        } else {
+                            onSave(activityName, activityType, dateMillis, selectedTime, notes)
+                            onDismiss()
+                        }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -282,6 +276,7 @@ fun AddSchedulePopUp(
             onConfirm = { time ->
                 selectedTime = time
                 showTimePicker = false
+                errorMessage = null // Clear error on valid input
             }
         )
     }
@@ -336,12 +331,13 @@ fun TimePickerDialog(
     }
 }
 
-
 @Preview
 @Composable
 private fun Preview() {
     BubTrackTheme {
-        AddSchedulePopUp(onDismiss = {})
-
+        AddSchedulePopUp(
+            onDismiss = {},
+            onSave = { _, _, _, _, _ -> }
+        )
     }
 }
