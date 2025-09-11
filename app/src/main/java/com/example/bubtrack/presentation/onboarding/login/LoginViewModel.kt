@@ -12,6 +12,7 @@ import com.example.bubtrack.presentation.navigation.CreateProfileRoute
 import com.example.bubtrack.presentation.navigation.LoginRoute
 import com.example.bubtrack.presentation.navigation.MainRoute
 import com.example.bubtrack.utill.Resource
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,12 +23,9 @@ import javax.inject.Inject
 class LoginViewModel @Inject constructor(
     private val authRepo: AuthRepo
 ) : ViewModel() {
-
     private var _loginState = MutableStateFlow(LoginUiState())
     val loginState = _loginState.asStateFlow()
-
     var navDestination by mutableStateOf<AppRoute>(LoginRoute)
-
 
     fun loginWithEmailPassword(email: String, password: String) {
         viewModelScope.launch {
@@ -49,15 +47,39 @@ class LoginViewModel @Inject constructor(
                         checkOnBoarding()
                     }
                     else -> {
-
                     }
                 }
             }
-
         }
     }
 
-    private fun checkOnBoarding(){
+    fun loginWithGoogle(account: GoogleSignInAccount) {
+        viewModelScope.launch {
+            authRepo.loginWithGoogle(account).collect {
+                when (it) {
+                    is Resource.Loading -> {
+                        _loginState.value = _loginState.value.copy(
+                            isLoading = true
+                        )
+                    }
+                    is Resource.Error -> {
+                        _loginState.value = _loginState.value.copy(
+                            isLoading = false,
+                            isSuccess = false,
+                            errorMessage = it.msg
+                        )
+                    }
+                    is Resource.Success -> {
+                        checkOnBoarding()
+                    }
+                    else -> {
+                    }
+                }
+            }
+        }
+    }
+
+    private fun checkOnBoarding() {
         viewModelScope.launch {
             val res = authRepo.checkOnBoardingStatus().data
             val destination = if (res == true) MainRoute else CreateProfileRoute

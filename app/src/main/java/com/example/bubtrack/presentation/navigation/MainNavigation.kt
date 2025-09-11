@@ -17,6 +17,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
+import com.example.bubtrack.presentation.ai.sleepmonitor.SleepMonitorScreen
 import com.example.bubtrack.presentation.activities.ActivitiesScreen
 import com.example.bubtrack.presentation.ai.AiScreen
 import com.example.bubtrack.presentation.article.ArticleDetailScreen
@@ -27,7 +28,6 @@ import com.example.bubtrack.presentation.profile.ProfileScreen
 
 @Composable
 fun MainNavigation(modifier: Modifier = Modifier) {
-
     val navController = rememberNavController()
     var selectedItem by rememberSaveable {
         mutableIntStateOf(0)
@@ -38,10 +38,11 @@ fun MainNavigation(modifier: Modifier = Modifier) {
     val currentDestination = navBackStackEntry?.destination
 
     val screenWithoutNavbar = listOf(
-        ActivitiesRoute::class.qualifiedName!!
+        ActivitiesRoute::class.qualifiedName!!,
+        SleepMonitorRoute::class.qualifiedName!!
     )
     val showBottomBar = currentDestination?.route?.let { currentRoute ->
-        !screenWithoutNavbar.any() { routeWithoutNavbar ->
+        !screenWithoutNavbar.any { routeWithoutNavbar ->
             currentRoute.startsWith(routeWithoutNavbar)
         }
     } ?: true
@@ -51,7 +52,7 @@ fun MainNavigation(modifier: Modifier = Modifier) {
             .fillMaxSize()
             .padding(insets),
         bottomBar = {
-            if (showBottomBar){
+            if (showBottomBar) {
                 BottomNavBar(
                     selectedItem = selectedItem,
                     onItemClick = {
@@ -80,13 +81,21 @@ fun MainNavigation(modifier: Modifier = Modifier) {
                 )
             }
             composable<ActivitiesRoute> {
-                ActivitiesScreen()
+                ActivitiesScreen(
+                    navController = navController
+                )
             }
             composable<DiaryRoute> {
                 DiaryScreen()
             }
             composable<AiRoute> {
-                AiScreen()
+                AiScreen(navController = navController)
+            }
+            composable<SleepMonitorRoute> {
+                SleepMonitorScreen(
+                    navController = navController,
+                    onBackClick = { navController.popBackStack() }
+                )
             }
             navigation<ArticleRoute>(startDestination = ArticleHomeRoute) {
                 composable<ArticleHomeRoute> {

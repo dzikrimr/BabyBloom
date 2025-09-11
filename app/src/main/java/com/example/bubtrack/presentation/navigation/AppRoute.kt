@@ -42,3 +42,6 @@ data object ProfileRoute : AppRoute
 
 @Serializable
 data object ActivitiesRoute : AppRoute
+
+@Serializable
+data object SleepMonitorRoute : AppRoute
