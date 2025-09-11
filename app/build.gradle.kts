@@ -2,6 +2,10 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.hiltAndroid)
+    alias(libs.plugins.google.services)
+    id("com.google.devtools.ksp")
+    kotlin("plugin.serialization") version "2.0.21"
 }
 
 android {
@@ -49,6 +53,9 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.navigation.compose.android)
+    implementation(libs.play.services.cast.tv)
+    implementation(libs.androidx.espresso.core)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -56,4 +63,66 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    implementation (libs.androidx.navigation.compose)
+    implementation(libs.kotlinx.serialization.json)
+
+    implementation (libs.google.accompanist.systemuicontroller)
+    implementation(libs.accompanist.permissions)
+    implementation(libs.foundation.pager)
+
+
+    //room
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.paging)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
+
+    //hilt
+    implementation(libs.hilt.android)
+    implementation(libs.hilt.navigation.compose)
+    ksp(libs.hilt.compiler)
+
+    //paging
+    implementation(libs.paging.runtime)
+    implementation(libs.paging.compose)
+
+    // firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
+    implementation(libs.play.services.auth)
+
+    //googleAuth
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
+
+    // coil
+    implementation(libs.coil.compose)
+
+    // retrofit
+    implementation(libs.retrofit)
+
+    // gson
+    implementation(libs.converter.gson)
+
+    //splash
+    implementation(libs.core.splashscreen)
+
+    //chart
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+
+    //calendar
+    implementation("com.kizitonwose.calendar:compose:2.6.1")
+
+    //cloudinary
+    implementation ("com.cloudinary:cloudinary-android:3.0.2")
+
+    // camera
+    implementation ("androidx.camera:camera-core:1.3.4")
+    implementation ("androidx.camera:camera-camera2:1.3.4")
+    implementation ("androidx.camera:camera-lifecycle:1.3.4")
+    implementation ("androidx.camera:camera-view:1.3.4")
 }
