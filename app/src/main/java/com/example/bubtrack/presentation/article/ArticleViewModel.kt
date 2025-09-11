@@ -1,8 +1,8 @@
 package com.example.bubtrack.presentation.article
 
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.bubtrack.domain.article.Article
 import com.example.bubtrack.domain.article.ArticleRepo
 import com.example.bubtrack.utill.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,6 +19,13 @@ class ArticleViewModel @Inject constructor(
     private val _state = MutableStateFlow(ArticleUiState())
     val state = _state.asStateFlow()
 
+    private val _detailArticle = MutableStateFlow<Article?>(null)
+    val detailArticle = _detailArticle.asStateFlow()
+
+    init {
+        getAllArticle()
+    }
+
 
     private fun getAllArticle(){
         viewModelScope.launch {
@@ -28,7 +35,7 @@ class ArticleViewModel @Inject constructor(
                         _state.value = ArticleUiState(isLoading = true)
                     }
                     is Resource.Success -> {
-                        _state.value = ArticleUiState(articles = it.data ?: emptyList())
+                        _state.value = ArticleUiState(allArticles = it.data ?: emptyList())
                     }
                     is Resource.Error -> {
                         _state.value = ArticleUiState(error = it.msg)
@@ -38,6 +45,26 @@ class ArticleViewModel @Inject constructor(
                     }
                 }
             }
+        }
+    }
+
+    fun getArticleByCategory(category: String){
+        viewModelScope.launch {
+            val data = _state.value.allArticles.filter {
+                it.category == category
+            }
+            _state.value = _state.value.copy(
+                categoryArticles = data
+            )
+        }
+    }
+
+    fun getDetailArticle(id: Int){
+        viewModelScope.launch {
+            val data = _state.value.allArticles.find {
+                it.id == id
+            }
+            _detailArticle.value = data
         }
     }
 

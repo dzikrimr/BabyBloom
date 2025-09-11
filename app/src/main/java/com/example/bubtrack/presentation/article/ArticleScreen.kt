@@ -1,8 +1,10 @@
 package com.example.bubtrack.presentation.article
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,12 +19,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,9 +38,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.bubtrack.R
-import com.example.bubtrack.domain.article.dummyArticle
 import com.example.bubtrack.presentation.article.comps.ArticleCard
 import com.example.bubtrack.presentation.article.comps.ArticleHeaderCard
 import com.example.bubtrack.presentation.article.comps.CategoryButton
@@ -44,88 +48,148 @@ import com.example.bubtrack.presentation.article.comps.CustomTextField
 import com.example.bubtrack.presentation.navigation.ArticleDetailRoute
 import com.example.bubtrack.ui.theme.AppBackground
 import com.example.bubtrack.ui.theme.BubTrackTheme
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.firestore
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ArticleScreen(
     modifier: Modifier = Modifier,
-    navController: NavController
+    navController: NavController,
+    articleViewModel: ArticleViewModel = hiltViewModel()
 ) {
+    val uiState by articleViewModel.state.collectAsState()
+    val categoryList = listOf("Semua", "Nutrisi", "Perkembangan", "Kesehatan", "Tips")
 
-    val categoryList = listOf(
-        "Semua", "Nutrisi", "Perkembangan", "Kesehatan", "Tips"
-    )
-    val searchQuery by remember {
-        mutableStateOf("")
-    }
-
-    var selectedCategory by remember {
-        mutableStateOf("Semua")
-    }
+    var searchQuery by remember { mutableStateOf("") }
+    var selectedCategory by remember { mutableStateOf("Semua") }
     val scrollState = rememberScrollState()
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .statusBarsPadding()
-            .background(AppBackground)
-            .verticalScroll(scrollState)
 
-    ) {
-        CustomTextField(
-            value = searchQuery,
-            onValueChange = {},
-            onClear = {},
-            onSearch = {},
-            modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp)
-        )
-        Spacer(modifier.height(14.dp))
-        LazyRow(
-            modifier = modifier.fillMaxWidth().padding(start = 16.dp)
-        ) {
-            items(categoryList.size) {
-                CategoryButton(
-                    category = categoryList[it],
-                    isSelected = selectedCategory == categoryList[it],
-                )
-                Spacer(modifier.width(8.dp))
-            }
-        }
-        Spacer(modifier.height(25.dp))
-        Column(
-            modifier.padding(start = 16.dp)
-        ) {
-            Text(
-                "Berita Terbaru",
-                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
-            )
-            Spacer(modifier.height(8.dp))
-            LazyRow(
-                modifier = modifier.fillMaxWidth()
+    when {
+        uiState.isLoading -> {
+            // Loading indicator di tengah layar
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(AppBackground),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                items(dummyArticle.size) {
-                    ArticleHeaderCard(
-                        article = dummyArticle[it],
-                        onClick = { navController.navigate(ArticleDetailRoute) }
-                    )
-                    Spacer(modifier.width(16.dp))
-                }
+                androidx.compose.material3.CircularProgressIndicator()
             }
         }
-        Spacer(modifier.height(8.dp))
-        Column(
-            modifier.fillMaxSize().padding(16.dp)
-        ) {
-            Text(
-                "Rekomendasi Berita",
-                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
-            )
-            Spacer(modifier.height(8.dp))
-            dummyArticle.forEach {
-                ArticleCard(
-                    article = it,
-                    onClick = { navController.navigate(ArticleDetailRoute) }
+
+        uiState.error != null -> {
+            // Error state
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(AppBackground),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = uiState.error ?: "Terjadi kesalahan",
+                    color = Color.Red,
+                    style = MaterialTheme.typography.bodyMedium
                 )
-                Spacer(modifier.height(16.dp))
+            }
+        }
+
+        else -> {
+            // Success state
+            Column(
+                modifier = modifier
+                    .fillMaxSize()
+                    .statusBarsPadding()
+                    .background(AppBackground)
+                    .verticalScroll(scrollState)
+            ) {
+                CustomTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    onClear = { searchQuery = "" },
+                    onSearch = { /* TODO: implement search */ },
+                    modifier = modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                )
+                Spacer(modifier.height(14.dp))
+
+                // Category Row
+                LazyRow(
+                    modifier = modifier.fillMaxWidth().padding(start = 16.dp)
+                ) {
+                    items(categoryList.size) {
+                        CategoryButton(
+                            category = categoryList[it],
+                            isSelected = selectedCategory == categoryList[it],
+                            modifier = modifier.clickable{
+                                articleViewModel.getArticleByCategory(categoryList[it])
+                                selectedCategory = categoryList[it]
+                            }
+                        )
+                        Spacer(modifier.width(8.dp))
+                    }
+                }
+                Spacer(modifier.height(25.dp))
+
+                // Berita Terbaru Header
+                Column(modifier.padding(start = 16.dp)) {
+                    Text(
+                        text = "Berita Terbaru",
+                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
+                    )
+                    Spacer(modifier.height(8.dp))
+                    LazyRow(
+                        modifier = modifier.fillMaxWidth()
+                    ) {
+                        items(uiState.allArticles.size) { index ->
+                            ArticleHeaderCard(
+                                article = uiState.allArticles[index],
+                                onClick = {
+                                    articleViewModel.getDetailArticle(uiState.allArticles[index].id)
+                                    navController.navigate(ArticleDetailRoute)
+                                }
+                            )
+                            Spacer(modifier.width(16.dp))
+                        }
+                    }
+                }
+
+                Spacer(modifier.height(8.dp))
+
+                // Berita kategori
+                Column(
+                    modifier.fillMaxSize().padding(16.dp)
+                ) {
+                    Text(
+                        text = if (selectedCategory == "Semua") {
+                            "Rekomendasi Berita"
+                        } else {
+                            "Berita Kategori $selectedCategory"
+                        },
+                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
+                    )
+                    Spacer(modifier.height(8.dp))
+
+                    val articlesToShow = if (selectedCategory == "Semua") {
+                        uiState.allArticles
+                    } else {
+                        uiState.categoryArticles
+                    }
+
+                    articlesToShow.forEach {
+                        ArticleCard(
+                            article = it,
+                            onClick = {
+                                articleViewModel.getDetailArticle(it.id)
+                                navController.navigate(ArticleDetailRoute)
+                            }
+                        )
+                        Spacer(modifier.height(16.dp))
+                    }
+                }
             }
         }
     }
