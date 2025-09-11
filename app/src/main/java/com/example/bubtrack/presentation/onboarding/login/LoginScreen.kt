@@ -1,32 +1,16 @@
 package com.example.bubtrack.presentation.onboarding.login
 
 import android.util.Log
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,36 +19,59 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.bubtrack.R
 import com.example.bubtrack.presentation.common.CommonTextField
 import com.example.bubtrack.presentation.common.PasswordTextField
-import com.example.bubtrack.presentation.navigation.MainRoute
+import com.example.bubtrack.presentation.navigation.AppRoute
 import com.example.bubtrack.presentation.navigation.RegisterRoute
 import com.example.bubtrack.ui.theme.AppPurple
 import com.example.bubtrack.ui.theme.BubTrackTheme
-import com.google.firebase.auth.FirebaseAuth
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
 import kotlinx.coroutines.launch
-import android.widget.Toast
-import androidx.compose.foundation.layout.Box
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.bubtrack.presentation.navigation.AppRoute
+import kotlinx.coroutines.tasks.await
 
 @Composable
 fun LoginScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
-    navigate : (AppRoute) -> Unit,
+    navigate: (AppRoute) -> Unit,
     loginViewModel: LoginViewModel = hiltViewModel()
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val context = LocalContext.current
     val uiState by loginViewModel.loginState.collectAsState()
+    val coroutineScope = rememberCoroutineScope()
+
+    val googleSignInOptions = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+        .requestIdToken(context.getString(R.string.default_web_client_id))
+        .requestEmail()
+        .requestProfile()
+        .build()
+    val googleSignInClient: GoogleSignInClient = GoogleSignIn.getClient(context, googleSignInOptions)
+
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+        try {
+            val account = task.getResult(ApiException::class.java)
+            account?.let {
+                Log.d("LoginScreen", "Selected account: ${it.email}, ${it.displayName}")
+                loginViewModel.loginWithGoogle(it)
+            } ?: run {
+                Toast.makeText(context, "Google Sign-In failed: No account returned", Toast.LENGTH_LONG).show()
+            }
+        } catch (e: ApiException) {
+            Log.e("LoginScreen", "Google Sign-In failed: StatusCode=${e.statusCode}, Message=${e.message}", e)
+            Toast.makeText(context, "Google Sign-In failed: ${e.message} (Code: ${e.statusCode})", Toast.LENGTH_LONG).show()
+        }
+    }
 
     Box(
         modifier = modifier
@@ -102,7 +109,6 @@ fun LoginScreen(
             )
             TextButton(
                 onClick = {
-                    // TODO: Implement password reset
                     Toast.makeText(
                         context,
                         "Fitur reset password belum diimplementasikan",
@@ -114,7 +120,7 @@ fun LoginScreen(
                 Text(
                     "Lupa Sandi?",
                     style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
-                    color = AppPurple,
+                    color = AppPurple
                 )
             }
             Spacer(modifier = Modifier.height(32.dp))
@@ -131,7 +137,7 @@ fun LoginScreen(
                     .fillMaxWidth()
                     .height(55.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = AppPurple,
+                    containerColor = AppPurple
                 ),
                 shape = RoundedCornerShape(18.dp),
                 border = BorderStroke(width = 0.dp, color = Color.Transparent)
@@ -149,18 +155,21 @@ fun LoginScreen(
             )
             OutlinedButton(
                 onClick = {
-                    // TODO: Implement Google Sign-In
-                    Toast.makeText(
-                        context,
-                        "Fitur Google Sign-In belum diimplementasikan",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    coroutineScope.launch {
+                        try {
+                            googleSignInClient.signOut().await()
+                            Log.d("LoginScreen", "Signed out from Google Sign-In")
+                        } catch (e: Exception) {
+                            Log.e("LoginScreen", "Sign-out failed: ${e.message}", e)
+                        }
+                        launcher.launch(googleSignInClient.signInIntent)
+                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(55.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White,
+                    containerColor = Color.White
                 ),
                 shape = RoundedCornerShape(18.dp),
                 border = BorderStroke(width = 1.dp, color = AppPurple)
@@ -201,18 +210,16 @@ fun LoginScreen(
                 )
             }
         }
-
         if (uiState.isLoading) {
             CircularProgressIndicator(
                 modifier = Modifier.align(Alignment.Center),
                 color = AppPurple
             )
         }
-        if (uiState.isSuccess) {
-
-        }
         if (uiState.errorMessage != null) {
-            Toast.makeText(context, uiState.errorMessage, Toast.LENGTH_SHORT).show()
+            LaunchedEffect(uiState.errorMessage) {
+                Toast.makeText(context, uiState.errorMessage, Toast.LENGTH_LONG).show()
+            }
         }
         LaunchedEffect(uiState.navDestination) {
             uiState.navDestination?.let {
@@ -220,5 +227,16 @@ fun LoginScreen(
                 Log.d("LoginScreen", "Navigating to $it")
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun LoginScreenPreview() {
+    BubTrackTheme {
+        LoginScreen(
+            navController = rememberNavController(),
+            navigate = {}
+        )
     }
 }

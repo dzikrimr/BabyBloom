@@ -87,7 +87,7 @@ dependencies {
     implementation(libs.paging.runtime)
     implementation(libs.paging.compose)
 
-//    firebase
+    // firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.auth)
@@ -119,4 +119,10 @@ dependencies {
 
     //cloudinary
     implementation ("com.cloudinary:cloudinary-android:3.0.2")
+
+    // camera
+    implementation ("androidx.camera:camera-core:1.3.4")
+    implementation ("androidx.camera:camera-camera2:1.3.4")
+    implementation ("androidx.camera:camera-lifecycle:1.3.4")
+    implementation ("androidx.camera:camera-view:1.3.4")
 }

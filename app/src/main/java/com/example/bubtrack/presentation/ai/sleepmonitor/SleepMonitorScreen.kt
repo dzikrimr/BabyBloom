@@ -1,7 +1,15 @@
-package com.example.babymonitor.ui.screens
+package com.example.bubtrack.presentation.ai.sleepmonitor
 
-import androidx.compose.foundation.Image
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,12 +22,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.bubtrack.R
@@ -34,8 +44,81 @@ fun SleepMonitorScreen(
     onStopMonitor: () -> Unit = {},
     onCryModeClick: () -> Unit = {},
 ) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+
     var monitoringTime by remember { mutableStateOf("02:34:14") }
     var showPairingPopup by remember { mutableStateOf(false) }
+    var isPreviewVisible by remember { mutableStateOf(true) }
+    var hasCameraPermission by remember { mutableStateOf(false) }
+    var cameraProvider: ProcessCameraProvider? by remember { mutableStateOf(null) }
+    val previewView = remember { PreviewView(context).apply { implementationMode = PreviewView.ImplementationMode.COMPATIBLE } }
+    var preview by remember { mutableStateOf<Preview?>(null) }
+
+    // Get device name
+    val deviceName = remember {
+        "${Build.BRAND} ${Build.MODEL}".let { name ->
+            if (name.length > 20) name.take(17) + "..." else name
+        }
+    }
+
+    // Camera permission launcher
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        hasCameraPermission = isGranted
+    }
+
+    // Check camera permission and start camera on first launch
+    LaunchedEffect(Unit) {
+        hasCameraPermission = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.CAMERA
+        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        if (!hasCameraPermission) {
+            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+    }
+
+    // Start camera when permission is granted
+    LaunchedEffect(hasCameraPermission) {
+        if (hasCameraPermission) {
+            val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
+            cameraProviderFuture.addListener({
+                val provider = cameraProviderFuture.get()
+                cameraProvider = provider
+
+                val newPreview = Preview.Builder().build()
+                preview = newPreview
+                val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+
+                try {
+                    provider.unbindAll()
+                    if (isPreviewVisible) {
+                        newPreview.setSurfaceProvider(previewView.surfaceProvider)
+                    }
+                    provider.bindToLifecycle(
+                        lifecycleOwner,
+                        cameraSelector,
+                        newPreview
+                    )
+                } catch (exc: Exception) {
+                    // Handle camera binding error
+                }
+            }, ContextCompat.getMainExecutor(context))
+        }
+    }
+
+    // Update preview surface when visibility changes
+    LaunchedEffect(isPreviewVisible) {
+        if (hasCameraPermission && preview != null) {
+            if (isPreviewVisible) {
+                preview?.setSurfaceProvider(previewView.surfaceProvider)
+            } else {
+                preview?.setSurfaceProvider(null)
+            }
+        }
+    }
 
     // Simulate timer updates
     LaunchedEffect(Unit) {
@@ -62,7 +145,7 @@ fun SleepMonitorScreen(
             .fillMaxSize()
             .background(AppBackground)
     ) {
-        // Header (same style as DiaryScreen)
+        // Header
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -93,7 +176,8 @@ fun SleepMonitorScreen(
                 Spacer(modifier = Modifier.width(25.dp))
             }
         }
-        // Monitoring Time Section
+
+        // Timer Section
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -119,7 +203,8 @@ fun SleepMonitorScreen(
                 )
             }
         }
-        // Camera Feed
+
+        // Camera Feed Section
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -128,16 +213,39 @@ fun SleepMonitorScreen(
                 .clip(RoundedCornerShape(16.dp))
                 .background(Color.Gray.copy(alpha = 0.3f))
         ) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Camera Feed Placeholder",
-                    color = Color.Gray,
-                    fontSize = 14.sp
+            if (hasCameraPermission && isPreviewVisible) {
+                // Camera Preview
+                AndroidView(
+                    factory = { previewView },
+                    modifier = Modifier.fillMaxSize()
                 )
+            } else if (!hasCameraPermission) {
+                // Placeholder when no camera permission
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Camera Permission Required",
+                        color = Color.Gray,
+                        fontSize = 14.sp
+                    )
+                }
+            } else {
+                // Placeholder when preview is hidden
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Camera Preview Hidden",
+                        color = Color.Gray,
+                        fontSize = 14.sp
+                    )
+                }
             }
+
+            // Camera info overlay
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
@@ -145,19 +253,21 @@ fun SleepMonitorScreen(
             ) {
                 Column {
                     Text(
-                        text = "Live Stream",
+                        text = if (hasCameraPermission) "Live Stream" else "Camera Off",
                         color = Color.White,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium
                     )
                     Text(
-                        text = "iPhone 14 Camera",
+                        text = "$deviceName Camera",
                         color = Color.White,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.SemiBold
                     )
                 }
             }
+
+            // Camera preview toggle button
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
@@ -166,17 +276,27 @@ fun SleepMonitorScreen(
                     .background(
                         Color.Black.copy(alpha = 0.5f),
                         CircleShape
-                    ),
+                    )
+                    .clickable {
+                        if (hasCameraPermission) {
+                            isPreviewVisible = !isPreviewVisible
+                        } else {
+                            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                        }
+                    },
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.ic_eye),
-                    contentDescription = "View",
+                    painter = painterResource(
+                        if (isPreviewVisible && hasCameraPermission) R.drawable.ic_eye else R.drawable.ic_eye_off
+                    ),
+                    contentDescription = if (isPreviewVisible && hasCameraPermission) "Hide Preview" else "Show Preview",
                     tint = Color.White,
                     modifier = Modifier.size(20.dp)
                 )
             }
         }
+
         // Status Cards Grid
         Row(
             modifier = Modifier
@@ -203,7 +323,9 @@ fun SleepMonitorScreen(
                 valueColor = Color(0xFFF9A8D4)
             )
         }
+
         Spacer(modifier = Modifier.height(12.dp))
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -229,6 +351,7 @@ fun SleepMonitorScreen(
                 valueColor = Color(0xFF16A34A)
             )
         }
+
         // Action Buttons
         Column(
             modifier = Modifier
@@ -237,7 +360,10 @@ fun SleepMonitorScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Button(
-                onClick = onStopMonitor,
+                onClick = {
+                    cameraProvider?.unbindAll()
+                    onStopMonitor()
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(46.dp),
@@ -260,6 +386,7 @@ fun SleepMonitorScreen(
                     color = Color.White
                 )
             }
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -288,6 +415,7 @@ fun SleepMonitorScreen(
                         color = Color.White
                     )
                 }
+
                 Button(
                     onClick = { showPairingPopup = true },
                     modifier = Modifier
@@ -314,13 +442,22 @@ fun SleepMonitorScreen(
                 }
             }
         }
+
         Spacer(modifier = Modifier.weight(1f))
     }
 
+    // Device Pairing Popup
     if (showPairingPopup) {
         DevicePairingPopup(
             onDismiss = { showPairingPopup = false }
         )
+    }
+
+    // Clean up camera when composable is disposed
+    DisposableEffect(lifecycleOwner) {
+        onDispose {
+            cameraProvider?.unbindAll()
+        }
     }
 }
 
@@ -378,7 +515,7 @@ private fun StatusCard(
     }
 }
 
-@Preview(showBackground = true)
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true)
 @Composable
 fun SleepMonitorScreenPreview() {
     MaterialTheme {

@@ -17,7 +17,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
-import com.example.babymonitor.ui.screens.SleepMonitorScreen
+import com.example.bubtrack.presentation.ai.sleepmonitor.SleepMonitorScreen
 import com.example.bubtrack.presentation.activities.ActivitiesScreen
 import com.example.bubtrack.presentation.ai.AiScreen
 import com.example.bubtrack.presentation.article.ArticleDetailScreen
