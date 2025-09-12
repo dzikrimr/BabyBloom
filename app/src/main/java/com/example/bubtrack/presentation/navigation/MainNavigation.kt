@@ -12,6 +12,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -20,6 +21,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.bubtrack.presentation.ai.sleepmonitor.SleepMonitorScreen
 import com.example.bubtrack.presentation.activities.ActivitiesScreen
 import com.example.bubtrack.presentation.ai.AiScreen
+import com.example.bubtrack.presentation.ai.sleepmonitor.SleepMonitorViewModel
 import com.example.bubtrack.presentation.article.ArticleDetailScreen
 import com.example.bubtrack.presentation.article.ArticleScreen
 import com.example.bubtrack.presentation.diary.DiaryScreen
@@ -92,9 +94,17 @@ fun MainNavigation(modifier: Modifier = Modifier) {
                 AiScreen(navController = navController)
             }
             composable<SleepMonitorRoute> {
+                val sleepViewModel: SleepMonitorViewModel = hiltViewModel()
                 SleepMonitorScreen(
                     navController = navController,
-                    onBackClick = { navController.popBackStack() }
+                    sleepViewModel = sleepViewModel,
+                    webRTCService = sleepViewModel.
+
+
+                    webRTCService,
+                    onBackClick = { navController.popBackStack() },
+                    onStopMonitor = { /* Handle stop monitor logic if needed */ },
+                    onCryModeClick = { /* Handle cry mode logic if needed */ }
                 )
             }
             navigation<ArticleRoute>(startDestination = ArticleHomeRoute) {
