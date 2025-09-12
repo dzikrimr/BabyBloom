@@ -34,7 +34,10 @@ import com.example.bubtrack.presentation.profile.ProfileScreen
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 @Composable
-fun MainNavigation(modifier: Modifier = Modifier) {
+fun MainNavigation(
+    modifier: Modifier = Modifier,
+    navigateLogin: () -> Unit
+) {
     val navController = rememberNavController()
     var selectedItem by rememberSaveable {
         mutableIntStateOf(0)
@@ -140,7 +143,11 @@ fun MainNavigation(modifier: Modifier = Modifier) {
                 }
             }
             composable<ProfileRoute> {
-                ProfileScreen()
+                ProfileScreen(
+                    navigateLogin = {
+                        navigateLogin()
+                    }
+                )
             }
         }
     }

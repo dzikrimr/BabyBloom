@@ -27,6 +27,7 @@ import com.example.bubtrack.R
 import com.example.bubtrack.presentation.common.CommonTextField
 import com.example.bubtrack.presentation.common.PasswordTextField
 import com.example.bubtrack.presentation.navigation.AppRoute
+import com.example.bubtrack.presentation.navigation.ForgotPasswordRoute
 import com.example.bubtrack.presentation.navigation.RegisterRoute
 import com.example.bubtrack.ui.theme.AppPurple
 import com.example.bubtrack.ui.theme.BubTrackTheme
@@ -109,11 +110,7 @@ fun LoginScreen(
             )
             TextButton(
                 onClick = {
-                    Toast.makeText(
-                        context,
-                        "Fitur reset password belum diimplementasikan",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    navController.navigate(ForgotPasswordRoute)
                 },
                 modifier = Modifier.align(Alignment.End)
             ) {
@@ -224,7 +221,6 @@ fun LoginScreen(
         LaunchedEffect(uiState.navDestination) {
             uiState.navDestination?.let {
                 navigate(it)
-                Log.d("LoginScreen", "Navigating to $it")
             }
         }
     }

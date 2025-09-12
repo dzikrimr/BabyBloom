@@ -1,5 +1,6 @@
 package com.example.bubtrack.presentation.onboarding
 
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -24,21 +25,29 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.bubtrack.R
 import com.example.bubtrack.presentation.common.CommonTextField
 import com.example.bubtrack.presentation.navigation.MainRoute
+import com.example.bubtrack.presentation.onboarding.login.LoginViewModel
 import com.example.bubtrack.ui.theme.AppPurple
 import com.example.bubtrack.ui.theme.BubTrackTheme
 
 @Composable
-fun ForgotPasswordScreen(modifier: Modifier = Modifier) {
+fun ForgotPasswordScreen(
+    modifier: Modifier = Modifier,
+    loginViewModel: LoginViewModel = hiltViewModel(),
+    navigate: () -> Unit
+) {
 
     var email by remember { mutableStateOf("") }
+    val context = LocalContext.current
 
     Column(
         modifier = modifier
@@ -74,7 +83,9 @@ fun ForgotPasswordScreen(modifier: Modifier = Modifier) {
         Spacer(modifier.height(22.dp))
         OutlinedButton(
             onClick = {
-
+                loginViewModel.forgotPassword(email)
+                Toast.makeText(context, "Email berhasil dikirim", Toast.LENGTH_SHORT).show()
+                navigate()
             },
             modifier = Modifier
                 .fillMaxWidth()

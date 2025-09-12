@@ -17,6 +17,9 @@ data object RegisterRoute : AppRoute
 data object CreateProfileRoute : AppRoute
 
 @Serializable
+data object ForgotPasswordRoute : AppRoute
+
+@Serializable
 data object MainRoute : AppRoute
 
 @Serializable

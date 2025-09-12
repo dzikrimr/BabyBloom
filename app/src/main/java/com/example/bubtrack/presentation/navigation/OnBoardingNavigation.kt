@@ -7,18 +7,23 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.bubtrack.presentation.onboarding.CreateProfileScreen
+import com.example.bubtrack.presentation.onboarding.ForgotPasswordScreen
 import com.example.bubtrack.presentation.onboarding.login.LoginScreen
 import com.example.bubtrack.presentation.onboarding.OnBoardingScreen
 import com.example.bubtrack.presentation.onboarding.register.RegisterScreen
 
 @Composable
-fun OnBoardingNavigation(modifier: Modifier = Modifier) {
+fun OnBoardingNavigation(
+    modifier: Modifier = Modifier,
+    startDestination : AppRoute
+) {
     val navController = rememberNavController()
     NavHost(
         navController = navController,
-        startDestination = OnBoardingRoute,
+        startDestination = startDestination,
         modifier = modifier.fillMaxSize()
     ){
+
         composable<OnBoardingRoute>{
             OnBoardingScreen(
                 navigateLogin = {
@@ -48,8 +53,23 @@ fun OnBoardingNavigation(modifier: Modifier = Modifier) {
                 navController = navController
             )
         }
+        composable<ForgotPasswordRoute> {
+            ForgotPasswordScreen(
+                navigate = {
+                    navController.popBackStack()
+                }
+            )
+        }
         composable<MainRoute>{
-            MainNavigation()
+            MainNavigation(
+                navigateLogin = {
+                    navController.navigate(LoginRoute){
+                        popUpTo(MainRoute){
+                            inclusive = true
+                        }
+                    }
+                }
+            )
         }
     }
 }
