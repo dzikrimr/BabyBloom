@@ -19,27 +19,31 @@ class ArticleViewModel @Inject constructor(
     private val _state = MutableStateFlow(ArticleUiState())
     val state = _state.asStateFlow()
 
-    private val _detailArticle = MutableStateFlow<Article?>(null)
+    private val _detailArticle = MutableStateFlow<Resource<Article>>(Resource.Idle())
     val detailArticle = _detailArticle.asStateFlow()
+
 
     init {
         getAllArticle()
     }
 
 
-    private fun getAllArticle(){
+    private fun getAllArticle() {
         viewModelScope.launch {
-            articleRepo.getAllArticle().collect{
-                when(it){
+            articleRepo.getAllArticle().collect {
+                when (it) {
                     is Resource.Loading -> {
                         _state.value = ArticleUiState(isLoading = true)
                     }
+
                     is Resource.Success -> {
                         _state.value = ArticleUiState(allArticles = it.data ?: emptyList())
                     }
+
                     is Resource.Error -> {
                         _state.value = ArticleUiState(error = it.msg)
                     }
+
                     else -> {
 
                     }
@@ -48,7 +52,7 @@ class ArticleViewModel @Inject constructor(
         }
     }
 
-    fun getArticleByCategory(category: String){
+    fun getArticleByCategory(category: String) {
         viewModelScope.launch {
             val data = _state.value.allArticles.filter {
                 it.category == category
@@ -59,13 +63,34 @@ class ArticleViewModel @Inject constructor(
         }
     }
 
-    fun getDetailArticle(id: Int){
+    fun getDetailArticle(id: Int) {
         viewModelScope.launch {
-            val data = _state.value.allArticles.find {
-                it.id == id
-            }
+            val data = articleRepo.getArticleById(id)
             _detailArticle.value = data
         }
     }
 
+    fun searchArticle(query: String) {
+        viewModelScope.launch {
+            articleRepo.searchArticle(query).collect {
+                when (it) {
+                    is Resource.Loading -> {
+                        _state.value = ArticleUiState(isLoading = true)
+                    }
+
+                    is Resource.Success -> {
+                        _state.value = ArticleUiState(allArticles = it.data ?: emptyList())
+                    }
+
+                    is Resource.Error -> {
+                        _state.value = ArticleUiState(error = it.msg)
+                    }
+
+                    else -> {
+                    }
+                }
+            }
+
+        }
+    }
 }

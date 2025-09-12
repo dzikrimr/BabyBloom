@@ -3,16 +3,19 @@ package com.example.bubtrack.presentation.article
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -26,14 +29,21 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.bubtrack.R
 import com.example.bubtrack.ui.theme.AppBackground
+import com.example.bubtrack.utill.Resource
 
 @Composable
 fun ArticleDetailScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
-    viewModel: ArticleViewModel = hiltViewModel()
+    viewModel: ArticleViewModel = hiltViewModel(),
+    articleId : Int
 ) {
-    val article by viewModel.detailArticle.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.getDetailArticle(articleId)
+    }
+    val data = viewModel.detailArticle.collectAsState().value
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -49,37 +59,74 @@ fun ArticleDetailScreen(
                 .clickable(
                     enabled = true,
                     onClick = { navController.popBackStack() },
-                    indication = null,
-                    interactionSource = null
                 )
         )
         Spacer(modifier.height(12.dp))
+        when(data){
+            is Resource.Loading -> {
+                Row(
+                    modifier = modifier.fillMaxWidth().align(Alignment.CenterHorizontally),
+                ) {
+                    CircularProgressIndicator()
+                }
 
-        AsyncImage(
-            model = article?.imageUrl,
-            contentDescription = "article image",
-            contentScale = ContentScale.Crop,
-            modifier = modifier.fillMaxWidth().height(220.dp)
-        )
-        Spacer(modifier.height(12.dp))
-        Text(
-            article?.date ?: "",
-            style = MaterialTheme.typography.bodySmall
-        )
-        Spacer(modifier.height(12.dp))
-        Text(
-            article?.title ?: "",
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-        )
-        Spacer(modifier.height(12.dp))
-        Text(
-            "${article?.source ?: ""} - ${article?.readTime} menit dibaca",
-            style = MaterialTheme.typography.bodySmall
-        )
-        Spacer(modifier.height(12.dp))
-        Text(
-            article?.content ?: "",
-            style = MaterialTheme.typography.bodyMedium
-        )
+            }
+            is Resource.Success -> {
+                if (data.data!=null){
+                    val article = data.data
+                    AsyncImage(
+                        model = article.imageUrl,
+                        contentDescription = "article image",
+                        contentScale = ContentScale.Crop,
+                        modifier = modifier.fillMaxWidth().height(220.dp)
+                    )
+                    Spacer(modifier.height(12.dp))
+                    Text(
+                        article.date ?: "",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Spacer(modifier.height(12.dp))
+                    Text(
+                        article.title ?: "",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                    )
+                    Spacer(modifier.height(12.dp))
+                    Text(
+                        "${article.source ?: ""} - ${article?.readTime} menit dibaca",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Spacer(modifier.height(12.dp))
+                    Text(
+                        article.content ?: "",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                } else {
+                    Row(
+                        modifier = modifier.fillMaxWidth().align(Alignment.CenterHorizontally),
+                    ) {
+                        Text(
+                            data.msg ?: "Terjadi kesalahan, coba lagi nanti",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+                }
+            }
+            is Resource.Error -> {
+                Row(
+                    modifier = modifier.fillMaxWidth().align(Alignment.CenterHorizontally),
+                ) {
+                    Text(
+                        data.msg ?: "Terjadi kesalahan, coba lagi nanti",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+            }
+            else -> {
+
+            }
+        }
+
+
+
     }
 }

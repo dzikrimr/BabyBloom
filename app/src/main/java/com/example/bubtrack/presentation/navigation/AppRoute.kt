@@ -35,7 +35,14 @@ data object ArticleRoute : AppRoute
 data object ArticleHomeRoute : AppRoute
 
 @Serializable
-data object ArticleDetailRoute : AppRoute
+data class ArticleDetailRoute(
+    val id: Int
+) : AppRoute
+
+@Serializable
+data class ArticleSearchRoute(
+    val query: String
+)
 
 @Serializable
 data object ProfileRoute : AppRoute

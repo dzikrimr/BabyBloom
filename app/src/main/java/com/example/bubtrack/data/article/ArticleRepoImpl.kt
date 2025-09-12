@@ -1,5 +1,6 @@
 package com.example.bubtrack.data.article
 
+import android.util.Log
 import com.example.bubtrack.domain.article.Article
 import com.example.bubtrack.domain.article.ArticleRepo
 import com.example.bubtrack.utill.Resource
@@ -10,7 +11,7 @@ import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 class ArticleRepoImpl @Inject constructor(
-    private val firestore : FirebaseFirestore
+    private val firestore: FirebaseFirestore
 ) : ArticleRepo {
 
     override suspend fun getAllArticle(): Flow<Resource<List<Article>>> {
@@ -40,11 +41,30 @@ class ArticleRepoImpl @Inject constructor(
         return flow {
             emit(Resource.Loading())
             try {
-                val data = firestore.collection("articles").whereEqualTo("category", category).get().await()
+                val data = firestore.collection("articles").whereEqualTo("category", category).get()
+                    .await()
                 val articles = data.toObjects(Article::class.java)
                 emit(Resource.Success(articles))
             } catch (e: Exception) {
                 emit(Resource.Error(e.message.toString()))
+            }
+        }
+    }
+
+    override suspend fun searchArticle(query: String): Flow<Resource<List<Article>>> {
+        return flow {
+            emit(Resource.Loading())
+            try {
+                val snapshot = firestore.collection("articles").get().await()
+                val allArticles = snapshot.toObjects(Article::class.java)
+
+                val filtered = allArticles.filter {
+                    it.title.contains(query, ignoreCase = true)
+                }
+                emit(Resource.Success(filtered))
+
+            } catch (e: Exception) {
+                emit(Resource.Error(e.message ?: "Terjadi kesalahan"))
             }
         }
     }

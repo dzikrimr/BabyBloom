@@ -47,7 +47,7 @@ fun CustomTextField(
             height(45.dp)
                 .clip(RoundedCornerShape(22.dp))
                 .background(Color.White)
-                .border(2.dp, AppGray, RoundedCornerShape(22.dp))
+                .border(1.dp, AppGray, RoundedCornerShape(22.dp))
                 .padding(horizontal = 12.dp, vertical = 8.dp)
         },
         contentAlignment = Alignment.CenterStart

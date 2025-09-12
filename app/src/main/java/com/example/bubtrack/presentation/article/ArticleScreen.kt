@@ -1,5 +1,6 @@
 package com.example.bubtrack.presentation.article
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
@@ -20,6 +21,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -34,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -56,7 +59,9 @@ import com.google.firebase.firestore.firestore
 fun ArticleScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
-    articleViewModel: ArticleViewModel = hiltViewModel()
+    articleViewModel: ArticleViewModel = hiltViewModel(),
+    navigateDetail : (Int) -> Unit,
+    navigateSearch: (String) -> Unit
 ) {
     val uiState by articleViewModel.state.collectAsState()
     val categoryList = listOf("Semua", "Nutrisi", "Perkembangan", "Kesehatan", "Tips")
@@ -64,10 +69,10 @@ fun ArticleScreen(
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("Semua") }
     val scrollState = rememberScrollState()
+    val context = LocalContext.current
 
     when {
         uiState.isLoading -> {
-            // Loading indicator di tengah layar
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -75,7 +80,7 @@ fun ArticleScreen(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                androidx.compose.material3.CircularProgressIndicator()
+                CircularProgressIndicator()
             }
         }
 
@@ -101,15 +106,21 @@ fun ArticleScreen(
             Column(
                 modifier = modifier
                     .fillMaxSize()
-                    .statusBarsPadding()
                     .background(AppBackground)
+                    .statusBarsPadding()
                     .verticalScroll(scrollState)
             ) {
                 CustomTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
                     onClear = { searchQuery = "" },
-                    onSearch = { /* TODO: implement search */ },
+                    onSearch = {
+                        if (searchQuery.isNotEmpty()){
+                            navigateSearch(searchQuery)
+                        } else {
+                            Toast.makeText(context,"Masukkan kata kunci pencarian!",Toast.LENGTH_SHORT).show()
+                        }
+                    },
                     modifier = modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp)
@@ -148,8 +159,7 @@ fun ArticleScreen(
                             ArticleHeaderCard(
                                 article = uiState.allArticles[index],
                                 onClick = {
-                                    articleViewModel.getDetailArticle(uiState.allArticles[index].id)
-                                    navController.navigate(ArticleDetailRoute)
+                                    navigateDetail(uiState.allArticles[index].id)
                                 }
                             )
                             Spacer(modifier.width(16.dp))
@@ -183,8 +193,7 @@ fun ArticleScreen(
                         ArticleCard(
                             article = it,
                             onClick = {
-                                articleViewModel.getDetailArticle(it.id)
-                                navController.navigate(ArticleDetailRoute)
+                                navigateDetail(it.id)
                             }
                         )
                         Spacer(modifier.height(16.dp))

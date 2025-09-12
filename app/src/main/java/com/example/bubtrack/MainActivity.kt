@@ -9,7 +9,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.bubtrack.presentation.activities.ActivitiesScreen
 import com.example.bubtrack.presentation.home.HomeScreen
@@ -18,6 +20,7 @@ import com.example.bubtrack.presentation.navigation.OnBoardingNavigation
 import com.example.bubtrack.presentation.onboarding.CreateProfileScreen
 import com.example.bubtrack.presentation.onboarding.OnBoardingScreen
 import com.example.bubtrack.ui.theme.BubTrackTheme
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -28,6 +31,13 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             BubTrackTheme {
+                val systemUiController = rememberSystemUiController()
+                SideEffect {
+                    systemUiController.setSystemBarsColor(
+                        color = Color.White,
+                        darkIcons = true
+                    )
+                }
                 OnBoardingNavigation()
             }
         }
