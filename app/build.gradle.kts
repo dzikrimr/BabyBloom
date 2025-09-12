@@ -141,4 +141,8 @@ dependencies {
 
     // webrtc
     implementation ("io.github.webrtc-sdk:android:137.7151.03")
+
+    //tensorflow
+    implementation("org.tensorflow:tensorflow-lite:2.16.1")
+    implementation("org.tensorflow:tensorflow-lite-support:0.4.4")
 }
