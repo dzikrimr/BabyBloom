@@ -59,3 +59,9 @@ data object SleepMonitorRoute : AppRoute
 @Serializable
 data object CryAnalyzerRoute : AppRoute
 
+@Serializable
+data object ParentScreenRoute : AppRoute
+
+@Serializable
+data object BabyScreenRoute : AppRoute
+

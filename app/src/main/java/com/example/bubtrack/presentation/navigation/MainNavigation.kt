@@ -25,6 +25,9 @@ import androidx.navigation.toRoute
 import com.example.bubtrack.presentation.ai.sleepmonitor.SleepMonitorScreen
 import com.example.bubtrack.presentation.activities.ActivitiesScreen
 import com.example.bubtrack.presentation.ai.AiScreen
+import com.example.bubtrack.presentation.ai.cobamonitor.BabyScreen
+import com.example.bubtrack.presentation.ai.cobamonitor.LandingScreen
+import com.example.bubtrack.presentation.ai.cobamonitor.ParentScreen
 import com.example.bubtrack.presentation.ai.cryanalyzer.CryAnalyzerScreen
 import com.example.bubtrack.presentation.ai.monitor.MonitorScreen
 import com.example.bubtrack.presentation.ai.sleepmonitor.SleepMonitorViewModel
@@ -118,7 +121,10 @@ fun MainNavigation(
 //                    onStopMonitor = { /* Handle stop monitor logic if needed */ },
 //                    onCryModeClick = { /* Handle cry mode logic if needed */ }
 //                )
-                MonitorScreen()
+//                MonitorScreen()
+                LandingScreen(
+                    navController
+                )
             }
             composable<CryAnalyzerRoute>{
                 CryAnalyzerScreen(
@@ -167,6 +173,12 @@ fun MainNavigation(
                         navigateLogin()
                     }
                 )
+            }
+            composable<ParentScreenRoute>{
+                ParentScreen()
+            }
+            composable<BabyScreenRoute> {
+                BabyScreen()
             }
         }
     }
