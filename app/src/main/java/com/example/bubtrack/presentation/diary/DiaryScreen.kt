@@ -45,11 +45,10 @@ import com.example.bubtrack.ui.theme.AppPurple
 import com.example.bubtrack.ui.theme.BubTrackTheme
 
 @Composable
-fun DiaryScreen(modifier: Modifier = Modifier) {
-
-    var selectedTab by remember {
-        mutableStateOf("Development")
-    }
+fun DiaryScreen(modifier: Modifier = Modifier,
+                initialTab: String = "Development"
+) {
+    var selectedTab by remember { mutableStateOf(initialTab) }
     val scrollState = rememberScrollState()
 
     Column(

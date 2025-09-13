@@ -166,7 +166,7 @@ class DiaryViewModel @Inject constructor(
             initializeCloudinary(context)
             if (imageUri != null) {
                 MediaManager.get().upload(Uri.parse(imageUri))
-                    .option("upload_preset", "babybloom_upload")
+                    .option("babyyy", "babybloom_upload")
                     .callback(object : UploadCallback {
                         override fun onStart(requestId: String) {
                             Toast.makeText(context, "Mengunggah gambar...", Toast.LENGTH_SHORT).show()

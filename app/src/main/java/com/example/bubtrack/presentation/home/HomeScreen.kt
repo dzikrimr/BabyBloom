@@ -14,8 +14,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,14 +33,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.bubtrack.R
+import com.example.bubtrack.domain.activities.Activity
 import com.example.bubtrack.domain.growth.GrowthStats
-import com.example.bubtrack.presentation.common.ScheduleCard
+import com.example.bubtrack.presentation.activities.comps.ActivityCard
 import com.example.bubtrack.presentation.diary.comps.StatsCard
 import com.example.bubtrack.presentation.diary.comps.StatsCardItem
 import com.example.bubtrack.presentation.navigation.ActivitiesRoute
@@ -64,6 +70,10 @@ fun HomeScreen(
     var babyProfile by remember { mutableStateOf<Map<String, Any>?>(null) }
     var babyAge by remember { mutableStateOf("") }
     var latestGrowthStats by remember { mutableStateOf(GrowthStats()) }
+    var upcomingActivities by remember { mutableStateOf<List<Activity>>(emptyList()) }
+    var isLoadingActivities by remember { mutableStateOf(true) }
+    var activitiesError by remember { mutableStateOf<String?>(null) }
+
     val context = LocalContext.current
     val auth = FirebaseAuth.getInstance()
     val firestore = FirebaseFirestore.getInstance()
@@ -123,6 +133,38 @@ fun HomeScreen(
         }
     }
 
+    // Fetch upcoming activities (next 7 days)
+    LaunchedEffect(Unit) {
+        val userId = auth.currentUser?.uid
+        if (userId != null) {
+            isLoadingActivities = true
+            activitiesError = null
+
+            val currentTimeMillis = System.currentTimeMillis()
+            val sevenDaysLater = currentTimeMillis + (7 * 24 * 60 * 60 * 1000)
+
+            firestore.collection("users").document(userId)
+                .collection("activities")
+                .whereGreaterThanOrEqualTo("date", currentTimeMillis)
+                .whereLessThanOrEqualTo("date", sevenDaysLater)
+                .orderBy("date", Query.Direction.ASCENDING)
+                .limit(3) // Show only 3 upcoming activities
+                .addSnapshotListener { snapshot, error ->
+                    isLoadingActivities = false
+                    if (error != null) {
+                        activitiesError = "Gagal mengambil jadwal: ${error.message}"
+                        return@addSnapshotListener
+                    }
+
+                    val activities = snapshot?.documents?.mapNotNull { doc ->
+                        doc.toObject(Activity::class.java)?.copy(id = doc.id.hashCode())
+                    } ?: emptyList()
+
+                    upcomingActivities = activities
+                }
+        }
+    }
+
     val statsList = listOf(
         StatsCardItem(
             title = "Berat",
@@ -148,7 +190,7 @@ fun HomeScreen(
         StatsCardItem(
             title = "L. Lengan",
             value = latestGrowthStats.armCircum,
-            icon = R.drawable.ic_head,
+            icon = R.drawable.ic_lengan,
             unit = "cm",
             bgColor = AppLightPurple
         ),
@@ -265,137 +307,206 @@ fun HomeScreen(
                 )
             }
         }
-        Column(
+
+        LazyColumn(
             modifier = modifier
                 .fillMaxSize()
-                .padding(
-                    horizontal = 14.dp
-                )
+                .padding(horizontal = 14.dp)
         ) {
-            Text(
-                "Smart Baby Care",
-                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            Row(
-                modifier = modifier
-                    .fillMaxWidth()
-                    .height(150.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column(
-                    modifier = modifier
-                        .fillMaxHeight()
-                        .fillMaxWidth(0.5f)
-                        .clip(
-                            RoundedCornerShape(24.dp)
-                        )
-                        .background(color = AppLightPurple)
-                        .padding(14.dp)
-                ) {
-                    Box(
-                        modifier = modifier
-                            .size(46.dp)
-                            .clip(CircleShape)
-                            .background(
-                                color = Color(0xFFA78BFA)
-                            )
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        "Cry Analyzer",
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
-                    )
-                    Text(
-                        "Understand baby's \n need",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-                Spacer(modifier = Modifier.width(12.dp))
-                Column(
-                    modifier = modifier
-                        .fillMaxHeight()
-                        .fillMaxWidth(1f)
-                        .clip(
-                            RoundedCornerShape(24.dp)
-                        )
-                        .background(color = AppLightBlue)
-                        .padding(14.dp)
-                ) {
-                    Box(
-                        modifier = modifier
-                            .size(46.dp)
-                            .clip(CircleShape)
-                            .background(
-                                color = Color(0xFF93C5FD)
-                            )
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        "Sleep Monitor",
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
-                    )
-                    Text(
-                        "Monitor baby's sleep",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(22.dp))
-            Row(
-                modifier = modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    "Pertumbuhan Anak",
+                    "Smart Baby Care",
                     style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
                 )
-                Text(
-                    "Lihat Semua",
-                    style = MaterialTheme.typography.bodyMedium.copy(color = AppPurple)
-                )
-            }
-            Spacer(modifier = Modifier.height(22.dp))
-            Row(
-                modifier = modifier
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                statsList.forEach {
-                    StatsCard(
-                        statsCardItem = it,
-                        width = 90,
-                        height = 90
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(22.dp))
-            Row(
-                modifier = modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    "Jadwal Terdekat",
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
-                )
-                Text(
-                    "Lihat Semua",
-                    style = MaterialTheme.typography.bodyMedium.copy(color = AppPurple),
-                    modifier = modifier.clickable {
-                        navController.navigate(ActivitiesRoute)
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Row(
+                    modifier = modifier
+                        .fillMaxWidth()
+                        .height(150.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(
+                        modifier = modifier
+                            .fillMaxHeight()
+                            .fillMaxWidth(0.5f)
+                            .clip(RoundedCornerShape(24.dp))
+                            .background(color = AppLightPurple)
+                            .padding(14.dp)
+                    ) {
+                        Box(
+                            modifier = modifier
+                                .size(46.dp)
+                                .clip(CircleShape)
+                                .background(color = Color(0xFFA78BFA)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_mic_purple),
+                                contentDescription = "Cry Analyzer Icon",
+                                modifier = Modifier.size(20.dp),
+                                tint = Color.White
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            "Cry Analyzer",
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
+                        )
+                        Text(
+                            "Understand baby's \n need",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
                     }
-                )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column(
+                        modifier = modifier
+                            .fillMaxHeight()
+                            .fillMaxWidth(1f)
+                            .clip(RoundedCornerShape(24.dp))
+                            .background(color = AppLightBlue)
+                            .padding(14.dp)
+                    ) {
+                        Box(
+                            modifier = modifier
+                                .size(46.dp)
+                                .clip(CircleShape)
+                                .background(color = Color(0xFF93C5FD)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_sleep),
+                                contentDescription = "Sleep Monitor Icon",
+                                modifier = Modifier.size(20.dp),
+                                tint = Color.White
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            "Sleep Monitor",
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
+                        )
+                        Text(
+                            "Monitor baby's sleep",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(22.dp))
+                Row(
+                    modifier = modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        "Pertumbuhan Anak",
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
+                    )
+                    Text(
+                        "Lihat Semua",
+                        style = MaterialTheme.typography.bodyMedium.copy(color = AppPurple),
+                        modifier = modifier.clickable {
+                            navController.navigate("diary/Growth Chart")
+                        }
+                    )
+                }
+                Spacer(modifier = Modifier.height(22.dp))
+
+                Row(
+                    modifier = modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    statsList.forEach {
+                        StatsCard(
+                            statsCardItem = it,
+                            width = 90,
+                            height = 90
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(22.dp))
+                Row(
+                    modifier = modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        "Jadwal Terdekat",
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
+                    )
+                    Text(
+                        "Lihat Semua",
+                        style = MaterialTheme.typography.bodyMedium.copy(color = AppPurple),
+                        modifier = modifier.clickable {
+                            navController.navigate(ActivitiesRoute)
+                        }
+                    )
+                }
+                Spacer(modifier = Modifier.height(22.dp))
             }
-            Spacer(modifier = Modifier.height(22.dp))
-            ScheduleCard(
-                title = "Vaksin Polio",
-                location = "Puskesmas Glonggong",
-                date = "12 Mei 2023"
-            )
+
+            // Activities section
+            when {
+                isLoadingActivities -> {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(80.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(
+                                color = AppPurple,
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
+                    }
+                }
+                activitiesError != null -> {
+                    item {
+                        Text(
+                            text = activitiesError ?: "Terjadi kesalahan",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Red,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
+                }
+                upcomingActivities.isEmpty() -> {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(80.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color.White)
+                                .padding(16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                "Tidak ada jadwal dalam 7 hari ke depan",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color(0xFF6B7280)
+                            )
+                        }
+                    }
+                }
+                else -> {
+                    items(upcomingActivities) { activity ->
+                        ActivityCard(activity = activity)
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
+                }
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+            }
         }
     }
 }
