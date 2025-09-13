@@ -2,7 +2,6 @@ package com.example.bubtrack.presentation.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -55,6 +54,11 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import android.widget.Toast
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
+import androidx.compose.ui.res.painterResource
 
 @Composable
 fun HomeScreen(
@@ -67,6 +71,7 @@ fun HomeScreen(
     val context = LocalContext.current
     val auth = FirebaseAuth.getInstance()
     val firestore = FirebaseFirestore.getInstance()
+    val scrollState = rememberScrollState()
 
     // Fetch baby profile data (for name and age)
     LaunchedEffect(Unit) {
@@ -158,6 +163,7 @@ fun HomeScreen(
         modifier = modifier
             .fillMaxSize()
             .background(AppBackground)
+            .verticalScroll(scrollState)
     ) {
         Box(
             modifier = modifier
@@ -299,9 +305,16 @@ fun HomeScreen(
                             .size(46.dp)
                             .clip(CircleShape)
                             .background(
-                                color = Color(0xFFA78BFA)
+                                color = AppPurple.copy(alpha = 0.2f)
                             )
-                    )
+                    ){
+                        Icon(
+                            painter = painterResource(R.drawable.ic_mic),
+                            contentDescription = "cry analyzer",
+                            tint = Color.Unspecified,
+                            modifier = modifier.size(20.dp).align(Alignment.Center)
+                        )
+                    }
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
                         "Cry Analyzer",
@@ -328,9 +341,16 @@ fun HomeScreen(
                             .size(46.dp)
                             .clip(CircleShape)
                             .background(
-                                color = Color(0xFF93C5FD)
+                                color = Color(0xFF93C5FD).copy(alpha = 0.2f)
                             )
-                    )
+                    ){
+                        Icon(
+                            painter = painterResource(R.drawable.ic_moon),
+                            contentDescription = "cry analyzer",
+                            tint = Color.Unspecified,
+                            modifier = modifier.size(20.dp).align(Alignment.Center)
+                        )
+                    }
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
                         "Sleep Monitor",
@@ -367,8 +387,8 @@ fun HomeScreen(
                 statsList.forEach {
                     StatsCard(
                         statsCardItem = it,
-                        width = 90,
-                        height = 90
+                        width = 80,
+                        height = 80
                     )
                 }
             }

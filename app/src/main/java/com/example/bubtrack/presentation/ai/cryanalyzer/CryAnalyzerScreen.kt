@@ -11,22 +11,32 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import com.example.bubtrack.R
+import com.example.bubtrack.presentation.ai.comps.BabyNeedPager
+import com.example.bubtrack.ui.theme.AppBackground
+import com.example.bubtrack.ui.theme.AppPurple
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.tensorflow.lite.Interpreter
@@ -39,14 +49,23 @@ import kotlin.math.min
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun VoiceAnalyzerScreen(
-    onNavigateBack: () -> Unit = {}
+fun CryAnalyzerScreen(
+    modifier: Modifier = Modifier,
+    onNavigateBack: () -> Unit
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     var isRecording by remember { mutableStateOf(false) }
     var classificationResult by remember { mutableStateOf("Tekan tombol untuk merekam") }
-    var confidenceScores by remember { mutableStateOf(emptyList<Pair<String, Float>>()) }
+    val labels = listOf(
+        "belly_pain", "burping", "cold_hot", "discomfort", "hungry",
+        "laugh", "silence", "tired"
+    )
+    var confidenceScores by remember {
+        mutableStateOf(
+            labels.map { label -> label to 0f }
+        )
+    }
     val permissionState = rememberPermissionState(Manifest.permission.RECORD_AUDIO)
 
     val infiniteTransition = rememberInfiniteTransition()
@@ -101,116 +120,158 @@ fun VoiceAnalyzerScreen(
         }
     }
 
+    var seconds by remember { mutableStateOf(0) }
+
+    // Timer jalan kalau lagi recording
+    LaunchedEffect(isRecording) {
+        if (isRecording) {
+            while (true) {
+                delay(1000L)
+                seconds++
+            }
+        } else {
+            // reset kalau mau balik ke 0 saat stop
+            // kalau mau tetap lanjut hitungan total, hapus reset ini
+            seconds = 0
+        }
+    }
+
+    val minutes = seconds / 60
+    val remainingSeconds = seconds % 60
+    val formattedTime = String.format("%02d:%02d", minutes, remainingSeconds)
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(16.dp),
+            .background(AppBackground),
         verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxWidth()
-                .padding(bottom = 16.dp),
+                .background(Color.White)
+                .padding(horizontal = 8.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Button(
-                onClick = onNavigateBack,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    contentColor = MaterialTheme.colorScheme.onSurface
-                ),
-                modifier = Modifier.wrapContentWidth()
+            IconButton(
+                onClick = { onNavigateBack() },
+                modifier = modifier.width(25.dp)
             ) {
-                Text("← Kembali")
+                Icon(
+                    imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                    contentDescription = "back button",
+                    modifier = modifier.fillMaxSize()
+                )
+            }
+            Text(
+                "Cry Analyzer",
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+            )
+            Spacer(modifier = modifier.width(25.dp))
+        }
+        Spacer(modifier = Modifier.height(32.dp))
+        Column(
+            modifier = modifier
+                .padding(16.dp)
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(Color.White)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .background(
+                        color = if (isRecording) Color(0xFFF87171) else Color.Gray.copy(alpha = 0.3f),
+                        shape = RoundedCornerShape(percent = 50)
+                    )
+                    .scale(if (isRecording) scale else 1f),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_speaker),
+                    "record button",
+                    modifier = Modifier.size(50.dp),
+                    tint = Color.White
+
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Column(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xFFFEF2F2))
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    "Cry Duration",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Spacer(modifier.height(8.dp))
+                Text(
+                    formattedTime,
+                    fontSize = 30.sp,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
-        Text(
-            text = "Analisis Tangisan Bayi",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
-        )
-
         Spacer(modifier = Modifier.height(32.dp))
 
-        Box(
-            modifier = Modifier
-                .size(100.dp)
-                .background(
-                    color = if (isRecording) Color.Red.copy(alpha = 0.3f) else Color.Gray.copy(alpha = 0.3f),
-                    shape = RoundedCornerShape(percent = 50)
-                )
-                .scale(if (isRecording) scale else 1f),
-            contentAlignment = Alignment.Center
+        Column(
+            modifier = modifier
+                .padding(horizontal = 16.dp)
+                .fillMaxWidth()
+                .height(200.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(Color.White)
+                .padding(12.dp)
         ) {
             Text(
-                text = if (isRecording) "Merekam" else "Siap",
-                color = Color.White,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium
+                "Baby's need analysis",
+                style = MaterialTheme.typography.titleSmall.copy(
+                    fontWeight = FontWeight.SemiBold
+                )
+            )
+            Spacer(modifier.height(8.dp))
+            BabyNeedPager(
+                results = confidenceScores
             )
         }
 
         Spacer(modifier = Modifier.height(32.dp))
 
         Button(
-            onClick = { toggleRecording() },
-            modifier = Modifier
-                .fillMaxWidth(0.7f)
-                .height(56.dp),
+            onClick = {toggleRecording()},
             colors = ButtonDefaults.buttonColors(
-                containerColor = if (isRecording) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
-            )
+                containerColor = AppPurple
+            ),
+            shape = RoundedCornerShape(14.dp),
+            modifier = modifier.fillMaxWidth().height(50.dp).padding(horizontal = 16.dp)
         ) {
-            Text(
-                text = if (isRecording) "Berhenti Rekam" else "Mulai Rekam",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+            Row(
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = classificationResult,
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onSurface
+                Icon(
+                    painter = painterResource(
+                        id = if (isRecording) R.drawable.ic_muted else R.drawable.ic_mic,
+                    ),
+                    contentDescription = "mic button"
                 )
-                Spacer(modifier = Modifier.height(16.dp))
-                if (confidenceScores.isNotEmpty()) {
-                    Text(
-                        text = "Skor Kepercayaan:",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    confidenceScores.forEach { (label, score) ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(text = label, style = MaterialTheme.typography.bodyMedium)
-                            Text(
-                                text = String.format("%.2f%%", score * 100),
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
-                    }
-                }
+                Spacer(modifier.width(5.dp))
+                Text(
+                    text = if (isRecording) "Stop Recording" else "Start Recording",
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 16.sp
+                )
             }
+
         }
 
         Spacer(modifier = Modifier.weight(1f))
@@ -229,65 +290,73 @@ private fun loadModel(context: Context): Interpreter {
     return Interpreter(mappedBuffer)
 }
 
-private suspend fun recordAudio(context: Context, isRecordingState: () -> Boolean): FloatArray? = withContext(Dispatchers.IO) {
-    if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-        return@withContext null
-    }
-
-    val sampleRate = 16000
-    val channelConfig = AudioFormat.CHANNEL_IN_MONO
-    val audioFormat = AudioFormat.ENCODING_PCM_16BIT
-    val bufferSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat)
-    val minSamples = sampleRate // Require at least 1 second of audio
-    val maxSamples = sampleRate * 30 // Max 30 seconds to prevent memory issues
-
-    try {
-        val audioRecord = AudioRecord(
-            MediaRecorder.AudioSource.MIC,
-            sampleRate,
-            channelConfig,
-            audioFormat,
-            bufferSize
-        )
-
-        if (audioRecord.state != AudioRecord.STATE_INITIALIZED) {
-            audioRecord.release()
+private suspend fun recordAudio(context: Context, isRecordingState: () -> Boolean): FloatArray? =
+    withContext(Dispatchers.IO) {
+        if (ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.RECORD_AUDIO
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
             return@withContext null
         }
 
-        val audioData = mutableListOf<Short>()
-        val tempBuffer = ShortArray(bufferSize)
+        val sampleRate = 16000
+        val channelConfig = AudioFormat.CHANNEL_IN_MONO
+        val audioFormat = AudioFormat.ENCODING_PCM_16BIT
+        val bufferSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat)
+        val minSamples = sampleRate // Require at least 1 second of audio
+        val maxSamples = sampleRate * 30 // Max 30 seconds to prevent memory issues
 
-        audioRecord.startRecording()
-        while (isRecordingState() && audioData.size < maxSamples) {
-            val read = audioRecord.read(tempBuffer, 0, tempBuffer.size)
-            if (read > 0) {
-                audioData.addAll(tempBuffer.take(read))
-            } else {
-                break // Error reading audio
+        try {
+            val audioRecord = AudioRecord(
+                MediaRecorder.AudioSource.MIC,
+                sampleRate,
+                channelConfig,
+                audioFormat,
+                bufferSize
+            )
+
+            if (audioRecord.state != AudioRecord.STATE_INITIALIZED) {
+                audioRecord.release()
+                return@withContext null
             }
-        }
-        audioRecord.stop()
-        audioRecord.release()
 
-        if (audioData.size < minSamples) {
-            println("Audio too short: ${audioData.size} samples, required $minSamples")
-            return@withContext null
-        }
+            val audioData = mutableListOf<Short>()
+            val tempBuffer = ShortArray(bufferSize)
 
-        val result = audioData.map { it.toFloat() / Short.MAX_VALUE }.toFloatArray()
-        println("Recorded samples: ${result.size}")
-        result
-    } catch (e: SecurityException) {
-        e.printStackTrace()
-        null
-    } catch (e: Exception) {
-        e.printStackTrace()
-        null
+            audioRecord.startRecording()
+            while (isRecordingState() && audioData.size < maxSamples) {
+                val read = audioRecord.read(tempBuffer, 0, tempBuffer.size)
+                if (read > 0) {
+                    audioData.addAll(tempBuffer.take(read))
+                } else {
+                    break // Error reading audio
+                }
+            }
+            audioRecord.stop()
+            audioRecord.release()
+
+            if (audioData.size < minSamples) {
+                println("Audio too short: ${audioData.size} samples, required $minSamples")
+                return@withContext null
+            }
+
+            val result = audioData.map { it.toFloat() / Short.MAX_VALUE }.toFloatArray()
+            println("Recorded samples: ${result.size}")
+            result
+        } catch (e: SecurityException) {
+            e.printStackTrace()
+            null
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
     }
-}
 
-private fun classifyAudio(interpreter: Interpreter, audioData: FloatArray): Pair<String, List<Pair<String, Float>>> {
+private fun classifyAudio(
+    interpreter: Interpreter,
+    audioData: FloatArray
+): Pair<String, List<Pair<String, Float>>> {
     val inputSize = 40
     val preprocessedData = preprocessAudio(audioData, inputSize)
 
@@ -312,7 +381,7 @@ private fun classifyAudio(interpreter: Interpreter, audioData: FloatArray): Pair
     // Labels yang benar (9 kelas sesuai Python)
     val labels = listOf(
         "belly_pain", "burping", "cold_hot", "discomfort", "hungry",
-        "laugh", "silence", "tired", "lonely"
+        "laugh", "silence", "tired"
     )
 
     val scores = output[0].mapIndexed { index, score ->

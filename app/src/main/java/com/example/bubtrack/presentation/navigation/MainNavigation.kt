@@ -25,6 +25,7 @@ import androidx.navigation.toRoute
 import com.example.bubtrack.presentation.ai.sleepmonitor.SleepMonitorScreen
 import com.example.bubtrack.presentation.activities.ActivitiesScreen
 import com.example.bubtrack.presentation.ai.AiScreen
+import com.example.bubtrack.presentation.ai.cryanalyzer.CryAnalyzerScreen
 import com.example.bubtrack.presentation.ai.sleepmonitor.SleepMonitorViewModel
 import com.example.bubtrack.presentation.article.ArticleDetailScreen
 import com.example.bubtrack.presentation.article.ArticleScreen
@@ -50,7 +51,8 @@ fun MainNavigation(
 
     val screenWithoutNavbar = listOf(
         ActivitiesRoute::class.qualifiedName!!,
-        SleepMonitorRoute::class.qualifiedName!!
+        SleepMonitorRoute::class.qualifiedName!!,
+        CryAnalyzerRoute::class.qualifiedName!!
     )
     val showBottomBar = currentDestination?.route?.let { currentRoute ->
         !screenWithoutNavbar.any { routeWithoutNavbar ->
@@ -114,6 +116,11 @@ fun MainNavigation(
                     onBackClick = { navController.popBackStack() },
                     onStopMonitor = { /* Handle stop monitor logic if needed */ },
                     onCryModeClick = { /* Handle cry mode logic if needed */ }
+                )
+            }
+            composable<CryAnalyzerRoute>{
+                CryAnalyzerScreen(
+                    onNavigateBack = {}
                 )
             }
             navigation<ArticleRoute>(
