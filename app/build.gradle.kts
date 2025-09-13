@@ -140,7 +140,7 @@ dependencies {
     implementation("com.google.mlkit:barcode-scanning:17.2.0")
 
     // webrtc
-    implementation ("io.github.webrtc-sdk:android:137.7151.03")
+    implementation("com.mesibo.api:webrtc:1.0.5")
 
     //tensorflow
     implementation("org.tensorflow:tensorflow-lite:2.16.1")

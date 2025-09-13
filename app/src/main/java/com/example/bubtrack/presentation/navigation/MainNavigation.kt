@@ -26,6 +26,7 @@ import com.example.bubtrack.presentation.ai.sleepmonitor.SleepMonitorScreen
 import com.example.bubtrack.presentation.activities.ActivitiesScreen
 import com.example.bubtrack.presentation.ai.AiScreen
 import com.example.bubtrack.presentation.ai.cryanalyzer.CryAnalyzerScreen
+import com.example.bubtrack.presentation.ai.monitor.MonitorScreen
 import com.example.bubtrack.presentation.ai.sleepmonitor.SleepMonitorViewModel
 import com.example.bubtrack.presentation.article.ArticleDetailScreen
 import com.example.bubtrack.presentation.article.ArticleScreen
@@ -105,18 +106,19 @@ fun MainNavigation(
                 AiScreen(navController = navController)
             }
             composable<SleepMonitorRoute> {
-                val sleepViewModel: SleepMonitorViewModel = hiltViewModel()
-                SleepMonitorScreen(
-                    navController = navController,
-                    sleepViewModel = sleepViewModel,
-                    webRTCService = sleepViewModel.
-
-
-                    webRTCService,
-                    onBackClick = { navController.popBackStack() },
-                    onStopMonitor = { /* Handle stop monitor logic if needed */ },
-                    onCryModeClick = { /* Handle cry mode logic if needed */ }
-                )
+//                val sleepViewModel: SleepMonitorViewModel = hiltViewModel()
+//                SleepMonitorScreen(
+//                    navController = navController,
+//                    sleepViewModel = sleepViewModel,
+//                    webRTCService = sleepViewModel.
+//
+//
+//                    webRTCService,
+//                    onBackClick = { navController.popBackStack() },
+//                    onStopMonitor = { /* Handle stop monitor logic if needed */ },
+//                    onCryModeClick = { /* Handle cry mode logic if needed */ }
+//                )
+                MonitorScreen()
             }
             composable<CryAnalyzerRoute>{
                 CryAnalyzerScreen(

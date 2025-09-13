@@ -58,3 +58,4 @@ data object SleepMonitorRoute : AppRoute
 
 @Serializable
 data object CryAnalyzerRoute : AppRoute
+

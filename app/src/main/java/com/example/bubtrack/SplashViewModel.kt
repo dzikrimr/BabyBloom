@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.bubtrack.data.webrtc.FirebaseClient
 import com.example.bubtrack.domain.auth.AuthRepo
 import com.example.bubtrack.presentation.navigation.AppRoute
 import com.example.bubtrack.presentation.navigation.MainRoute
