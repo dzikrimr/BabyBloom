@@ -144,6 +144,5 @@ dependencies {
     implementation("org.tensorflow:tensorflow-lite-support:0.4.4")
 
     // webrtc
-    implementation ("io.livekit:livekit-android:2.20.2")
-    implementation ("com.auth0:java-jwt:4.4.0")
+    implementation ("io.github.webrtc-sdk:android:137.7151.03")
 }

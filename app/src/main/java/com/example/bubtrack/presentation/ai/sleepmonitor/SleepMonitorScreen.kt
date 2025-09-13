@@ -4,13 +4,9 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.os.Build
 import android.util.Log
-import android.view.SurfaceView
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.ExperimentalGetImage
-import androidx.camera.core.ImageAnalysis
-import androidx.camera.core.Preview
+import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
@@ -37,11 +33,12 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.example.bubtrack.R
-import com.example.bubtrack.data.livekit.LiveKitConnectionState
+import com.example.bubtrack.data.webrtc.ConnectionState
+import com.example.bubtrack.data.webrtc.WebRTCService
 import com.example.bubtrack.presentation.ai.sleepmonitor.comps.DevicePairingPopup
 import com.example.bubtrack.ui.theme.AppBackground
-import io.livekit.android.renderer.SurfaceViewRenderer
 import kotlinx.coroutines.delay
+import org.webrtc.SurfaceViewRenderer
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -51,6 +48,7 @@ import java.util.concurrent.Executors
 fun SleepMonitorScreen(
     navController: NavController,
     sleepViewModel: SleepMonitorViewModel,
+    webRTCService: WebRTCService,
     onBackClick: () -> Unit = {},
     onStopMonitor: () -> Unit = {},
     onCryModeClick: () -> Unit = {},
@@ -67,16 +65,18 @@ fun SleepMonitorScreen(
     val previewView = remember { PreviewView(context).apply { implementationMode = PreviewView.ImplementationMode.COMPATIBLE } }
     var preview by remember { mutableStateOf<Preview?>(null) }
     var imageAnalyzer by remember { mutableStateOf<ImageAnalysis?>(null) }
-    var isInitialized by remember { mutableStateOf(false) }
+    val localRenderer = remember { SurfaceViewRenderer(context) }
+    val remoteRenderer = remember { SurfaceViewRenderer(context) }
 
-    // Collect states from ViewModel (including LiveKit states)
-    val sleepStatus by sleepViewModel.sleepStatus.collectAsState()
+    // Collect sleep detection states
+    val sleepStatus by if (webRTCService.isHost.collectAsState().value) {
+        sleepViewModel.sleepStatus.collectAsState()
+    } else {
+        sleepViewModel.remoteSleepStatus.collectAsState()
+    }
+    val connectionState by webRTCService.connectionState.collectAsState()
+    val isHost by webRTCService.isHost.collectAsState()
     val isProcessing by sleepViewModel.isProcessing.collectAsState()
-    val connectionState by sleepViewModel.connectionState.collectAsState()
-    val participantCount by sleepViewModel.participantCount.collectAsState()
-    val remoteBabyData by sleepViewModel.remoteBabyData.collectAsState()
-    val isHost by sleepViewModel.isHost.collectAsState()
-    val remoteVideoTrack by sleepViewModel.getRemoteVideoTrack().collectAsState()
 
     // Get device name
     val deviceName = remember {
@@ -92,7 +92,23 @@ fun SleepMonitorScreen(
         hasCameraPermission = isGranted
     }
 
-    // Initialize as host and setup camera when screen opens
+    // Initialize WebRTC renderers
+    LaunchedEffect(connectionState) {
+        if (connectionState == ConnectionState.CONNECTED) {
+            webRTCService.localRenderer.value?.let { renderer ->
+                webRTCService.eglBase?.eglBaseContext?.let { context ->
+                    renderer.init(context, null)
+                }
+            }
+            webRTCService.remoteRenderer.value?.let { renderer ->
+                webRTCService.eglBase?.eglBaseContext?.let { context ->
+                    renderer.init(context, null)
+                }
+            }
+        }
+    }
+
+    // Check camera permission and initialize camera executor
     LaunchedEffect(Unit) {
         hasCameraPermission = ContextCompat.checkSelfPermission(
             context,
@@ -104,16 +120,10 @@ fun SleepMonitorScreen(
         }
 
         cameraExecutor = Executors.newSingleThreadExecutor()
-
-        // Initialize as host and connect immediately
-        if (!isInitialized) {
-            sleepViewModel.initializeAsHost()
-            isInitialized = true
-        }
     }
 
-    // Start camera and analysis when permission is granted AND user is host
-    LaunchedEffect(hasCameraPermission, isHost, connectionState) {
+    // Start camera and analysis when permission is granted
+    LaunchedEffect(hasCameraPermission, isHost) {
         if (hasCameraPermission && cameraExecutor != null && isHost) {
             val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
             cameraProviderFuture.addListener({
@@ -132,7 +142,7 @@ fun SleepMonitorScreen(
                     .also {
                         it.setAnalyzer(cameraExecutor!!) { imageProxy ->
                             val currentTime = System.currentTimeMillis()
-                            if (currentTime - lastProcessedTime >= 1000) { // Throttle to ~1 FPS
+                            if (currentTime - lastProcessedTime >= 1000) {
                                 val mediaImage = imageProxy.image
                                 if (mediaImage != null) {
                                     Log.d("SleepMonitorScreen", "Processing frame: width=${imageProxy.width}, height=${imageProxy.height}, rotation=${imageProxy.imageInfo.rotationDegrees}")
@@ -154,7 +164,7 @@ fun SleepMonitorScreen(
 
                 try {
                     provider.unbindAll()
-                    if (isPreviewVisible && isHost) { // Only show local preview if host
+                    if (isPreviewVisible) {
                         newPreview.setSurfaceProvider(previewView.surfaceProvider)
                     }
                     provider.bindToLifecycle(
@@ -204,7 +214,7 @@ fun SleepMonitorScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(androidx.compose.ui.graphics.Color.White)
+                .background(Color.White)
                 .padding(14.dp)
         ) {
             Row(
@@ -230,56 +240,13 @@ fun SleepMonitorScreen(
                 )
                 Spacer(modifier = Modifier.width(25.dp))
             }
-
-            // LiveKit Connection Status with Role Info
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        when (connectionState) {
-                            LiveKitConnectionState.CONNECTED -> Color(0xFFE7F7E7)
-                            LiveKitConnectionState.CONNECTING -> Color(0xFFFFF4E6)
-                            LiveKitConnectionState.FAILED -> Color(0xFFFFE6E6)
-                            LiveKitConnectionState.DISCONNECTED -> Color(0xFFF0F0F0)
-                            LiveKitConnectionState.RECONNECTING -> TODO()
-                        },
-                        RoundedCornerShape(8.dp)
-                    )
-                    .padding(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = when (connectionState) {
-                        LiveKitConnectionState.CONNECTED -> {
-                            val roleText = if (isHost) "HOST" else "VIEWER"
-                            val statusText = if (participantCount > 1) "Connected" else "Ready for pairing"
-                            "🔗 $statusText • $participantCount device(s) • $roleText"
-                        }
-                        LiveKitConnectionState.CONNECTING -> "🔄 Connecting..."
-                        LiveKitConnectionState.RECONNECTING -> "🔄 Reconnecting..."
-                        LiveKitConnectionState.FAILED -> "❌ Connection failed"
-                        LiveKitConnectionState.DISCONNECTED -> {
-                            val roleText = if (isHost) "HOST" else "VIEWER"
-                            "📱 Ready • $roleText • Tap 'Pair Device' to share"
-                        }
-                    },
-                    fontSize = 12.sp,
-                    color = when (connectionState) {
-                        LiveKitConnectionState.CONNECTED -> androidx.compose.ui.graphics.Color(0xFF4CAF50)
-                        LiveKitConnectionState.CONNECTING, LiveKitConnectionState.RECONNECTING -> androidx.compose.ui.graphics.Color(0xFFFF9800)
-                        LiveKitConnectionState.FAILED -> androidx.compose.ui.graphics.Color(0xFFF44336)
-                        LiveKitConnectionState.DISCONNECTED -> androidx.compose.ui.graphics.Color(0xFF666666)
-                    }
-                )
-            }
         }
 
         // Timer Section
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(androidx.compose.ui.graphics.Color(0xFFA78BFA))
+                .background(Color(0xFFA78BFA))
                 .padding(vertical = 20.dp),
             contentAlignment = Alignment.Center
         ) {
@@ -288,14 +255,14 @@ fun SleepMonitorScreen(
             ) {
                 Text(
                     text = "Monitoring Time",
-                    color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.8f),
+                    color = Color.White.copy(alpha = 0.8f),
                     fontWeight = FontWeight.Medium,
                     fontSize = 16.sp
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = monitoringTime,
-                    color = androidx.compose.ui.graphics.Color.White,
+                    color = Color.White,
                     fontSize = 30.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -309,69 +276,41 @@ fun SleepMonitorScreen(
                 .height(250.dp)
                 .padding(16.dp)
                 .clip(RoundedCornerShape(16.dp))
-                .background(androidx.compose.ui.graphics.Color.Gray.copy(alpha = 0.3f))
+                .background(Color.Gray.copy(alpha = 0.3f))
         ) {
-            when {
-                // Show remote video feed if viewer and remote track available
-                !isHost && remoteVideoTrack != null -> {
-                    RemoteVideoView(
-                        videoTrack = remoteVideoTrack!!,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
-                // Show local camera preview if host and has permission
-                isHost && hasCameraPermission && isPreviewVisible -> {
+            if (hasCameraPermission && isPreviewVisible) {
+                if (isHost) {
                     AndroidView(
                         factory = { previewView },
                         modifier = Modifier.fillMaxSize()
                     )
+                } else {
+                    AndroidView(
+                        factory = { remoteRenderer },
+                        modifier = Modifier.fillMaxSize()
+                    )
                 }
-                // Show placeholders for various states
-                !hasCameraPermission -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "Camera Permission Required",
-                            color = androidx.compose.ui.graphics.Color.Gray,
-                            fontSize = 14.sp
-                        )
-                    }
+            } else if (!hasCameraPermission) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Camera Permission Required",
+                        color = Color.Gray,
+                        fontSize = 14.sp
+                    )
                 }
-                !isHost && remoteVideoTrack == null -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                text = if (connectionState == LiveKitConnectionState.CONNECTED)
-                                    "Waiting for Host Video" else "Not Connected to Host",
-                                color = androidx.compose.ui.graphics.Color.Gray,
-                                fontSize = 14.sp
-                            )
-                            if (connectionState == LiveKitConnectionState.CONNECTED) {
-                                Spacer(modifier = Modifier.height(8.dp))
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(24.dp),
-                                    color = androidx.compose.ui.graphics.Color(0xFFA78BFA)
-                                )
-                            }
-                        }
-                    }
-                }
-                else -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "Camera Preview Hidden",
-                            color = androidx.compose.ui.graphics.Color.Gray,
-                            fontSize = 14.sp
-                        )
-                    }
+            } else {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Camera Preview Hidden",
+                        color = Color.Gray,
+                        fontSize = 14.sp
+                    )
                 }
             }
 
@@ -383,57 +322,56 @@ fun SleepMonitorScreen(
             ) {
                 Column {
                     Text(
-                        text = when {
-                            !isHost && remoteVideoTrack != null -> "Remote Live Feed"
-                            isHost && hasCameraPermission -> "Live AI Detection"
-                            else -> "Camera Off"
+                        text = when (connectionState) {
+                            ConnectionState.CONNECTED -> if (isHost) "Live AI Detection" else "Remote Feed"
+                            ConnectionState.CONNECTING -> "Connecting..."
+                            ConnectionState.FAILED -> "Connection Failed"
+                            else -> if (hasCameraPermission) "Live AI Detection" else "Camera Off"
                         },
-                        color = androidx.compose.ui.graphics.Color.White,
+                        color = Color.White,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium
                     )
                     Text(
-                        text = if (!isHost) "Host Device Camera" else "$deviceName Camera",
-                        color = androidx.compose.ui.graphics.Color.White,
+                        text = if (isHost) "$deviceName Camera" else "Remote Device",
+                        color = Color.White,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.SemiBold
                     )
                 }
             }
 
-            // Camera preview toggle button (only for host)
-            if (isHost) {
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(16.dp)
-                        .size(40.dp)
-                        .background(
-                            androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.5f),
-                            CircleShape
-                        )
-                        .clickable {
-                            if (hasCameraPermission) {
-                                isPreviewVisible = !isPreviewVisible
-                            } else {
-                                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
-                            }
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        painter = painterResource(
-                            if (isPreviewVisible && hasCameraPermission) R.drawable.ic_eye else R.drawable.ic_eye_off
-                        ),
-                        contentDescription = if (isPreviewVisible && hasCameraPermission) "Hide Preview" else "Show Preview",
-                        tint = androidx.compose.ui.graphics.Color.White,
-                        modifier = Modifier.size(20.dp)
+            // Camera preview toggle button
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp)
+                    .size(40.dp)
+                    .background(
+                        Color.Black.copy(alpha = 0.5f),
+                        CircleShape
                     )
-                }
+                    .clickable {
+                        if (hasCameraPermission) {
+                            isPreviewVisible = !isPreviewVisible
+                        } else {
+                            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                        }
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(
+                        if (isPreviewVisible && hasCameraPermission) R.drawable.ic_eye else R.drawable.ic_eye_off
+                    ),
+                    contentDescription = if (isPreviewVisible && hasCameraPermission) "Hide Preview" else "Show Preview",
+                    tint = Color.White,
+                    modifier = Modifier.size(20.dp)
+                )
             }
         }
 
-        // Status Cards Grid - Show remote data if available (for viewer) or local data (for host)
+        // Status Cards Grid
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -447,25 +385,31 @@ fun SleepMonitorScreen(
                 StatusCard(
                     modifier = Modifier.weight(1f),
                     title = "Sleep Status",
-                    value = if (!isHost && remoteBabyData != null) {
-                        // Viewer shows remote data
+                    value = sleepStatus?.let {
                         when {
-                            remoteBabyData!!.eyeStatus.contains("Tertutup") -> "Asleep (Remote)"
-                            remoteBabyData!!.eyeStatus.contains("Terbuka") -> "Awake (Remote)"
-                            else -> "Unknown (Remote)"
-                        }
-                    } else {
-                        // Host shows local data
-                        when {
-                            sleepStatus.eyeStatus.contains("Tertutup") -> "Asleep"
-                            sleepStatus.eyeStatus.contains("Terbuka") -> "Awake"
+                            it.eyeStatus.contains("Tertutup") -> "Asleep"
+                            it.eyeStatus.contains("Terbuka") -> "Awake"
                             else -> "Unknown"
                         }
-                    },
+                    } ?: "Unknown",
                     painter = painterResource(R.drawable.ic_eye_off),
-                    backgroundColor = androidx.compose.ui.graphics.Color(0xFFE3F2FD),
-                    iconColor = androidx.compose.ui.graphics.Color(0xFFF9A8D4),
-                    valueColor = androidx.compose.ui.graphics.Color(0xFFF9A8D4)
+                    backgroundColor = Color(0xFFE3F2FD),
+                    iconColor = Color(0xFF93C5FD),
+                    valueColor = Color(0xFF93C5FD)
+                )
+                StatusCard(
+                    modifier = Modifier.weight(1f),
+                    title = "Motion",
+                    value = sleepStatus?.let {
+                        when {
+                            it.movementStatus.contains("aktif") -> "Active"
+                            else -> "Still"
+                        }
+                    } ?: "Unknown",
+                    painter = painterResource(R.drawable.ic_motion),
+                    backgroundColor = Color(0xFFFCE4EC),
+                    iconColor = Color(0xFFF9A8D4),
+                    valueColor = Color(0xFFF9A8D4)
                 )
             }
             Row(
@@ -474,34 +418,28 @@ fun SleepMonitorScreen(
             ) {
                 StatusCard(
                     modifier = Modifier.weight(1f),
-                    title = "Sound",
-                    value = if (isProcessing) "Crying" else "Normal",
+                    title = "Suara",
+                    value = if (isProcessing) "Nangis" else "Tidak",
                     painter = painterResource(R.drawable.ic_speaker),
-                    backgroundColor = androidx.compose.ui.graphics.Color(0xFFE8F5E9),
-                    iconColor = androidx.compose.ui.graphics.Color(0xFF4CAF50),
-                    valueColor = if (isProcessing) androidx.compose.ui.graphics.Color.Red else androidx.compose.ui.graphics.Color(0xFF4CAF50)
+                    backgroundColor = Color(0xFFE8F5E9),
+                    iconColor = Color(0xFF4CAF50),
+                    valueColor = if (isProcessing) Color.Red else Color(0xFF4CAF50)
                 )
                 StatusCard(
                     modifier = Modifier.weight(1f),
                     title = "Rollover",
-                    value = if (!isHost && remoteBabyData != null) {
-                        // Viewer shows remote data
+                    value = sleepStatus?.let {
                         when {
-                            remoteBabyData!!.rolloverStatus.contains("Ya") -> "Detected (Remote)"
-                            else -> "Normal (Remote)"
-                        }
-                    } else {
-                        // Host shows local data
-                        when {
-                            sleepStatus.rolloverStatus.contains("Ya") -> "Detected"
+                            it.rolloverStatus.contains("Ya") -> "Detected"
                             else -> "Normal"
                         }
-                    },
+                    } ?: "Unknown",
                     painter = painterResource(R.drawable.ic_rollover),
-                    backgroundColor = androidx.compose.ui.graphics.Color(0xFFF3E5F5),
-                    iconColor = androidx.compose.ui.graphics.Color(0xFFA78BFA),
-                    valueColor = if ((if (!isHost && remoteBabyData != null) remoteBabyData!!.rolloverStatus else sleepStatus.rolloverStatus).contains("Ya"))
-                        androidx.compose.ui.graphics.Color.Red else androidx.compose.ui.graphics.Color(0xFFA78BFA)
+                    backgroundColor = Color(0xFFF3E5F5),
+                    iconColor = Color(0xFFA78BFA),
+                    valueColor = sleepStatus?.let {
+                        if (it.rolloverStatus.contains("Ya")) Color.Red else Color(0xFFA78BFA)
+                    } ?: Color(0xFFA78BFA)
                 )
             }
         }
@@ -517,14 +455,14 @@ fun SleepMonitorScreen(
                 onClick = {
                     cameraProvider?.unbindAll()
                     sleepViewModel.resetSession()
-                    sleepViewModel.disconnectFromRoom() // Disconnect from LiveKit room
+                    webRTCService.cleanup()
                     onStopMonitor()
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(46.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = androidx.compose.ui.graphics.Color(0xFF8B5FBF)
+                    containerColor = Color(0xFF8B5FBF)
                 ),
                 shape = RoundedCornerShape(12.dp)
             ) {
@@ -532,14 +470,14 @@ fun SleepMonitorScreen(
                     painter = painterResource(id = R.drawable.ic_stop),
                     contentDescription = null,
                     modifier = Modifier.size(16.dp),
-                    tint = androidx.compose.ui.graphics.Color.White
+                    tint = Color.White
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "Stop AI Monitor",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
-                    color = androidx.compose.ui.graphics.Color.White
+                    color = Color.White
                 )
             }
 
@@ -553,7 +491,7 @@ fun SleepMonitorScreen(
                         .weight(1f)
                         .height(46.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = androidx.compose.ui.graphics.Color(0xFF64B5F6)
+                        containerColor = Color(0xFF64B5F6)
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
@@ -561,14 +499,14 @@ fun SleepMonitorScreen(
                         painter = painterResource(id = R.drawable.ic_mic),
                         contentDescription = null,
                         modifier = Modifier.size(20.dp),
-                        tint = androidx.compose.ui.graphics.Color.White
+                        tint = Color.White
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = "Cry Mode",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
-                        color = androidx.compose.ui.graphics.Color.White
+                        color = Color.White
                     )
                 }
 
@@ -578,7 +516,7 @@ fun SleepMonitorScreen(
                         .weight(1f)
                         .height(46.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = androidx.compose.ui.graphics.Color(0xFFF48FB1)
+                        containerColor = Color(0xFFF48FB1)
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
@@ -586,80 +524,15 @@ fun SleepMonitorScreen(
                         painter = painterResource(id = R.drawable.ic_qr_scan),
                         contentDescription = null,
                         modifier = Modifier.size(18.dp),
-                        tint = androidx.compose.ui.graphics.Color.White
+                        tint = Color.White
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = "Pair Device",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
-                        color = androidx.compose.ui.graphics.Color.White
+                        color = Color.White
                     )
-                }
-            }
-
-            // LiveKit Control Buttons (if connected)
-            if (connectionState == LiveKitConnectionState.CONNECTED) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    // Only show camera controls for host
-                    if (isHost) {
-                        Button(
-                            onClick = { sleepViewModel.switchCamera() },
-                            modifier = Modifier.weight(1f),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = androidx.compose.ui.graphics.Color(0xFF4CAF50)
-                            ),
-                            shape = RoundedCornerShape(8.dp)
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_camera),
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp),
-                                tint = androidx.compose.ui.graphics.Color.White
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Switch", fontSize = 12.sp, color = androidx.compose.ui.graphics.Color.White)
-                        }
-
-                        Button(
-                            onClick = { sleepViewModel.toggleVideo() },
-                            modifier = Modifier.weight(1f),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = androidx.compose.ui.graphics.Color(0xFF2196F3)
-                            ),
-                            shape = RoundedCornerShape(8.dp)
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_eye),
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp),
-                                tint = androidx.compose.ui.graphics.Color.White
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Video", fontSize = 12.sp, color = androidx.compose.ui.graphics.Color.White)
-                        }
-                    }
-
-                    Button(
-                        onClick = { sleepViewModel.toggleAudio() },
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = androidx.compose.ui.graphics.Color(0xFFFF9800)
-                        ),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_mic),
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp),
-                            tint = androidx.compose.ui.graphics.Color.White
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Audio", fontSize = 12.sp, color = androidx.compose.ui.graphics.Color.White)
-                    }
                 }
             }
         }
@@ -671,41 +544,27 @@ fun SleepMonitorScreen(
     if (showPairingPopup) {
         DevicePairingPopup(
             onDismiss = { showPairingPopup = false },
-            sleepViewModel = sleepViewModel,
-            onPairingSuccess = {
-                Log.d("SleepMonitorScreen", "Pairing successful")
-                showPairingPopup = false
+            webRTCService = webRTCService,
+            localRenderer = localRenderer,
+            remoteRenderer = remoteRenderer,
+            onPairingSuccess = { sessionId ->
+                if (!isHost) {
+                    webRTCService.joinAsClient(sessionId, localRenderer, remoteRenderer)
+                }
             }
         )
     }
 
-    // Clean up camera when composable is disposed
+    // Clean up camera and WebRTC when composable is disposed
     DisposableEffect(lifecycleOwner) {
         onDispose {
             cameraProvider?.unbindAll()
             cameraExecutor?.shutdown()
+            localRenderer.release()
+            remoteRenderer.release()
+            webRTCService.cleanup()
         }
     }
-}
-
-@Composable
-private fun RemoteVideoView(
-    videoTrack: io.livekit.android.room.track.VideoTrack,
-    modifier: Modifier = Modifier
-) {
-    AndroidView(
-        factory = { context ->
-            SurfaceViewRenderer(context).apply {
-                init(null, null)
-                videoTrack.addRenderer(this)
-            }
-        },
-        modifier = modifier,
-        onRelease = { surfaceViewRenderer ->
-            videoTrack.removeRenderer(surfaceViewRenderer)
-            surfaceViewRenderer.release()
-        }
-    )
 }
 
 @Composable
@@ -714,9 +573,9 @@ private fun StatusCard(
     title: String,
     value: String,
     painter: Painter,
-    backgroundColor: androidx.compose.ui.graphics.Color,
-    iconColor: androidx.compose.ui.graphics.Color,
-    valueColor: androidx.compose.ui.graphics.Color
+    backgroundColor: Color,
+    iconColor: Color,
+    valueColor: Color
 ) {
     Card(
         modifier = modifier.height(120.dp),
@@ -743,13 +602,13 @@ private fun StatusCard(
                     painter = painter,
                     contentDescription = null,
                     modifier = Modifier.size(20.dp),
-                    tint = androidx.compose.ui.graphics.Color.White
+                    tint = Color.White
                 )
             }
             Text(
                 text = title,
                 fontSize = 13.sp,
-                color = androidx.compose.ui.graphics.Color.Gray,
+                color = Color.Gray,
                 fontWeight = FontWeight.Medium
             )
             Text(
@@ -763,3 +622,20 @@ private fun StatusCard(
 }
 
 private var lastProcessedTime = 0L
+
+@SuppressLint("ViewModelConstructorInComposable")
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true)
+@Composable
+fun SleepMonitorScreenPreview() {
+    MaterialTheme {
+        val mockViewModel = SleepMonitorViewModel(LocalContext.current, WebRTCService(LocalContext.current))
+        SleepMonitorScreen(
+            navController = androidx.navigation.compose.rememberNavController(),
+            sleepViewModel = mockViewModel,
+            webRTCService = WebRTCService(LocalContext.current),
+            onBackClick = {},
+            onStopMonitor = {},
+            onCryModeClick = {}
+        )
+    }
+}

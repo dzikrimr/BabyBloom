@@ -13,13 +13,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.ViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
-import com.example.bubtrack.data.livekit.LiveKitService
 import com.example.bubtrack.presentation.ai.sleepmonitor.SleepMonitorScreen
 import com.example.bubtrack.presentation.activities.ActivitiesScreen
 import com.example.bubtrack.presentation.ai.AiScreen
@@ -29,14 +27,6 @@ import com.example.bubtrack.presentation.article.ArticleScreen
 import com.example.bubtrack.presentation.diary.DiaryScreen
 import com.example.bubtrack.presentation.home.HomeScreen
 import com.example.bubtrack.presentation.profile.ProfileScreen
-import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
-
-// ViewModel to hold LiveKit Service (updated from AgoraService)
-@HiltViewModel
-class NavigationViewModel @Inject constructor(
-    val liveKitService: LiveKitService // Updated to use LiveKit instead of Agora
-) : ViewModel()
 
 @Composable
 fun MainNavigation(modifier: Modifier = Modifier) {
@@ -105,29 +95,16 @@ fun MainNavigation(modifier: Modifier = Modifier) {
             }
             composable<SleepMonitorRoute> {
                 val sleepViewModel: SleepMonitorViewModel = hiltViewModel()
-
                 SleepMonitorScreen(
                     navController = navController,
                     sleepViewModel = sleepViewModel,
-                    onBackClick = {
-                        // Navigate back to previous screen
-                        navController.navigateUp()
-                    },
-                    onStopMonitor = {
-                        // Stop monitoring and navigate back to AI screen or Home
-                        navController.navigate(AiRoute) {
-                            // Clear the sleep monitor from back stack
-                            popUpTo(AiRoute) {
-                                inclusive = false
-                            }
-                        }
-                    },
-                    onCryModeClick = {
-                        // Handle cry mode activation
-                        // You might want to show a dialog or navigate to cry mode settings
-                        // For now, just log or show a toast
-                        // Toast.makeText(context, "Cry Mode Activated", Toast.LENGTH_SHORT).show()
-                    }
+                    webRTCService = sleepViewModel.
+
+
+                    webRTCService,
+                    onBackClick = { navController.popBackStack() },
+                    onStopMonitor = { /* Handle stop monitor logic if needed */ },
+                    onCryModeClick = { /* Handle cry mode logic if needed */ }
                 )
             }
             navigation<ArticleRoute>(startDestination = ArticleHomeRoute) {
