@@ -139,10 +139,11 @@ dependencies {
     implementation ("com.google.zxing:core:3.5.1")
     implementation("com.google.mlkit:barcode-scanning:17.2.0")
 
-    // webrtc
-    implementation ("io.github.webrtc-sdk:android:137.7151.03")
-
     //tensorflow
     implementation("org.tensorflow:tensorflow-lite:2.16.1")
     implementation("org.tensorflow:tensorflow-lite-support:0.4.4")
+
+    // webrtc
+    implementation ("io.livekit:livekit-android:2.20.2")
+    implementation ("com.auth0:java-jwt:4.4.0")
 }

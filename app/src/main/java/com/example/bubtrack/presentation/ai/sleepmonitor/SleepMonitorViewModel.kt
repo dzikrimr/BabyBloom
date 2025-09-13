@@ -6,9 +6,10 @@ import androidx.camera.core.ImageProxy
 import androidx.camera.core.ExperimentalGetImage
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.bubtrack.data.webrtc.WebRTCService
 import com.example.bubtrack.models.SleepFeatures
 import com.example.bubtrack.models.SleepStatus
+import com.example.bubtrack.data.livekit.LiveKitConnectionState
+import com.example.bubtrack.data.livekit.LiveKitService
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.face.*
 import com.google.mlkit.vision.pose.*
@@ -30,7 +31,7 @@ import kotlin.math.sqrt
 @HiltViewModel
 class SleepMonitorViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
-    val webRTCService: WebRTCService
+    private val liveKitService: LiveKitService
 ) : ViewModel() {
 
     private val _sleepStatus = MutableStateFlow(SleepStatus())
@@ -39,8 +40,11 @@ class SleepMonitorViewModel @Inject constructor(
     private val _isProcessing = MutableStateFlow(false)
     val isProcessing: StateFlow<Boolean> = _isProcessing.asStateFlow()
 
-    private val _remoteSleepStatus = MutableStateFlow<SleepStatus?>(null)
-    val remoteSleepStatus: StateFlow<SleepStatus?> = _remoteSleepStatus.asStateFlow()
+    // LiveKit related state flows
+    val connectionState = liveKitService.connectionState
+    val isHost = liveKitService.isHost
+    val participantCount = liveKitService.participantCount
+    val remoteBabyData = liveKitService.remoteBabyData
 
     private var frameCount = 0
     private var totalEAR = 0f
@@ -49,6 +53,7 @@ class SleepMonitorViewModel @Inject constructor(
     private var consecutiveFramesWithoutFace = 0
     private var consecutiveFramesWithFace = 0
     private var consecutiveLowMovementFrames = 0
+    private var roomInfoGenerated: String? = null
 
     private val faceDetector = FaceDetection.getClient(
         FaceDetectorOptions.Builder()
@@ -75,17 +80,26 @@ class SleepMonitorViewModel @Inject constructor(
     private var maxHistorySize = 20
     private val movementThreshold = 0.15f
 
-    init {
-        // Observe remote sleep status from WebRTCService
+    /**
+     * Initialize as host when the screen opens
+     * This generates room info and connects to LiveKit immediately
+     */
+    fun initializeAsHost() {
         viewModelScope.launch {
-            webRTCService.remoteSleepStatus.collect { remoteStatus ->
-                remoteStatus?.let {
-                    _remoteSleepStatus.value = SleepStatus(
-                        eyeStatus = it.eyeStatus,
-                        movementStatus = it.movementStatus,
-                        rolloverStatus = it.rolloverStatus
-                    )
+            try {
+                if (roomInfoGenerated == null) {
+                    // Generate room info and connect immediately as host
+                    roomInfoGenerated = liveKitService.generateRoomInfo()
+                    val success = liveKitService.startAsHostWithRoomInfo(roomInfoGenerated!!)
+
+                    if (success) {
+                        Log.d("SleepMonitorViewModel", "Successfully initialized as host and connected to LiveKit")
+                    } else {
+                        Log.e("SleepMonitorViewModel", "Failed to connect as host")
+                    }
                 }
+            } catch (e: Exception) {
+                Log.e("SleepMonitorViewModel", "Error initializing as host: ${e.message}", e)
             }
         }
     }
@@ -113,15 +127,17 @@ class SleepMonitorViewModel @Inject constructor(
                     return@launch
                 }
 
-                val inputImage = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
+                val inputImage =
+                    InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
                 val features = extractFeatures(inputImage)
                 val status = analyzeFeatures(features)
                 _sleepStatus.value = status
                 updateAnalytics(features)
 
-                // Sync status with paired device if host
-                if (webRTCService.isHost.value) {
-                    webRTCService.syncSleepStatus(status)
+                // Send data to connected devices via LiveKit (only if host and connected)
+                if (liveKitService.isHost.value &&
+                    liveKitService.connectionState.value == LiveKitConnectionState.CONNECTED) {
+                    liveKitService.sendBabyMonitorData(status)
                 }
 
                 Log.d("SleepDetection", "Processed frame: Features=$features, Status=$status")
@@ -139,6 +155,66 @@ class SleepMonitorViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Generate room information without connecting to LiveKit
+     * Used for QR code generation
+     */
+    fun generateRoomInfo(): String {
+        return roomInfoGenerated ?: liveKitService.generateRoomInfo().also {
+            roomInfoGenerated = it
+        }
+    }
+
+    /**
+     * Start as host with pre-generated room info (if not already connected)
+     * This is called when showing QR code to actually connect to LiveKit
+     */
+    fun startAsHostWithRoomInfo(roomInfo: String): Boolean {
+        return if (connectionState.value == LiveKitConnectionState.DISCONNECTED) {
+            liveKitService.startAsHostWithRoomInfo(roomInfo)
+        } else {
+            true // Already connected
+        }
+    }
+
+    /**
+     * Start as host - generates room info and connects
+     * This is for backward compatibility
+     */
+    fun startAsHost(): String {
+        return roomInfoGenerated ?: run {
+            val info = liveKitService.generateRoomInfo()
+            roomInfoGenerated = info
+            // Connect immediately if not already connected
+            if (connectionState.value == LiveKitConnectionState.DISCONNECTED) {
+                liveKitService.startAsHostWithRoomInfo(info)
+            }
+            info
+        }
+    }
+
+    /**
+     * Join as viewer by scanning QR code
+     */
+    fun joinAsViewer(qrData: String): Boolean {
+        return liveKitService.joinAsViewer(qrData)
+    }
+
+    /**
+     * Disconnect from LiveKit room
+     */
+    fun disconnectFromRoom() {
+        liveKitService.disconnect()
+        roomInfoGenerated = null // Reset room info for next session
+    }
+
+    fun getLocalVideoTrack() = liveKitService.getLocalVideoTrack()
+    fun getRemoteVideoTrack() = liveKitService.remoteVideoTrack
+
+    fun switchCamera() = liveKitService.switchCamera()
+    fun toggleVideo() = liveKitService.toggleVideo()
+    fun toggleAudio() = liveKitService.toggleAudio()
+
     private suspend fun extractFeatures(inputImage: InputImage): SleepFeatures =
         withContext(Dispatchers.Default) {
             var features = SleepFeatures()
@@ -149,10 +225,12 @@ class SleepMonitorViewModel @Inject constructor(
             try {
                 val faces = faceDetector.process(inputImage).await()
                 Log.d("SleepDetection", "Faces detected: ${faces.size}")
+
                 if (faces.isNotEmpty()) {
                     faceDetected = true
                     consecutiveFramesWithFace++
                     consecutiveFramesWithoutFace = 0
+
                     val face = faces[0]
                     val faceMovement = calculateFaceMovement(face)
 
@@ -164,7 +242,10 @@ class SleepMonitorViewModel @Inject constructor(
                 } else {
                     consecutiveFramesWithoutFace++
                     consecutiveFramesWithFace = 0
-                    Log.w("SleepDetection", "No faces detected - consecutive frames without face: $consecutiveFramesWithoutFace")
+                    Log.w(
+                        "SleepDetection",
+                        "No faces detected - consecutive frames without face: $consecutiveFramesWithoutFace"
+                    )
                 }
             } catch (e: Exception) {
                 Log.e("SleepDetection", "Face detection error: ${e.message}", e)
@@ -175,7 +256,6 @@ class SleepMonitorViewModel @Inject constructor(
                 if (pose != null && pose.allPoseLandmarks.isNotEmpty()) {
                     poseDetected = true
                     val limbMovement = calculateLimbMovement(pose.allPoseLandmarks)
-
                     val combinedMovement = if (faceDetected) {
                         (features.movement * 0.3f + limbMovement * 0.7f)
                     } else {
@@ -186,7 +266,11 @@ class SleepMonitorViewModel @Inject constructor(
                         movement = combinedMovement,
                         isRollover = if (!faceDetected) detectRollover(pose.allPoseLandmarks) else features.isRollover
                     )
-                    Log.d("SleepDetection", "Pose detected: Landmarks=${pose.allPoseLandmarks.size}, LimbMovement=$limbMovement, Combined=$combinedMovement")
+
+                    Log.d(
+                        "SleepDetection",
+                        "Pose detected: Landmarks=${pose.allPoseLandmarks.size}, LimbMovement=$limbMovement, Combined=$combinedMovement"
+                    )
                 } else {
                     Log.w("SleepDetection", "No pose detected")
                 }
@@ -201,29 +285,45 @@ class SleepMonitorViewModel @Inject constructor(
             if (movementHistory.size > maxHistorySize) {
                 movementHistory.removeAt(0)
             }
+
             Log.d("SleepDetection", "Movement history: $movementHistory")
 
-            val avgMovementHistory = if (movementHistory.isNotEmpty()) movementHistory.average().toFloat() else 0f
-            val finalMovement = if (smoothedMovement > movementThreshold && poseDetected && (pose?.allPoseLandmarks?.size ?: 0) >= 3 && movementHistory.count { it > movementThreshold } >= 5 && avgMovementHistory > movementThreshold) {
-                smoothedMovement
-            } else {
-                if (smoothedMovement < movementThreshold) {
-                    consecutiveLowMovementFrames++
-                    if (consecutiveLowMovementFrames >= maxHistorySize) {
-                        previousPoseLandmarks = null
-                        Log.d("SleepDetection", "Reset previousPoseLandmarks: Consistently low movement")
-                    }
+            val avgMovementHistory =
+                if (movementHistory.isNotEmpty()) movementHistory.average().toFloat() else 0f
+            val finalMovement =
+                if (smoothedMovement > movementThreshold && poseDetected && (pose?.allPoseLandmarks?.size
+                        ?: 0) >= 3 && movementHistory.count { it > movementThreshold } >= 5 && avgMovementHistory > movementThreshold
+                ) {
+                    smoothedMovement
                 } else {
-                    consecutiveLowMovementFrames = 0
+                    if (smoothedMovement < movementThreshold) {
+                        consecutiveLowMovementFrames++
+                        if (consecutiveLowMovementFrames >= maxHistorySize) {
+                            previousPoseLandmarks = null
+                            Log.d(
+                                "SleepDetection",
+                                "Reset previousPoseLandmarks: Consistently low movement"
+                            )
+                        }
+                    } else {
+                        consecutiveLowMovementFrames = 0
+                    }
+                    0f
                 }
-                0f
-            }
-            Log.d("SleepDetection", "Final movement: $finalMovement, Pose landmarks: ${pose?.allPoseLandmarks?.size ?: 0}, AvgMovementHistory: $avgMovementHistory")
+
+            Log.d(
+                "SleepDetection",
+                "Final movement: $finalMovement, Pose landmarks: ${pose?.allPoseLandmarks?.size ?: 0}, AvgMovementHistory: $avgMovementHistory"
+            )
+
             features = features.copy(movement = finalMovement)
 
             if (!faceDetected && consecutiveFramesWithoutFace >= 5) {
                 features = features.copy(isRollover = true)
-                Log.d("SleepDetection", "Rollover detected: No face for $consecutiveFramesWithoutFace consecutive frames")
+                Log.d(
+                    "SleepDetection",
+                    "Rollover detected: No face for $consecutiveFramesWithoutFace consecutive frames"
+                )
             }
 
             if (!faceDetected && !poseDetected) {
@@ -275,7 +375,6 @@ class SleepMonitorViewModel @Inject constructor(
                     }
                 }
             }
-
             if (pointCount > 0) totalMovement / pointCount else 0f
         } else {
             0f
@@ -283,7 +382,10 @@ class SleepMonitorViewModel @Inject constructor(
 
         previousFaceContours = currentContours
         val normalizedMovement = if (movement > 15f) movement / 100f else 0f
-        Log.d("SleepDetection", "Face contour movement: Raw=$movement, Normalized=$normalizedMovement")
+        Log.d(
+            "SleepDetection",
+            "Face contour movement: Raw=$movement, Normalized=$normalizedMovement"
+        )
         return normalizedMovement
     }
 
@@ -303,7 +405,10 @@ class SleepMonitorViewModel @Inject constructor(
 
         if (previousPoseLandmarks == null || limbLandmarks.size < 3) {
             previousPoseLandmarks = limbLandmarks
-            Log.d("SleepDetection", "No previous or insufficient limb landmarks (${limbLandmarks.size}), movement=0")
+            Log.d(
+                "SleepDetection",
+                "No previous or insufficient limb landmarks (${limbLandmarks.size}), movement=0"
+            )
             return 0f
         }
 
@@ -322,16 +427,19 @@ class SleepMonitorViewModel @Inject constructor(
                     (current.position.x - previous.position.x).pow(2) +
                             (current.position.y - previous.position.y).pow(2)
                 )
+
                 if (current.landmarkType in listOf(
                         PoseLandmark.LEFT_KNEE, PoseLandmark.RIGHT_KNEE,
                         PoseLandmark.LEFT_ANKLE, PoseLandmark.RIGHT_ANKLE
-                    )) {
+                    )
+                ) {
                     legMovement += distance
                     legComparisons++
                 } else {
                     armMovement += distance
                     armComparisons++
                 }
+
                 totalMovement += distance
                 validComparisons++
             }
@@ -344,7 +452,10 @@ class SleepMonitorViewModel @Inject constructor(
         val weightedMovement = (averageLegMovement * 0.7f + averageArmMovement * 0.3f)
         val normalizedMovement = if (weightedMovement > 15f) weightedMovement / 100f else 0f
 
-        Log.d("SleepDetection", "Limb movement: Legs=$averageLegMovement, Arms=$averageArmMovement, Weighted=$weightedMovement, Normalized=$normalizedMovement")
+        Log.d(
+            "SleepDetection",
+            "Limb movement: Legs=$averageLegMovement, Arms=$averageArmMovement, Weighted=$weightedMovement, Normalized=$normalizedMovement"
+        )
         return normalizedMovement
     }
 
@@ -354,14 +465,22 @@ class SleepMonitorViewModel @Inject constructor(
             return false
         }
 
-        val nose = landmarks.find { it.landmarkType == PoseLandmark.NOSE && it.inFrameLikelihood > 0.8f }
-        val leftShoulder = landmarks.find { it.landmarkType == PoseLandmark.LEFT_SHOULDER && it.inFrameLikelihood > 0.5f }
-        val rightShoulder = landmarks.find { it.landmarkType == PoseLandmark.RIGHT_SHOULDER && it.inFrameLikelihood > 0.5f }
-        val leftHip = landmarks.find { it.landmarkType == PoseLandmark.LEFT_HIP && it.inFrameLikelihood > 0.5f }
-        val rightHip = landmarks.find { it.landmarkType == PoseLandmark.RIGHT_HIP && it.inFrameLikelihood > 0.5f }
+        val nose =
+            landmarks.find { it.landmarkType == PoseLandmark.NOSE && it.inFrameLikelihood > 0.8f }
+        val leftShoulder =
+            landmarks.find { it.landmarkType == PoseLandmark.LEFT_SHOULDER && it.inFrameLikelihood > 0.5f }
+        val rightShoulder =
+            landmarks.find { it.landmarkType == PoseLandmark.RIGHT_SHOULDER && it.inFrameLikelihood > 0.5f }
+        val leftHip =
+            landmarks.find { it.landmarkType == PoseLandmark.LEFT_HIP && it.inFrameLikelihood > 0.5f }
+        val rightHip =
+            landmarks.find { it.landmarkType == PoseLandmark.RIGHT_HIP && it.inFrameLikelihood > 0.5f }
 
         if (nose == null || nose.inFrameLikelihood < 0.6f) {
-            Log.d("SleepDetection", "Rollover detected: Nose not visible or low confidence (likelihood=${nose?.inFrameLikelihood})")
+            Log.d(
+                "SleepDetection",
+                "Rollover detected: Nose not visible or low confidence (likelihood=${nose?.inFrameLikelihood})"
+            )
             return true
         }
 
@@ -369,7 +488,10 @@ class SleepMonitorViewModel @Inject constructor(
             val shoulderYDiff = abs(leftShoulder.position.y - rightShoulder.position.y)
             val hipYDiff = abs(leftHip.position.y - rightHip.position.y)
             val isRollover = shoulderYDiff > 50f || hipYDiff > 50f
-            Log.d("SleepDetection", "Rollover detection from pose: ShoulderYDiff=$shoulderYDiff, HipYDiff=$hipYDiff, Rollover=$isRollover")
+            Log.d(
+                "SleepDetection",
+                "Rollover detection from pose: ShoulderYDiff=$shoulderYDiff, HipYDiff=$hipYDiff, Rollover=$isRollover"
+            )
             return isRollover
         }
 
@@ -387,13 +509,31 @@ class SleepMonitorViewModel @Inject constructor(
         }
 
         val eyeStatus = when {
-            features.eyeAspectRatio > 0.7f -> "Terbuka [${String.format("%.2f", features.eyeAspectRatio)}]"
-            features.eyeAspectRatio > 0.3f -> "Setengah terbuka [${String.format("%.2f", features.eyeAspectRatio)}]"
+            features.eyeAspectRatio > 0.7f -> "Terbuka [${
+                String.format(
+                    "%.2f",
+                    features.eyeAspectRatio
+                )
+            }]"
+
+            features.eyeAspectRatio > 0.3f -> "Setengah terbuka [${
+                String.format(
+                    "%.2f",
+                    features.eyeAspectRatio
+                )
+            }]"
+
             else -> "Tertutup [${String.format("%.2f", features.eyeAspectRatio)}]"
         }
 
         val movementStatus = when {
-            features.movement > 0.4f -> "Bergerak aktif [${String.format("%.3f", features.movement)}]"
+            features.movement > 0.4f -> "Bergerak aktif [${
+                String.format(
+                    "%.3f",
+                    features.movement
+                )
+            }]"
+
             else -> "Tidak bergerak [${String.format("%.3f", features.movement)}]"
         }
 
@@ -415,8 +555,10 @@ class SleepMonitorViewModel @Inject constructor(
         totalEAR += features.eyeAspectRatio
         totalMovement += features.movement
         if (features.isRollover) rolloverCount++
-
-        Log.d("SleepDetection", "Analytics updated: Frames=$frameCount, AvgEAR=${totalEAR / frameCount}, AvgMovement=${totalMovement / frameCount}")
+        Log.d(
+            "SleepDetection",
+            "Analytics updated: Frames=$frameCount, AvgEAR=${totalEAR / frameCount}, AvgMovement=${totalMovement / frameCount}"
+        )
     }
 
     fun resetSession() {
@@ -431,10 +573,7 @@ class SleepMonitorViewModel @Inject constructor(
         previousFaceContours = null
         smoothedMovement = 0f
         movementHistory.clear()
-
         _sleepStatus.value = SleepStatus()
-        _remoteSleepStatus.value = null
-        webRTCService.disconnect()
         Log.d("SleepDetection", "Session reset")
     }
 
@@ -442,7 +581,7 @@ class SleepMonitorViewModel @Inject constructor(
         super.onCleared()
         faceDetector.close()
         poseDetector.close()
-        webRTCService.cleanup()
+        liveKitService.disconnect() // Clean up LiveKit connection
         Log.d("SleepDetection", "ViewModel cleared")
     }
 }
