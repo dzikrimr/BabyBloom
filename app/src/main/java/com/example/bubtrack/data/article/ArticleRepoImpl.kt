@@ -1,20 +1,25 @@
 package com.example.bubtrack.data.article
 
+import android.util.Log
 import com.example.bubtrack.domain.article.Article
 import com.example.bubtrack.domain.article.ArticleRepo
-import com.example.bubtrack.domain.article.dummyArticle
 import com.example.bubtrack.utill.Resource
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
-class ArticleRepoImpl @Inject constructor() : ArticleRepo {
+class ArticleRepoImpl @Inject constructor(
+    private val firestore: FirebaseFirestore
+) : ArticleRepo {
 
     override suspend fun getAllArticle(): Flow<Resource<List<Article>>> {
         return flow {
             emit(Resource.Loading())
             try {
-                val articles = dummyArticle
+                val data = firestore.collection("articles").get().await()
+                val articles = data.toObjects(Article::class.java)
                 emit(Resource.Success(articles))
             } catch (e: Exception) {
                 emit(Resource.Error(e.message.toString()))
@@ -23,16 +28,44 @@ class ArticleRepoImpl @Inject constructor() : ArticleRepo {
     }
 
     override suspend fun getArticleById(id: Int): Resource<Article> {
-        return try {
-            val article = dummyArticle.find { it.id == id }
-            if (article != null) {
-                Resource.Success(article)
-            } else {
-                Resource.Error("Article not found")
-            }
-
+        try {
+            val data = firestore.collection("articles").document(id.toString()).get().await()
+            val article = data.toObject(Article::class.java)
+            return Resource.Success(article)
         } catch (e: Exception) {
-            Resource.Error(e.message.toString())
+            return Resource.Error(e.message.toString())
+        }
+    }
+
+    override suspend fun getArticleByCategory(category: String): Flow<Resource<List<Article>>> {
+        return flow {
+            emit(Resource.Loading())
+            try {
+                val data = firestore.collection("articles").whereEqualTo("category", category).get()
+                    .await()
+                val articles = data.toObjects(Article::class.java)
+                emit(Resource.Success(articles))
+            } catch (e: Exception) {
+                emit(Resource.Error(e.message.toString()))
+            }
+        }
+    }
+
+    override suspend fun searchArticle(query: String): Flow<Resource<List<Article>>> {
+        return flow {
+            emit(Resource.Loading())
+            try {
+                val snapshot = firestore.collection("articles").get().await()
+                val allArticles = snapshot.toObjects(Article::class.java)
+
+                val filtered = allArticles.filter {
+                    it.title.contains(query, ignoreCase = true)
+                }
+                emit(Resource.Success(filtered))
+
+            } catch (e: Exception) {
+                emit(Resource.Error(e.message ?: "Terjadi kesalahan"))
+            }
         }
     }
 

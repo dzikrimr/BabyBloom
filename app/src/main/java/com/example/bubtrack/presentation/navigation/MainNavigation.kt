@@ -7,35 +7,42 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import com.example.bubtrack.presentation.ai.sleepmonitor.SleepMonitorScreen
 import com.example.bubtrack.presentation.activities.ActivitiesScreen
 import com.example.bubtrack.presentation.ai.AiScreen
-import com.example.bubtrack.presentation.ai.sleepmonitor.SleepMonitorViewModel
 import com.example.bubtrack.presentation.article.ArticleDetailScreen
 import com.example.bubtrack.presentation.article.ArticleScreen
+import com.example.bubtrack.presentation.article.ArticleSearchScreen
+import com.example.bubtrack.presentation.article.ArticleViewModel
 import com.example.bubtrack.presentation.diary.DiaryScreen
 import com.example.bubtrack.presentation.home.HomeScreen
 import com.example.bubtrack.presentation.profile.ProfileScreen
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 @Composable
-fun MainNavigation(modifier: Modifier = Modifier) {
+fun MainNavigation(
+    modifier: Modifier = Modifier,
+    navigateLogin: () -> Unit
+) {
     val navController = rememberNavController()
     var selectedItem by rememberSaveable {
         mutableIntStateOf(0)
     }
     val insets = WindowInsets.statusBars.asPaddingValues()
-
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
@@ -94,33 +101,53 @@ fun MainNavigation(modifier: Modifier = Modifier) {
                 AiScreen(navController = navController)
             }
             composable<SleepMonitorRoute> {
-                val sleepViewModel: SleepMonitorViewModel = hiltViewModel()
                 SleepMonitorScreen(
                     navController = navController,
-                    sleepViewModel = sleepViewModel,
-                    webRTCService = sleepViewModel.
-
-
-                    webRTCService,
-                    onBackClick = { navController.popBackStack() },
-                    onStopMonitor = { /* Handle stop monitor logic if needed */ },
-                    onCryModeClick = { /* Handle cry mode logic if needed */ }
+                    onBackClick = { navController.popBackStack() }
                 )
             }
-            navigation<ArticleRoute>(startDestination = ArticleHomeRoute) {
+            navigation<ArticleRoute>(
+                startDestination = ArticleHomeRoute) {
                 composable<ArticleHomeRoute> {
                     ArticleScreen(
-                        navController = navController
+                        navController = navController,
+                        navigateDetail = {
+                            navController.navigate(
+                                ArticleDetailRoute(it)
+                            )
+                        },
+                        navigateSearch = {
+                            navController.navigate(
+                                ArticleSearchRoute(it)
+                            )
+                        }
                     )
                 }
                 composable<ArticleDetailRoute> {
+                    val id = it.toRoute<ArticleDetailRoute>()
                     ArticleDetailScreen(
-                        navController = navController
+                        navController = navController,
+                        articleId = id.id
                     )
+                }
+                composable<ArticleSearchRoute> {
+                    val query = it.toRoute<ArticleSearchRoute>()
+                    ArticleSearchScreen(
+                        navController = navController,
+                        searchQuery = query.query
+                    ) {
+                        navController.navigate(
+                            ArticleDetailRoute(it)
+                        )
+                    }
                 }
             }
             composable<ProfileRoute> {
-                ProfileScreen()
+                ProfileScreen(
+                    navigateLogin = {
+                        navigateLogin()
+                    }
+                )
             }
         }
     }

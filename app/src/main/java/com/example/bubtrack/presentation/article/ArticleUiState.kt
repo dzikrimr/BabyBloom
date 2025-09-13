@@ -5,5 +5,6 @@ import com.example.bubtrack.domain.article.Article
 data class ArticleUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
-    val articles: List<Article> = emptyList()
+    val allArticles: List<Article> = emptyList(),
+    val categoryArticles: List<Article> = emptyList()
 )

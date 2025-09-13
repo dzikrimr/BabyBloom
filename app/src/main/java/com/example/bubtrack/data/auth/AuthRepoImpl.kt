@@ -6,6 +6,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.Flow
@@ -140,5 +141,27 @@ class AuthRepoImpl @Inject constructor(
         emit(Resource.Success(result))
     }.catch { e ->
         emit(Resource.Error("Google Sign-In failed: ${e.message}"))
+    }
+
+    override suspend fun getCurrentUser(): Flow<Resource<FirebaseUser>> {
+        return flow {
+            try {
+                emit(Resource.Loading())
+                val user = auth.currentUser
+                if (user != null) {
+                    emit(Resource.Success(user))
+                }
+            } catch (e: Exception) {
+                emit(Resource.Error(e.localizedMessage))
+            }
+        }
+    }
+
+    override suspend fun logout(): Resource<Unit> {
+        return try {
+            Resource.Success(auth.signOut())
+        } catch (e: Exception) {
+            Resource.Error(e.localizedMessage)
+        }
     }
 }

@@ -31,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TimePickerDefaults
+
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -105,18 +106,22 @@ fun AddSchedulePopUp(
                 Spacer(modifier.height(24.dp))
                 Text(
                     "Activity Name",
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.Medium
+                    ),
                     modifier = modifier.padding(bottom = 8.dp)
                 )
                 CommonTextField(
                     value = activityName,
                     placeholder = "Enter Activity Name",
-                    onValueChange = { activityName = it }
+                    onValueChange = { activityName = it}
                 )
                 Spacer(modifier.height(14.dp))
                 Text(
                     "Activity Type",
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.Medium
+                    ),
                     modifier = modifier.padding(bottom = 8.dp)
                 )
                 ExposedDropdownMenuBox(
@@ -170,7 +175,9 @@ fun AddSchedulePopUp(
                     ) {
                         Text(
                             "Date",
-                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontWeight = FontWeight.Medium
+                            ),
                             modifier = modifier.padding(bottom = 8.dp)
                         )
                         DatePickerModal(
@@ -185,12 +192,14 @@ fun AddSchedulePopUp(
                             showIcon = false
                         )
                     }
-                    Column(
+                    Column (
                         modifier = modifier.weight(1f)
-                    ) {
+                    ){
                         Text(
                             "Time",
-                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontWeight = FontWeight.Medium
+                            ),
                             modifier = modifier.padding(bottom = 8.dp)
                         )
                         Row(
@@ -215,7 +224,9 @@ fun AddSchedulePopUp(
                 Spacer(modifier.height(14.dp))
                 Text(
                     "Additional Notes",
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.Medium
+                    ),
                     modifier = modifier.padding(bottom = 8.dp)
                 )
                 OutlinedTextField(

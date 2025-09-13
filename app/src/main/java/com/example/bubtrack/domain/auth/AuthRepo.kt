@@ -3,6 +3,7 @@ package com.example.bubtrack.domain.auth
 import com.example.bubtrack.utill.Resource
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.firebase.auth.AuthResult
+import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.flow.Flow
 
 interface AuthRepo {
@@ -27,4 +28,6 @@ interface AuthRepo {
     ): Resource<Unit>
     suspend fun loginWithGoogle(account: GoogleSignInAccount): Flow<Resource<AuthResult>>
     suspend fun checkOnBoardingStatus(): Resource<Boolean>
+    suspend fun getCurrentUser() : Flow<Resource<FirebaseUser>>
+    suspend fun logout() : Resource<Unit>
 }
