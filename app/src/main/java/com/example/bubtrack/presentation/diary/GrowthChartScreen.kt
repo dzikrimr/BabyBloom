@@ -142,7 +142,11 @@ fun GrowthChartScreen(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 statsList.forEach {
-                    StatsCard(statsCardItem = it)
+                    StatsCard(
+                        statsCardItem = it,
+                        height = 75,
+                        width = 75
+                    )
                 }
             }
         }

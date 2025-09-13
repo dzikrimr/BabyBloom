@@ -1,6 +1,5 @@
 package com.example.bubtrack.presentation.ai
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -12,18 +11,17 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.bubtrack.R
+import com.example.bubtrack.presentation.ai.comps.BabyCareCard
 import com.example.bubtrack.presentation.navigation.CryAnalyzerRoute
+import com.example.bubtrack.presentation.navigation.GrowthAnalysisRoute
 import com.example.bubtrack.presentation.navigation.SleepMonitorRoute
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -31,7 +29,8 @@ import com.example.bubtrack.presentation.navigation.SleepMonitorRoute
 fun AiScreen(
     navController: NavController,
     onStartCryAnalysis: () -> Unit = { navController.navigate(CryAnalyzerRoute) },
-    onStartMonitoring: () -> Unit = { navController.navigate(SleepMonitorRoute) }
+    onStartMonitoring: () -> Unit = { navController.navigate(SleepMonitorRoute) },
+    onStartAnalysis: () -> Unit = { navController.navigate(GrowthAnalysisRoute) }
 ) {
     Column(
         modifier = Modifier
@@ -98,7 +97,7 @@ fun AiScreen(
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = "Smart Baby Care",
-                        fontSize = 24.sp,
+                        fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.Black,
                         textAlign = TextAlign.Center,
@@ -109,7 +108,7 @@ fun AiScreen(
 
                     Text(
                         text = "AI-powered features to help you understand and monitor your baby better",
-                        fontSize = 16.sp,
+                        fontSize = 14.sp,
                         color = Color.Gray,
                         textAlign = TextAlign.Center,
                         lineHeight = 22.sp,
@@ -126,170 +125,39 @@ fun AiScreen(
                     .padding(horizontal = 20.dp)
             ) {
                 // Cry Detection Card
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(150.dp)
-                            .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
-                            .background(
-                                Brush.verticalGradient(
-                                    colors = listOf(
-                                        Color(0xFFE8F4FD),
-                                        Color(0xFFFFF0E6)
-                                    )
-                                )
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.cry_detection_thumb),
-                            contentDescription = "Cry Detection Illustration",
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
-                        )
-                    }
-
-                    Column(
-                        modifier = Modifier.padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "Cry Detection & Analysis",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.Black
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Text(
-                            text = "Advanced AI analyzes your baby's cries to identify their needs instantly",
-                            fontSize = 14.sp,
-                            color = Color.Gray,
-                            textAlign = TextAlign.Center,
-                            lineHeight = 20.sp
-                        )
-
-                        Spacer(modifier = Modifier.height(20.dp))
-
-                        Button(
-                            onClick = onStartCryAnalysis,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(50.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF9C7FFF)
-                            ),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Icon(
-                                painter = painterResource(id = android.R.drawable.ic_media_play),
-                                contentDescription = "Play",
-                                tint = Color.White,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "Start Cry Analysis",
-                                color = Color.White,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
-                    }
-                }
+                BabyCareCard(
+                    title = "Cry Detection & Analysis",
+                    description = "Advanced AI analyzes your baby's cries to identify their needs instantly",
+                    img = R.drawable.img_cry,
+                    btnText = "Start Cry Analysis",
+                    onClick = onStartCryAnalysis,
+                    modifier = Modifier.fillMaxWidth()
+                )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
                 // Sleep Monitor Card
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(150.dp)
-                            .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
-                            .background(
-                                Brush.verticalGradient(
-                                    colors = listOf(
-                                        Color(0xFFFFF8E1),
-                                        Color(0xFFFFE0B2)
-                                    )
-                                )
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.sleep_monitor_thumb),
-                            contentDescription = "Sleep Monitor Illustration",
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
-                        )
-                    }
+                BabyCareCard(
+                    title = "Real-time Sleep Monitor",
+                    description = "Monitor your baby remotely using another phone's camera with instant notifications",
+                    img = R.drawable.img_sleep,
+                    btnText = "Start Monitoring",
+                    onClick = onStartMonitoring,
+                    modifier = Modifier.fillMaxWidth()
+                )
 
-                    Column(
-                        modifier = Modifier.padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "Real-time Sleep Monitor",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.Black
-                        )
+                Spacer(modifier = Modifier.height(24.dp))
 
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Text(
-                            text = "Monitor your baby remotely using another phone's camera with instant notifications",
-                            fontSize = 14.sp,
-                            color = Color.Gray,
-                            textAlign = TextAlign.Center,
-                            lineHeight = 20.sp
-                        )
-
-                        Spacer(modifier = Modifier.height(20.dp))
-
-                        Button(
-                            onClick = onStartMonitoring,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(50.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF9C7FFF)
-                            ),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Icon(
-                                painter = painterResource(id = android.R.drawable.ic_media_play),
-                                contentDescription = "Play",
-                                tint = Color.White,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "Start Monitoring",
-                                color = Color.White,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
-                    }
-                }
+                // Growth & Development Analysis Card
+                BabyCareCard(
+                    title = "Growth & Development Analysis",
+                    description = "Personalized analysis of your baby's progress, milestones, and recommendations.",
+                    img = R.drawable.img_analysis,
+                    btnText = "Start Analysis",
+                    onClick = onStartAnalysis,
+                    badgeDrawableId = R.drawable.gemini_badge,
+                    modifier = Modifier.fillMaxWidth()
+                )
 
                 Spacer(modifier = Modifier.height(40.dp))
             }

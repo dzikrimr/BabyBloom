@@ -13,6 +13,8 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -22,23 +24,25 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.toRoute
 import com.example.bubtrack.data.ai.AudioRepoImpl
-import com.example.bubtrack.domain.ai.audio.MFCCExtractor
 import com.example.bubtrack.data.ai.ModelRepoImpl
 import com.example.bubtrack.data.webrtc.WebRTCService
+import com.example.bubtrack.domain.ai.audio.MFCCExtractor
+import com.example.bubtrack.domain.usecase.ClassifyAudioUseCase
+import com.example.bubtrack.domain.usecase.RecordAudioUseCase
 import com.example.bubtrack.presentation.ai.AiScreen
 import com.example.bubtrack.presentation.ai.cryanalyzer.CryAnalyzerScreen
 import com.example.bubtrack.presentation.ai.cryanalyzer.CryAnalyzerViewModel
 import com.example.bubtrack.presentation.ai.sleepmonitor.SleepMonitorScreen
 import com.example.bubtrack.presentation.ai.sleepmonitor.SleepMonitorViewModel
 import com.example.bubtrack.presentation.activities.ActivitiesScreen
+import com.example.bubtrack.presentation.ai.growthanalysis.GrowthAnalysisScreen
 import com.example.bubtrack.presentation.article.ArticleDetailScreen
 import com.example.bubtrack.presentation.article.ArticleScreen
 import com.example.bubtrack.presentation.article.ArticleSearchScreen
 import com.example.bubtrack.presentation.diary.DiaryScreen
 import com.example.bubtrack.presentation.home.HomeScreen
 import com.example.bubtrack.presentation.profile.ProfileScreen
-import com.example.bubtrack.domain.usecase.ClassifyAudioUseCase
-import com.example.bubtrack.domain.usecase.RecordAudioUseCase
+import com.google.firebase.auth.FirebaseAuth
 
 @SuppressLint("ViewModelConstructorInComposable")
 @Composable
@@ -47,9 +51,7 @@ fun MainNavigation(
     navigateLogin: () -> Unit
 ) {
     val navController = rememberNavController()
-    var selectedItem by rememberSaveable {
-        mutableIntStateOf(0)
-    }
+    var selectedItem by rememberSaveable { mutableIntStateOf(0) }
     val insets = WindowInsets.statusBars.asPaddingValues()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -65,11 +67,12 @@ fun MainNavigation(
         }
     } ?: true
 
-    // Mock dependencies for SleepMonitorScreen (replace with actual implementations)
-    val context = androidx.compose.ui.platform.LocalContext.current
+    // Dependencies
+    val context = LocalContext.current
     val webRTCService = WebRTCService(context)
-    val sleepViewModel = SleepMonitorViewModel(context, webRTCService)
-    val audioRepository = AudioRepoImpl(context) { true } // Mock isRecordingState
+    val sleepViewModel: SleepMonitorViewModel = hiltViewModel()
+    // Temporary workaround for CryAnalyzerViewModel (to be replaced with Hilt)
+    val audioRepository = AudioRepoImpl(context) { true } // Mock isRecordingState for now
     val modelRepository = ModelRepoImpl(context, MFCCExtractor())
     val recordAudioUseCase = RecordAudioUseCase(audioRepository)
     val classifyAudioUseCase = ClassifyAudioUseCase(modelRepository)
@@ -104,14 +107,10 @@ fun MainNavigation(
             modifier = modifier.padding(bottom = bottomPadding)
         ) {
             composable<HomeRoute> {
-                HomeScreen(
-                    navController = navController
-                )
+                HomeScreen(navController = navController)
             }
             composable<ActivitiesRoute> {
-                ActivitiesScreen(
-                    navController = navController
-                )
+                ActivitiesScreen(navController = navController)
             }
             composable<DiaryRoute> {
                 DiaryScreen()
@@ -133,9 +132,9 @@ fun MainNavigation(
             composable<SleepMonitorRoute> {
                 SleepMonitorScreen(
                     navController = navController,
-                    onBackClick = { navController.popBackStack() },
                     sleepViewModel = sleepViewModel,
                     webRTCService = webRTCService,
+                    onBackClick = { navController.popBackStack() },
                     onStopMonitor = { navController.popBackStack() },
                     onCryModeClick = { navController.navigate(CryAnalyzerRoute) }
                 )
@@ -146,18 +145,22 @@ fun MainNavigation(
                     viewModel = cryAnalyzerViewModel
                 )
             }
-            navigation<ArticleRoute>(
-                startDestination = ArticleHomeRoute
-            ) {
+            composable<GrowthAnalysisRoute> { backStackEntry ->
+                val userId = FirebaseAuth.getInstance().currentUser?.uid
+                    ?: backStackEntry.arguments?.getString("userId")
+                    ?: throw IllegalStateException("User ID is required for GrowthAnalysisScreen")
+
+                GrowthAnalysisScreen(
+                    userId = userId,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+            navigation<ArticleRoute>(startDestination = ArticleHomeRoute) {
                 composable<ArticleHomeRoute> {
                     ArticleScreen(
                         navController = navController,
-                        navigateDetail = {
-                            navController.navigate(ArticleDetailRoute(it))
-                        },
-                        navigateSearch = {
-                            navController.navigate(ArticleSearchRoute(it))
-                        }
+                        navigateDetail = { navController.navigate(ArticleDetailRoute(it)) },
+                        navigateSearch = { navController.navigate(ArticleSearchRoute(it)) }
                     )
                 }
                 composable<ArticleDetailRoute> {
@@ -172,15 +175,11 @@ fun MainNavigation(
                     ArticleSearchScreen(
                         navController = navController,
                         searchQuery = query.query
-                    ) {
-                        navController.navigate(ArticleDetailRoute(it))
-                    }
+                    ) { navController.navigate(ArticleDetailRoute(it)) }
                 }
             }
             composable<ProfileRoute> {
-                ProfileScreen(
-                    navigateLogin = { navigateLogin() }
-                )
+                ProfileScreen(navigateLogin = { navigateLogin() })
             }
         }
     }

@@ -2,7 +2,6 @@ package com.example.bubtrack.presentation.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,15 +14,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,16 +30,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.bubtrack.R
 import com.example.bubtrack.domain.activities.Activity
 import com.example.bubtrack.domain.growth.GrowthStats
-import com.example.bubtrack.presentation.activities.comps.ActivityCard
+import com.example.bubtrack.presentation.activities.ActivitiesViewModel
+import com.example.bubtrack.presentation.common.ScheduleCard
 import com.example.bubtrack.presentation.diary.comps.StatsCard
 import com.example.bubtrack.presentation.diary.comps.StatsCardItem
 import com.example.bubtrack.presentation.navigation.ActivitiesRoute
@@ -61,24 +59,30 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import android.widget.Toast
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
+import androidx.compose.ui.res.painterResource
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
-    navController: NavController
+    navController: NavController,
+    viewModel: ActivitiesViewModel = hiltViewModel()
 ) {
     var babyProfile by remember { mutableStateOf<Map<String, Any>?>(null) }
     var babyAge by remember { mutableStateOf("") }
     var latestGrowthStats by remember { mutableStateOf(GrowthStats()) }
-    var upcomingActivities by remember { mutableStateOf<List<Activity>>(emptyList()) }
-    var isLoadingActivities by remember { mutableStateOf(true) }
-    var activitiesError by remember { mutableStateOf<String?>(null) }
-
     val context = LocalContext.current
     val auth = FirebaseAuth.getInstance()
     val firestore = FirebaseFirestore.getInstance()
+    val scrollState = rememberScrollState()
+    val uiState by viewModel.uiState.collectAsState()
 
-    // Fetch baby profile data (for name and age)
     LaunchedEffect(Unit) {
         val userId = auth.currentUser?.uid
         if (userId != null) {
@@ -107,7 +111,6 @@ fun HomeScreen(
         }
     }
 
-    // Fetch latest growth stats from growthRecords
     LaunchedEffect(Unit) {
         val userId = auth.currentUser?.uid
         if (userId != null) {
@@ -133,37 +136,15 @@ fun HomeScreen(
         }
     }
 
-    // Fetch upcoming activities (next 7 days)
-    LaunchedEffect(Unit) {
-        val userId = auth.currentUser?.uid
-        if (userId != null) {
-            isLoadingActivities = true
-            activitiesError = null
-
-            val currentTimeMillis = System.currentTimeMillis()
-            val sevenDaysLater = currentTimeMillis + (7 * 24 * 60 * 60 * 1000)
-
-            firestore.collection("users").document(userId)
-                .collection("activities")
-                .whereGreaterThanOrEqualTo("date", currentTimeMillis)
-                .whereLessThanOrEqualTo("date", sevenDaysLater)
-                .orderBy("date", Query.Direction.ASCENDING)
-                .limit(3) // Show only 3 upcoming activities
-                .addSnapshotListener { snapshot, error ->
-                    isLoadingActivities = false
-                    if (error != null) {
-                        activitiesError = "Gagal mengambil jadwal: ${error.message}"
-                        return@addSnapshotListener
-                    }
-
-                    val activities = snapshot?.documents?.mapNotNull { doc ->
-                        doc.toObject(Activity::class.java)?.copy(id = doc.id.hashCode())
-                    } ?: emptyList()
-
-                    upcomingActivities = activities
-                }
+    val today = LocalDate.now()
+    val sevenDaysFromNow = today.plusDays(7)
+    val upcomingActivities = uiState.allActivities
+        .filter { activity ->
+            val activityDate = Instant.ofEpochMilli(activity.date)
+                .atZone(ZoneId.systemDefault()).toLocalDate()
+            !activityDate.isBefore(today) && !activityDate.isAfter(sevenDaysFromNow)
         }
-    }
+        .sortedBy { it.date }
 
     val statsList = listOf(
         StatsCardItem(
@@ -200,6 +181,7 @@ fun HomeScreen(
         modifier = modifier
             .fillMaxSize()
             .background(AppBackground)
+            .verticalScroll(scrollState)
     ) {
         Box(
             modifier = modifier
@@ -307,205 +289,170 @@ fun HomeScreen(
                 )
             }
         }
-
-        LazyColumn(
+        Column(
             modifier = modifier
                 .fillMaxSize()
-                .padding(horizontal = 14.dp)
+                .padding(
+                    horizontal = 14.dp
+                )
         ) {
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                "Smart Baby Care",
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .height(150.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(
+                    modifier = modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(0.5f)
+                        .clip(
+                            RoundedCornerShape(24.dp)
+                        )
+                        .background(color = AppLightPurple)
+                        .padding(14.dp)
+                ) {
+                    Box(
+                        modifier = modifier
+                            .size(46.dp)
+                            .clip(CircleShape)
+                            .background(
+                                color = AppPurple.copy(alpha = 0.2f)
+                            )
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_mic),
+                            contentDescription = "cry analyzer",
+                            tint = Color.Unspecified,
+                            modifier = modifier.size(20.dp).align(Alignment.Center)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        "Cry Analyzer",
+                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
+                    )
+                    Text(
+                        "Understand baby's \n need",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(
+                    modifier = modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(1f)
+                        .clip(
+                            RoundedCornerShape(24.dp)
+                        )
+                        .background(color = AppLightBlue)
+                        .padding(14.dp)
+                ) {
+                    Box(
+                        modifier = modifier
+                            .size(46.dp)
+                            .clip(CircleShape)
+                            .background(
+                                color = Color(0xFF93C5FD).copy(alpha = 0.2f)
+                            )
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_moon),
+                            contentDescription = "sleep monitor",
+                            tint = Color.Unspecified,
+                            modifier = modifier.size(20.dp).align(Alignment.Center)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        "Sleep Monitor",
+                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
+                    )
+                    Text(
+                        "Monitor baby's sleep",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(22.dp))
+            Row(
+                modifier = modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
                 Text(
-                    "Smart Baby Care",
+                    "Pertumbuhan Anak",
                     style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
                 )
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Row(
-                    modifier = modifier
+                Text(
+                    "Lihat Semua",
+                    style = MaterialTheme.typography.bodyMedium.copy(color = AppPurple),
+                    modifier = modifier.clickable {
+                        navController.navigate("diary/Growth Chart")
+                    }
+                )
+            }
+            Spacer(modifier = Modifier.height(22.dp))
+            Row(
+                modifier = modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                statsList.forEach {
+                    StatsCard(
+                        statsCardItem = it,
+                        width = 80,
+                        height = 80
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(22.dp))
+            Row(
+                modifier = modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    "Jadwal Terdekat",
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
+                )
+                Text(
+                    "Lihat Semua",
+                    style = MaterialTheme.typography.bodyMedium.copy(color = AppPurple),
+                    modifier = modifier.clickable {
+                        navController.navigate(ActivitiesRoute)
+                    }
+                )
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            if (upcomingActivities.isEmpty()) {
+                Text(
+                    text = "Tidak ada jadwal dalam 7 hari ke depan",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray,
+                    modifier = Modifier.padding(16.dp)
+                )
+            } else {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier
                         .fillMaxWidth()
-                        .height(150.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                        .height(300.dp) // Adjust height as needed
                 ) {
-                    Column(
-                        modifier = modifier
-                            .fillMaxHeight()
-                            .fillMaxWidth(0.5f)
-                            .clip(RoundedCornerShape(24.dp))
-                            .background(color = AppLightPurple)
-                            .padding(14.dp)
-                    ) {
-                        Box(
-                            modifier = modifier
-                                .size(46.dp)
-                                .clip(CircleShape)
-                                .background(color = Color(0xFFA78BFA)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_mic_purple),
-                                contentDescription = "Cry Analyzer Icon",
-                                modifier = Modifier.size(20.dp),
-                                tint = Color.White
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text(
-                            "Cry Analyzer",
-                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
-                        )
-                        Text(
-                            "Understand baby's \n need",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column(
-                        modifier = modifier
-                            .fillMaxHeight()
-                            .fillMaxWidth(1f)
-                            .clip(RoundedCornerShape(24.dp))
-                            .background(color = AppLightBlue)
-                            .padding(14.dp)
-                    ) {
-                        Box(
-                            modifier = modifier
-                                .size(46.dp)
-                                .clip(CircleShape)
-                                .background(color = Color(0xFF93C5FD)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_sleep),
-                                contentDescription = "Sleep Monitor Icon",
-                                modifier = Modifier.size(20.dp),
-                                tint = Color.White
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text(
-                            "Sleep Monitor",
-                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
-                        )
-                        Text(
-                            "Monitor baby's sleep",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(22.dp))
-                Row(
-                    modifier = modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        "Pertumbuhan Anak",
-                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
-                    )
-                    Text(
-                        "Lihat Semua",
-                        style = MaterialTheme.typography.bodyMedium.copy(color = AppPurple),
-                        modifier = modifier.clickable {
-                            navController.navigate("diary/Growth Chart")
-                        }
-                    )
-                }
-                Spacer(modifier = Modifier.height(22.dp))
-
-                Row(
-                    modifier = modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    statsList.forEach {
-                        StatsCard(
-                            statsCardItem = it,
-                            width = 90,
-                            height = 90
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(22.dp))
-                Row(
-                    modifier = modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        "Jadwal Terdekat",
-                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
-                    )
-                    Text(
-                        "Lihat Semua",
-                        style = MaterialTheme.typography.bodyMedium.copy(color = AppPurple),
-                        modifier = modifier.clickable {
-                            navController.navigate(ActivitiesRoute)
-                        }
-                    )
-                }
-                Spacer(modifier = Modifier.height(22.dp))
-            }
-
-            // Activities section
-            when {
-                isLoadingActivities -> {
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(80.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator(
-                                color = AppPurple,
-                                modifier = Modifier.size(32.dp)
-                            )
-                        }
-                    }
-                }
-                activitiesError != null -> {
-                    item {
-                        Text(
-                            text = activitiesError ?: "Terjadi kesalahan",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.Red,
-                            modifier = Modifier.padding(16.dp)
-                        )
-                    }
-                }
-                upcomingActivities.isEmpty() -> {
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(80.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(Color.White)
-                                .padding(16.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                "Tidak ada jadwal dalam 7 hari ke depan",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = Color(0xFF6B7280)
-                            )
-                        }
-                    }
-                }
-                else -> {
                     items(upcomingActivities) { activity ->
-                        ActivityCard(activity = activity)
-                        Spacer(modifier = Modifier.height(12.dp))
+                        ScheduleCard(
+                            activity = activity,
+                            today = today
+                        )
                     }
                 }
-            }
-
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }

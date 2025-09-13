@@ -4,5 +4,6 @@ enum class ActivityType(val value: String) {
     CHECKUP("Check-up"),
     FEEDING("Feeding"),
     PLAYTIME("Playtime"),
-    VACCINE("Vaccine")
+    VACCINE("Vaccine"),
+    OTHER("Other")
 }

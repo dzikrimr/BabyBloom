@@ -59,6 +59,7 @@ dependencies {
     implementation(libs.vision.common)
     implementation(libs.play.services.mlkit.barcode.scanning)
     implementation(libs.androidx.media3.common.ktx)
+    implementation(libs.generativeai)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -146,4 +147,8 @@ dependencies {
 
     // webrtc
     implementation ("io.github.webrtc-sdk:android:137.7151.03")
+
+    // timber
+    implementation ("com.jakewharton.timber:timber:5.0.1")
+
 }
