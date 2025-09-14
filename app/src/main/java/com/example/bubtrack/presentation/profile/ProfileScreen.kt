@@ -1,6 +1,7 @@
 package com.example.bubtrack.presentation.profile
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -35,12 +36,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.example.bubtrack.R
+import com.example.bubtrack.presentation.navigation.EditProfileRoute
+import com.example.bubtrack.presentation.navigation.HelpAndReportRoute
+import com.example.bubtrack.presentation.navigation.SettingRoute
 import com.example.bubtrack.presentation.profile.comps.ProfileButton
 import com.example.bubtrack.ui.theme.AppBackground
 import com.example.bubtrack.ui.theme.AppBlue
@@ -50,6 +56,7 @@ import com.example.bubtrack.ui.theme.BubTrackTheme
 @Composable
 fun ProfileScreen(
     modifier: Modifier = Modifier,
+    navController: NavController,
     viewModel: ProfileViewModel = hiltViewModel(),
     navigateLogin: () -> Unit
 ) {
@@ -95,12 +102,14 @@ fun ProfileScreen(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Box(
+                Image(
+                    painter = painterResource(R.drawable.img_profileplaceholder),
+                    contentDescription = "profile image",
+                    contentScale = ContentScale.Crop,
                     modifier = modifier
-                        .padding(bottom = 8.dp)
+                        .padding(top = 8.dp)
                         .size(80.dp)
                         .clip(CircleShape)
-                        .background(AppPurple)
                 )
                 Text(
                     "Budi Speed",
@@ -126,20 +135,11 @@ fun ProfileScreen(
 
                 ) {
                     ProfileButton(
-                        text = "Informasi Pribadi",
+                        text = "Edit Profil",
                         bgColor = AppPurple,
                         icon = R.drawable.ic_profil,
                         iconColor = AppPurple
-                    ) { }
-                    HorizontalDivider(
-                        thickness = 0.5.dp
-                    )
-                    ProfileButton(
-                        text = "Notifikasi",
-                        bgColor = AppBlue,
-                        icon = R.drawable.ic_notification,
-                        iconColor = AppBlue
-                    ) { }
+                    ) { navController.navigate(EditProfileRoute)}
                     HorizontalDivider(
                         thickness = 0.5.dp
                     )
@@ -148,7 +148,9 @@ fun ProfileScreen(
                         bgColor = AppPurple,
                         icon = R.drawable.ic_settings,
                         iconColor = AppPurple
-                    ) { }
+                    ) {
+                        navController.navigate(SettingRoute)
+                    }
                     HorizontalDivider(
                         thickness = 0.5.dp
                     )
@@ -157,16 +159,7 @@ fun ProfileScreen(
                         bgColor = AppBlue,
                         icon = R.drawable.ic_qna,
                         iconColor = AppBlue
-                    ) { }
-                    HorizontalDivider(
-                        thickness = 0.5.dp
-                    )
-                    ProfileButton(
-                        text = "Berlangganan",
-                        bgColor = AppPurple,
-                        icon = R.drawable.ic_subs,
-                        iconColor = AppPurple
-                    ) { }
+                    ) { navController.navigate(HelpAndReportRoute)}
                 }
             }
 

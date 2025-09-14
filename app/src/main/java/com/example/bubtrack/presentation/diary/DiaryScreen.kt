@@ -57,7 +57,7 @@ import java.util.Locale
 @Composable
 fun DiaryScreen(
     modifier: Modifier = Modifier,
-    initialTab: String = "Development",
+    initialTab: String = "Diary",
     viewModel: DiaryViewModel = hiltViewModel()
 ) {
     var selectedTab by remember { mutableStateOf(initialTab) }
@@ -160,40 +160,40 @@ fun DiaryScreen(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     OutlinedButton(
-                        onClick = { selectedTab = "Development" },
+                        onClick = { selectedTab = "Diary" },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(50.dp)
                             .weight(1f),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = if (selectedTab == "Development") AppPurple else Color(0xFFF3F4F6),
+                            containerColor = if (selectedTab == "Diary") AppPurple else Color(0xFFF3F4F6),
                         ),
                         shape = RoundedCornerShape(14.dp),
                         border = BorderStroke(width = 0.dp, color = Color.Transparent)
                     ) {
                         Text(
-                            "Development",
+                            "Diary",
                             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                            color = if (selectedTab == "Development") Color.White else Color(0xFF6B7280)
+                            color = if (selectedTab == "Diary") Color.White else Color(0xFF6B7280)
                         )
                     }
                     Spacer(modifier = Modifier.width(12.dp))
                     OutlinedButton(
-                        onClick = { selectedTab = "Growth Chart" },
+                        onClick = { selectedTab = "Perkembangan" },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(50.dp)
                             .weight(1f),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = if (selectedTab == "Growth Chart") AppPurple else Color(0xFFF3F4F6),
+                            containerColor = if (selectedTab == "Perkembangan") AppPurple else Color(0xFFF3F4F6),
                         ),
                         shape = RoundedCornerShape(14.dp),
                         border = BorderStroke(width = 0.dp, color = Color.Transparent)
                     ) {
                         Text(
-                            "Growth Chart",
+                            "Perkembangan",
                             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                            color = if (selectedTab == "Growth Chart") Color.White else Color(0xFF6B7280)
+                            color = if (selectedTab == "Perkembangan") Color.White else Color(0xFF6B7280)
                         )
                     }
                 }
@@ -201,11 +201,11 @@ fun DiaryScreen(
         }
         item {
             when (selectedTab) {
-                "Development" -> DevelopmentScreen(
+                "Diary" -> DevelopmentScreen(
                     modifier = Modifier.padding(horizontal = 14.dp),
                     viewModel = viewModel
                 )
-                "Growth Chart" -> GrowthChartScreen(
+                "Perkembangan" -> GrowthChartScreen(
                     modifier = Modifier.padding(horizontal = 14.dp),
                     viewModel = viewModel
                 )

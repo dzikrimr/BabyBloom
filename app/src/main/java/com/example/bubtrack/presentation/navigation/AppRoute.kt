@@ -71,3 +71,17 @@ data object GrowthAnalysisRoute : AppRoute
 @Serializable
 data object NotificationRoute : AppRoute
 
+// profile route
+
+@Serializable
+data object InitialProfileRoute : AppRoute
+
+@Serializable
+data object EditProfileRoute : AppRoute
+
+@Serializable
+data object SettingRoute : AppRoute
+
+@Serializable
+data object HelpAndReportRoute : AppRoute
+

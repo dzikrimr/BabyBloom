@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
@@ -24,6 +25,10 @@ object Utility {
 
     fun getCurrentTimestamp(): Long {
         return System.currentTimeMillis()
+    }
+
+    fun toEpochMilli(date: LocalDate, zoneId: ZoneId = ZoneOffset.UTC): Long {
+        return date.atStartOfDay(zoneId).toInstant().toEpochMilli()
     }
 
     fun formatPrettyDate(millis: Long): String {
