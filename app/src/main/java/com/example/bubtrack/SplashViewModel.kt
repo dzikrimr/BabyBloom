@@ -11,7 +11,6 @@ import com.example.bubtrack.presentation.navigation.MainRoute
 import com.example.bubtrack.presentation.navigation.OnBoardingRoute
 import com.example.bubtrack.utill.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -26,26 +25,26 @@ class SplashViewModel @Inject constructor(
         private set
 
     private val _startDestination = MutableStateFlow<AppRoute>(OnBoardingRoute)
-    val startDestination : StateFlow<AppRoute> = _startDestination
+    val startDestination: StateFlow<AppRoute> = _startDestination
 
     init {
         getCurrentUser()
     }
 
-    private fun getCurrentUser(){
+    private fun getCurrentUser() {
         viewModelScope.launch {
-            authRepo.getCurrentUser().collect{
-                if (it is Resource.Success){
+            authRepo.getCurrentUser().collect { result ->
+                if (result is Resource.Success) {
                     val onboarding = authRepo.checkOnBoardingStatus().data
-                    _startDestination.value = if (onboarding!!) MainRoute else OnBoardingRoute
+                    _startDestination.value = if (onboarding == true) MainRoute else OnBoardingRoute
                 } else {
                     _startDestination.value = OnBoardingRoute
-
                 }
             }
-            delay(300)
-            splashCondition = false
         }
     }
 
+    fun completeSplash() {
+        splashCondition = false
+    }
 }

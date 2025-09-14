@@ -19,6 +19,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 import javax.inject.Inject
 import android.widget.Toast
 
@@ -26,18 +29,27 @@ import android.widget.Toast
 class DiaryViewModel @Inject constructor(
     private val growthRepo: BabyGrowthRepo
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(GrowthUiState())
     val uiState = _uiState.asStateFlow()
 
     private val _diaryState = MutableStateFlow<List<Diary>>(emptyList())
     val diaryState = _diaryState.asStateFlow()
 
+    private val _selectedDate = MutableStateFlow<LocalDate?>(null)
+    val selectedDate = _selectedDate.asStateFlow()
+
     private var isCloudinaryInitialized = false
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
 
     init {
+        getGrowth()
+        getDiaryEntries()
+    }
+
+    fun setSelectedDate(date: LocalDate?) {
+        _selectedDate.value = date
+        // Re-filter data based on new date
         getGrowth()
         getDiaryEntries()
     }
@@ -70,6 +82,12 @@ class DiaryViewModel @Inject constructor(
                         } catch (e: Exception) {
                             null
                         }
+                    }?.filter { growth ->
+                        _selectedDate.value?.let { selected ->
+                            val growthDate = Instant.ofEpochMilli(growth.date)
+                                .atZone(ZoneId.systemDefault()).toLocalDate()
+                            growthDate == selected
+                        } ?: true // If no date selected, show all
                     } ?: emptyList()
                     _uiState.value = GrowthUiState(
                         isSuccess = growthList,
@@ -136,6 +154,12 @@ class DiaryViewModel @Inject constructor(
                         } catch (e: Exception) {
                             null
                         }
+                    }?.filter { diary ->
+                        _selectedDate.value?.let { selected ->
+                            val diaryDate = Instant.ofEpochMilli(diary.date)
+                                .atZone(ZoneId.systemDefault()).toLocalDate()
+                            diaryDate == selected
+                        } ?: true // If no date selected, show all
                     } ?: emptyList()
                     _diaryState.value = diaries
                 }

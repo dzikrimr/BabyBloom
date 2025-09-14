@@ -1,9 +1,10 @@
 package com.example.bubtrack.di
 
-import com.google.firebase.Firebase
+import com.example.bubtrack.data.home.HomeRepoImpl
+import com.example.bubtrack.domain.home.HomeRepo
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.auth
-import com.google.firebase.firestore.firestore
+import com.google.firebase.firestore.FirebaseFirestore
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -12,13 +13,21 @@ import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
-object AppModule {
+abstract class AppModule {
 
-    @Provides
+    @Binds
     @Singleton
-    fun provideFirebaseAuth() = Firebase.auth
+    abstract fun bindHomeRepo(
+        homeRepoImpl: HomeRepoImpl
+    ): HomeRepo
 
-    @Provides
-    @Singleton
-    fun provideFirestore() = Firebase.firestore
+    companion object {
+        @Provides
+        @Singleton
+        fun provideFirebaseAuth(): FirebaseAuth = FirebaseAuth.getInstance()
+
+        @Provides
+        @Singleton
+        fun provideFirestore(): FirebaseFirestore = FirebaseFirestore.getInstance()
+    }
 }

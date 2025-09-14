@@ -2,6 +2,7 @@ package com.example.bubtrack.presentation.diary
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,13 +14,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -27,6 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,163 +39,256 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.bubtrack.R
+import com.example.bubtrack.presentation.diary.comps.DiaryCalendar
 import com.example.bubtrack.ui.theme.AppBackground
 import com.example.bubtrack.ui.theme.AppPurple
 import com.example.bubtrack.ui.theme.BubTrackTheme
+import com.kizitonwose.calendar.compose.rememberCalendarState
+import java.time.Instant
+import java.time.LocalDate
+import java.time.YearMonth
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @Composable
-fun DiaryScreen(modifier: Modifier = Modifier,
-                initialTab: String = "Development"
+fun DiaryScreen(
+    modifier: Modifier = Modifier,
+    initialTab: String = "Development",
+    viewModel: DiaryViewModel = hiltViewModel()
 ) {
     var selectedTab by remember { mutableStateOf(initialTab) }
-    val scrollState = rememberScrollState()
+    var showCalendarDialog by remember { mutableStateOf(false) }
+    val selectedDate by viewModel.selectedDate.collectAsState()
+    val diaryList by viewModel.diaryState.collectAsState()
+    val growthList by viewModel.uiState.collectAsState()
+    val calendarState = rememberCalendarState(
+        startMonth = YearMonth.now().minusYears(2),
+        endMonth = YearMonth.now().plusYears(2),
+        firstVisibleMonth = YearMonth.now()
+    )
 
-    Column(
+    val formattedDate = selectedDate?.let {
+        it.format(DateTimeFormatter.ofPattern("dd MMMM, yyyy", Locale("id")))
+    } ?: "Semua Tanggal"
+
+    val diaryDates = diaryList.map { diary ->
+        Instant.ofEpochMilli(diary.date).atZone(ZoneId.systemDefault()).toLocalDate()
+    } + growthList.isSuccess.map { growth ->
+        Instant.ofEpochMilli(growth.date).atZone(ZoneId.systemDefault()).toLocalDate()
+    }
+
+    LazyColumn(
         modifier = modifier
             .fillMaxSize()
             .background(AppBackground)
-
     ) {
-        Column(
-            modifier = modifier
-                .fillMaxWidth()
-                .background(Color.White)
-                .padding(14.dp),
-        ) {
-            Row(
-                modifier = modifier
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                IconButton(
-                    onClick = {},
-                    modifier = modifier.width(25.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                        contentDescription = "back button",
-                        modifier = modifier.fillMaxSize()
-                    )
-                }
-                Text(
-                    "Baby Diary",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                )
-                Spacer(modifier = modifier.width(25.dp))
-            }
-
-            Row(
-                modifier = modifier
+        item {
+            Column(
+                modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 14.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                    .background(Color.White)
+                    .padding(14.dp)
             ) {
                 Row(
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Box(
-                        modifier = modifier
-                            .size(50.dp)
-                            .clip(CircleShape)
-                            .background(AppPurple)
-
+                    IconButton(
+                        onClick = {},
+                        modifier = Modifier.width(25.dp)
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.ic_calendar2),
-                            contentDescription = "calendar",
-                            modifier = modifier.align(Alignment.Center),
-                            tint = Color.White
+                            imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                            contentDescription = "back button",
+                            modifier = Modifier.fillMaxSize()
                         )
                     }
-                    Spacer(modifier = modifier.width(8.dp))
                     Text(
-                        "15 Maret, 2024",
-                        style = MaterialTheme.typography.bodyLarge.copy(
-                            fontWeight = FontWeight.SemiBold
-                        )
+                        "Baby Diary",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                     )
-
+                    Spacer(modifier = Modifier.width(25.dp))
                 }
-                Text(
-                    "Ganti",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = AppPurple
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(50.dp)
+                                .clip(CircleShape)
+                                .background(AppPurple)
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_calendar2),
+                                contentDescription = "calendar",
+                                modifier = Modifier.align(Alignment.Center),
+                                tint = Color.White
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            formattedDate,
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        )
+                    }
+                    Text(
+                        "Ganti",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = AppPurple,
+                        modifier = Modifier.clickable { showCalendarDialog = true }
+                    )
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    OutlinedButton(
+                        onClick = { selectedTab = "Development" },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp)
+                            .weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (selectedTab == "Development") AppPurple else Color(0xFFF3F4F6),
+                        ),
+                        shape = RoundedCornerShape(14.dp),
+                        border = BorderStroke(width = 0.dp, color = Color.Transparent)
+                    ) {
+                        Text(
+                            "Development",
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                            color = if (selectedTab == "Development") Color.White else Color(0xFF6B7280)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    OutlinedButton(
+                        onClick = { selectedTab = "Growth Chart" },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp)
+                            .weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (selectedTab == "Growth Chart") AppPurple else Color(0xFFF3F4F6),
+                        ),
+                        shape = RoundedCornerShape(14.dp),
+                        border = BorderStroke(width = 0.dp, color = Color.Transparent)
+                    ) {
+                        Text(
+                            "Growth Chart",
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                            color = if (selectedTab == "Growth Chart") Color.White else Color(0xFF6B7280)
+                        )
+                    }
+                }
+            }
+        }
+        item {
+            when (selectedTab) {
+                "Development" -> DevelopmentScreen(
+                    modifier = Modifier.padding(horizontal = 14.dp),
+                    viewModel = viewModel
+                )
+                "Growth Chart" -> GrowthChartScreen(
+                    modifier = Modifier.padding(horizontal = 14.dp),
+                    viewModel = viewModel
                 )
             }
-            Row(
-                modifier = modifier
+        }
+    }
+
+    // Calendar Dialog
+    if (showCalendarDialog) {
+        Dialog(
+            onDismissRequest = { showCalendarDialog = false }
+        ) {
+            Column(
+                modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 14.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                    .background(Color.White, RoundedCornerShape(16.dp))
+                    .padding(16.dp)
             ) {
-                OutlinedButton(
-                    onClick = {
-                        selectedTab = "Development"
+                var tempSelectedDate by remember { mutableStateOf(selectedDate) }
+                DiaryCalendar(
+                    diaryDates = diaryDates,
+                    selectedDate = tempSelectedDate,
+                    onDateSelected = { date ->
+                        tempSelectedDate = date
                     },
+                    calendarState = calendarState,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(50.dp)
-                        .weight(1f),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (selectedTab == "Development") AppPurple else Color(
-                            0xFFF3F4F6
-                        ),
-                    ),
-                    shape = RoundedCornerShape(14.dp),
-                    border = BorderStroke(width = 0.dp, color = Color.Transparent)
+                        .height(340.dp)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(
-                        "Development",
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                        color = if (selectedTab == "Development") Color.White else Color(0xFF6B7280)
-                    )
-                }
-                Spacer(modifier.width(12.dp))
-                OutlinedButton(
-                    onClick = {
-                        selectedTab = "Growth Chart"
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp)
-                        .weight(1f),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (selectedTab == "Growth Chart") AppPurple else Color(
-                            0xFFF3F4F6
+                    OutlinedButton(
+                        onClick = { showCalendarDialog = false },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(48.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFF3F4F6),
                         ),
-                    ),
-                    shape = RoundedCornerShape(14.dp),
-                    border = BorderStroke(width = 0.dp, color = Color.Transparent)
-                ) {
-                    Text(
-                        "Growth Chart",
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                        color = if (selectedTab == "Growth Chart") Color.White else Color(0xFF6B7280)
-                    )
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(width = 0.dp, color = Color.Transparent)
+                    ) {
+                        Text(
+                            "Cancel",
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                            color = Color.Black
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    OutlinedButton(
+                        onClick = {
+                            viewModel.setSelectedDate(tempSelectedDate)
+                            showCalendarDialog = false
+                        },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(48.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = AppPurple,
+                        ),
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(width = 0.dp, color = Color.Transparent)
+                    ) {
+                        Text(
+                            "OK",
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                            color = Color.White
+                        )
+                    }
                 }
             }
         }
-        when (selectedTab) {
-            "Development" -> DevelopmentScreen(
-                modifier = modifier.padding(horizontal = 14.dp)
-            )
-            "Growth Chart" -> GrowthChartScreen(
-                modifier = modifier.padding(horizontal = 14.dp)
-            )
-        }
-
     }
 }
 
-@Composable
 @Preview(showBackground = true)
+@Composable
 fun DiaryScreenPreview() {
     BubTrackTheme {
         DiaryScreen()
     }
-
 }

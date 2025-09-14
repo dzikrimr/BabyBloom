@@ -61,3 +61,6 @@ data object CryAnalyzerRoute : AppRoute
 
 @Serializable
 data object GrowthAnalysisRoute : AppRoute
+
+@Serializable
+data object NotificationRoute : AppRoute

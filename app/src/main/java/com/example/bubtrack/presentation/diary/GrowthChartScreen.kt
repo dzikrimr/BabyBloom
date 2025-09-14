@@ -13,9 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
@@ -50,7 +47,6 @@ import com.example.bubtrack.presentation.diary.comps.GrowthCard
 import com.example.bubtrack.presentation.diary.comps.GrowthChart
 import com.example.bubtrack.presentation.diary.comps.StatsCard
 import com.example.bubtrack.presentation.diary.comps.StatsCardItem
-import com.example.bubtrack.presentation.diary.helper.GrowthUiState
 import com.example.bubtrack.presentation.onboarding.comps.DatePickerModal
 import com.example.bubtrack.ui.theme.AppBackground
 import com.example.bubtrack.ui.theme.AppBlue
@@ -61,8 +57,11 @@ import com.example.bubtrack.ui.theme.AppPurple
 import com.example.bubtrack.ui.theme.BubTrackTheme
 import com.example.bubtrack.utill.Utility
 import android.widget.Toast
+import androidx.compose.foundation.layout.width
+import com.example.bubtrack.presentation.diary.helper.GrowthUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import java.time.LocalDate
 
 @Composable
 fun GrowthChartScreen(
@@ -70,6 +69,7 @@ fun GrowthChartScreen(
     viewModel: DiaryViewModel = hiltViewModel()
 ) {
     val chartState by viewModel.uiState.collectAsState()
+    val selectedDate by viewModel.selectedDate.collectAsState()
     var isExpanded by rememberSaveable { mutableStateOf(false) }
     var date by remember { mutableStateOf("dd/mm/yyyy") }
     var dateMillis by remember { mutableLongStateOf(0L) }
@@ -77,6 +77,7 @@ fun GrowthChartScreen(
     var height by remember { mutableStateOf("") }
     var headCircumference by remember { mutableStateOf("") }
     var armCircumference by remember { mutableStateOf("") }
+    var ageInMonths by remember { mutableStateOf("") }
     val context = LocalContext.current
 
     // Dynamically get the latest stats from Firestore
@@ -114,246 +115,245 @@ fun GrowthChartScreen(
         StatsCardItem(
             title = "L. Lengan",
             value = latestStats.armCircum,
-            icon = R.drawable.ic_head,
+            icon = R.drawable.ic_lengan,
             unit = "cm",
             bgColor = AppLightPurple
         ),
     )
 
-    LazyColumn(
+    Column(
         modifier = modifier
             .fillMaxSize()
             .background(AppBackground)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        item {
-            Text(
-                "Current Stats",
-                style = MaterialTheme.typography.titleSmall.copy(
-                    fontWeight = FontWeight.SemiBold
-                )
+        Text(
+            "Current Stats",
+            style = MaterialTheme.typography.titleSmall.copy(
+                fontWeight = FontWeight.SemiBold
             )
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            statsList.forEach {
+                StatsCard(
+                    statsCardItem = it,
+                    height = 75,
+                    width = 75
+                )
+            }
         }
-        item {
+        OutlinedButton(
+            onClick = { isExpanded = !isExpanded },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(60.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFFF3F4F6),
+            ),
+            shape = RoundedCornerShape(14.dp),
+            border = BorderStroke(width = 0.dp, color = Color.Transparent)
+        ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                statsList.forEach {
-                    StatsCard(
-                        statsCardItem = it,
-                        height = 75,
-                        width = 75
-                    )
-                }
-            }
-        }
-        item {
-            OutlinedButton(
-                onClick = { isExpanded = !isExpanded },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(60.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFF3F4F6),
-                ),
-                shape = RoundedCornerShape(14.dp),
-                border = BorderStroke(width = 0.dp, color = Color.Transparent)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(AppPurple)
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_add),
+                            contentDescription = "add",
                             modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(AppPurple)
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_add),
-                                contentDescription = "add",
-                                modifier = Modifier
-                                    .align(Alignment.Center)
-                                    .size(20.dp),
-                                tint = Color.White
-                            )
-                        }
-                        Spacer(Modifier.width(12.dp))
-                        Text(
-                            "Catat Perkembangan",
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                fontWeight = FontWeight.SemiBold
-                            ),
-                            color = Color.Black
+                                .align(Alignment.Center)
+                                .size(20.dp),
+                            tint = Color.White
                         )
                     }
-                    Icon(
-                        painter = painterResource(if (isExpanded) R.drawable.ic_arrowup else R.drawable.ic_arrowdown),
-                        contentDescription = "arrow",
-                        tint = AppGray
+                    Spacer(Modifier.width(12.dp))
+                    Text(
+                        "Catat Perkembangan",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontWeight = FontWeight.SemiBold
+                        ),
+                        color = Color.Black
                     )
                 }
+                Icon(
+                    painter = painterResource(if (isExpanded) R.drawable.ic_arrowup else R.drawable.ic_arrowdown),
+                    contentDescription = "arrow",
+                    tint = AppGray
+                )
             }
         }
-        item {
-            AnimatedVisibility(
+        AnimatedVisibility(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(14.dp))
+                .background(Color.White),
+            visible = isExpanded
+        ) {
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(Color.White),
-                visible = isExpanded
+                    .padding(12.dp),
+                horizontalAlignment = Alignment.Start
             ) {
-                Column(
+                Text(
+                    "Tanggal",
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
+                )
+                DatePickerModal(date = date) {
+                    it?.let { millis ->
+                        dateMillis = millis
+                        date = Utility.formatDate(millis)
+                    }
+                }
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    "Berat Badan (kg)",
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
+                )
+                NumberTextField(
+                    value = weight,
+                    placeholder = "12",
+                    onValueChange = { weight = it }
+                )
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    "Tinggi Badan (cm)",
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
+                )
+                NumberTextField(
+                    value = height,
+                    placeholder = "12",
+                    onValueChange = { height = it }
+                )
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    "Lingkar Kepala (cm)",
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
+                )
+                NumberTextField(
+                    value = headCircumference,
+                    placeholder = "12",
+                    onValueChange = { headCircumference = it }
+                )
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    "Lingkar Lengan (cm)",
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
+                )
+                NumberTextField(
+                    value = armCircumference,
+                    placeholder = "12",
+                    onValueChange = { armCircumference = it }
+                )
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    "Usia (bulan)",
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
+                )
+                NumberTextField(
+                    value = ageInMonths,
+                    placeholder = "0",
+                    onValueChange = { ageInMonths = it }
+                )
+                Spacer(Modifier.height(12.dp))
+                OutlinedButton(
+                    onClick = {
+                        if (dateMillis == 0L || weight.isBlank() || height.isBlank() ||
+                            headCircumference.isBlank() || armCircumference.isBlank() ||
+                            ageInMonths.isBlank()
+                        ) {
+                            Toast.makeText(context, "Semua field harus diisi!", Toast.LENGTH_SHORT).show()
+                        } else {
+                            val weightValue = weight.toDoubleOrNull()
+                            val heightValue = height.toDoubleOrNull()
+                            val headCircumValue = headCircumference.toDoubleOrNull()
+                            val armCircumValue = armCircumference.toDoubleOrNull()
+                            val ageInMonthsValue = ageInMonths.toIntOrNull()
+                            if (weightValue == null || heightValue == null ||
+                                headCircumValue == null || armCircumValue == null ||
+                                ageInMonthsValue == null
+                            ) {
+                                Toast.makeText(context, "Input harus berupa angka valid!", Toast.LENGTH_SHORT).show()
+                            } else {
+                                viewModel.addGrowthRecord(
+                                    date = dateMillis,
+                                    weight = weightValue,
+                                    height = heightValue,
+                                    headCircumference = headCircumValue,
+                                    armLength = armCircumValue,
+                                    ageInMonths = ageInMonthsValue
+                                )
+                                // Reset form
+                                isExpanded = false
+                                date = "dd/mm/yyyy"
+                                dateMillis = 0L
+                                weight = ""
+                                height = ""
+                                headCircumference = ""
+                                armCircumference = ""
+                                ageInMonths = ""
+                                Toast.makeText(context, "Data berhasil disimpan!", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(12.dp),
-                    horizontalAlignment = Alignment.Start
+                        .height(55.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = AppPurple,
+                    ),
+                    shape = RoundedCornerShape(14.dp),
+                    border = BorderStroke(width = 0.dp, color = Color.Transparent)
                 ) {
                     Text(
-                        "Tanggal",
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
+                        "Simpan",
+                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                        color = Color.White
                     )
-                    DatePickerModal(date = date) {
-                        it?.let { millis ->
-                            dateMillis = millis
-                            date = Utility.formatDate(millis)
-                        }
-                    }
-                    Spacer(Modifier.height(12.dp))
-                    Text(
-                        "Berat Badan (kg)",
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
-                    )
-                    NumberTextField(
-                        value = weight,
-                        placeholder = "12",
-                        onValueChange = { weight = it }
-                    )
-                    Spacer(Modifier.height(12.dp))
-                    Text(
-                        "Tinggi Badan (cm)",
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
-                    )
-                    NumberTextField(
-                        value = height,
-                        placeholder = "12",
-                        onValueChange = { height = it }
-                    )
-                    Spacer(Modifier.height(12.dp))
-                    Text(
-                        "Lingkar Kepala (cm)",
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
-                    )
-                    NumberTextField(
-                        value = headCircumference,
-                        placeholder = "12",
-                        onValueChange = { headCircumference = it }
-                    )
-                    Spacer(Modifier.height(12.dp))
-                    Text(
-                        "Lingkar Lengan (cm)",
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
-                    )
-                    NumberTextField(
-                        value = armCircumference,
-                        placeholder = "12",
-                        onValueChange = { armCircumference = it }
-                    )
-                    Spacer(Modifier.height(12.dp))
-                    OutlinedButton(
-                        onClick = {
-                            if (dateMillis == 0L || weight.isBlank() || height.isBlank() ||
-                                headCircumference.isBlank() || armCircumference.isBlank()
-                            ) {
-                                Toast.makeText(context, "Semua field harus diisi!", Toast.LENGTH_SHORT).show()
-                            } else {
-                                val weightValue = weight.toDoubleOrNull()
-                                val heightValue = height.toDoubleOrNull()
-                                val headCircumValue = headCircumference.toDoubleOrNull()
-                                val armCircumValue = armCircumference.toDoubleOrNull()
-
-                                if (weightValue == null || heightValue == null ||
-                                    headCircumValue == null || armCircumValue == null
-                                ) {
-                                    Toast.makeText(context, "Input harus berupa angka valid!", Toast.LENGTH_SHORT).show()
-                                } else {
-                                    viewModel.addGrowthRecord(
-                                        date = dateMillis,
-                                        weight = weightValue,
-                                        height = heightValue,
-                                        headCircumference = headCircumValue,
-                                        armLength = armCircumValue,
-                                        ageInMonths = 0 // Adjust if age calculation is needed
-                                    )
-                                    // Reset form
-                                    isExpanded = false
-                                    date = "dd/mm/yyyy"
-                                    dateMillis = 0L
-                                    weight = ""
-                                    height = ""
-                                    headCircumference = ""
-                                    armCircumference = ""
-                                    Toast.makeText(context, "Data berhasil disimpan!", Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(55.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = AppPurple,
-                        ),
-                        shape = RoundedCornerShape(14.dp),
-                        border = BorderStroke(width = 0.dp, color = Color.Transparent)
-                    ) {
-                        Text(
-                            "Simpan",
-                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                            color = Color.White
-                        )
-                    }
                 }
             }
         }
-        item {
-            GrowthChart(chartState)
-        }
-        item {
-            Text(
-                "Pengukuran Terbaru",
-                style = MaterialTheme.typography.titleSmall.copy(
-                    fontWeight = FontWeight.SemiBold
-                )
+        GrowthChart(chartState)
+        Text(
+            "Pengukuran Terbaru",
+            style = MaterialTheme.typography.titleSmall.copy(
+                fontWeight = FontWeight.SemiBold
             )
-        }
+        )
         if (chartState.isSuccess.isNotEmpty()) {
-            items(chartState.isSuccess) { growth ->
+            chartState.isSuccess.forEach { growth ->
                 GrowthCard(babyGrowth = growth)
             }
         } else {
-            item {
-                Text(
-                    "Belum ada data perkembangan",
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    textAlign = TextAlign.Center
-                )
-            }
+            Text(
+                text = if (selectedDate == null) "Belum ada data perkembangan" else "Tidak ada data perkembangan pada tanggal ini",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                textAlign = TextAlign.Center
+            )
         }
+        Spacer(modifier = Modifier.height(16.dp)) // Bottom padding
     }
 }
 
 @Preview(showBackground = true)
 @Composable
 private fun GrowthChartScreenPreview() {
-    // Mock DiaryViewModel interface without inheritance
     val mockUiState = MutableStateFlow(
         GrowthUiState(
             isSuccess = listOf(
@@ -378,10 +378,10 @@ private fun GrowthChartScreenPreview() {
             )
         )
     )
-
-    // Create a mock DiaryViewModel without extending the original class
+    val mockSelectedDate = MutableStateFlow<LocalDate?>(null)
     val mockViewModel = object {
         val uiState: StateFlow<GrowthUiState> = mockUiState
+        val selectedDate: StateFlow<LocalDate?> = mockSelectedDate
         fun addGrowthRecord(
             date: Long,
             weight: Double,
@@ -392,8 +392,10 @@ private fun GrowthChartScreenPreview() {
         ) {
             // No-op for preview
         }
+        fun setSelectedDate(date: LocalDate?) {
+            // No-op for preview
+        }
     }
-
     BubTrackTheme {
         GrowthChartScreen(
             modifier = Modifier.padding(16.dp),

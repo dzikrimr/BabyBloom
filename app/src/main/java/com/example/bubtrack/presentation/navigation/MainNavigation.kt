@@ -41,6 +41,7 @@ import com.example.bubtrack.presentation.article.ArticleScreen
 import com.example.bubtrack.presentation.article.ArticleSearchScreen
 import com.example.bubtrack.presentation.diary.DiaryScreen
 import com.example.bubtrack.presentation.home.HomeScreen
+import com.example.bubtrack.presentation.notification.NotificationScreen
 import com.example.bubtrack.presentation.profile.ProfileScreen
 import com.google.firebase.auth.FirebaseAuth
 
@@ -71,8 +72,7 @@ fun MainNavigation(
     val context = LocalContext.current
     val webRTCService = WebRTCService(context)
     val sleepViewModel: SleepMonitorViewModel = hiltViewModel()
-    // Temporary workaround for CryAnalyzerViewModel (to be replaced with Hilt)
-    val audioRepository = AudioRepoImpl(context) { true } // Mock isRecordingState for now
+    val audioRepository = AudioRepoImpl(context) { true }
     val modelRepository = ModelRepoImpl(context, MFCCExtractor())
     val recordAudioUseCase = RecordAudioUseCase(audioRepository)
     val classifyAudioUseCase = ClassifyAudioUseCase(modelRepository)
@@ -180,6 +180,11 @@ fun MainNavigation(
             }
             composable<ProfileRoute> {
                 ProfileScreen(navigateLogin = { navigateLogin() })
+            }
+            composable<NotificationRoute> {
+                NotificationScreen(
+                    onBackClick = { navController.popBackStack() }
+                )
             }
         }
     }
