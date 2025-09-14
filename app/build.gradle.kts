@@ -58,8 +58,6 @@ dependencies {
     implementation(libs.androidx.espresso.core)
     implementation(libs.vision.common)
     implementation(libs.play.services.mlkit.barcode.scanning)
-    implementation(libs.androidx.media3.common.ktx)
-    implementation(libs.generativeai)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -141,14 +139,10 @@ dependencies {
     implementation ("com.google.zxing:core:3.5.1")
     implementation("com.google.mlkit:barcode-scanning:17.2.0")
 
+    // webrtc
+    implementation("com.mesibo.api:webrtc:1.0.5")
+
     //tensorflow
     implementation("org.tensorflow:tensorflow-lite:2.16.1")
     implementation("org.tensorflow:tensorflow-lite-support:0.4.4")
-
-    // webrtc
-    implementation ("io.github.webrtc-sdk:android:137.7151.03")
-
-    // timber
-    implementation ("com.jakewharton.timber:timber:5.0.1")
-
 }
