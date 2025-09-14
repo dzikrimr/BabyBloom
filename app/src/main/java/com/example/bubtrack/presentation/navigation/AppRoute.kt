@@ -17,6 +17,9 @@ data object RegisterRoute : AppRoute
 data object CreateProfileRoute : AppRoute
 
 @Serializable
+data object ForgotPasswordRoute : AppRoute
+
+@Serializable
 data object MainRoute : AppRoute
 
 @Serializable
@@ -35,7 +38,14 @@ data object ArticleRoute : AppRoute
 data object ArticleHomeRoute : AppRoute
 
 @Serializable
-data object ArticleDetailRoute : AppRoute
+data class ArticleDetailRoute(
+    val id: Int
+) : AppRoute
+
+@Serializable
+data class ArticleSearchRoute(
+    val query: String
+)
 
 @Serializable
 data object ProfileRoute : AppRoute
@@ -45,3 +55,19 @@ data object ActivitiesRoute : AppRoute
 
 @Serializable
 data object SleepMonitorRoute : AppRoute
+
+@Serializable
+data object CryAnalyzerRoute : AppRoute
+
+@Serializable
+data object ParentScreenRoute : AppRoute
+
+@Serializable
+data object BabyScreenRoute : AppRoute
+
+@Serializable
+data object GrowthAnalysisRoute : AppRoute
+
+@Serializable
+data object NotificationRoute : AppRoute
+

@@ -17,8 +17,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -34,6 +32,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,7 +53,7 @@ import com.example.bubtrack.ui.theme.AppGray
 import com.example.bubtrack.ui.theme.AppPurple
 import com.example.bubtrack.ui.theme.BubTrackTheme
 import android.widget.Toast
-import androidx.compose.runtime.collectAsState
+import androidx.compose.foundation.layout.width
 import androidx.compose.ui.layout.ContentScale
 
 @Composable
@@ -66,7 +65,6 @@ fun DevelopmentScreen(
     var diaryTitle by rememberSaveable { mutableStateOf("") }
     var diaryDescription by rememberSaveable { mutableStateOf("") }
     var selectedImageUri by rememberSaveable { mutableStateOf<String?>(null) }
-
     val context = LocalContext.current
     val pickImageLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -75,239 +73,232 @@ fun DevelopmentScreen(
             selectedImageUri = it.toString()
         }
     }
-
     val diaryList by viewModel.diaryState.collectAsState()
+    val selectedDate by viewModel.selectedDate.collectAsState()
 
-    LazyColumn(
+    Column(
         modifier = modifier
             .fillMaxSize()
             .background(AppBackground),
         verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
-        item {
-            // Button to expand
-            OutlinedButton(
-                onClick = { isExpanded = !isExpanded },
+        OutlinedButton(
+            onClick = { isExpanded = !isExpanded },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(60.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFFF3F4F6),
+            ),
+            shape = RoundedCornerShape(14.dp),
+            border = BorderStroke(width = 0.dp, color = Color.Transparent)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(AppPurple)
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_add),
+                            contentDescription = "add",
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .size(20.dp),
+                            tint = Color.White
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        "Tambah Pencapaian",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontWeight = FontWeight.SemiBold
+                        ),
+                        color = Color.Black
+                    )
+                }
+                Icon(
+                    painter = painterResource(if (isExpanded) R.drawable.ic_arrowup else R.drawable.ic_arrowdown),
+                    contentDescription = "arrow",
+                    tint = AppGray
+                )
+            }
+        }
+        AnimatedVisibility(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(14.dp))
+                .background(Color.White),
+            visible = isExpanded
+        ) {
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(60.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFF3F4F6),
-                ),
-                shape = RoundedCornerShape(14.dp),
-                border = BorderStroke(width = 0.dp, color = Color.Transparent)
-            ) {
-                Row(
-                    modifier = modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(AppPurple)
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_add),
-                                contentDescription = "add",
-                                modifier = modifier
-                                    .align(Alignment.Center)
-                                    .size(20.dp),
-                                tint = Color.White
-                            )
-                        }
-                        Spacer(modifier.width(12.dp))
-                        Text(
-                            "Tambah Pencapaian",
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                fontWeight = FontWeight.SemiBold
-                            ),
-                            color = Color.Black
-                        )
-                    }
-                    Icon(
-                        painter = painterResource(if (isExpanded) R.drawable.ic_arrowup else R.drawable.ic_arrowdown),
-                        contentDescription = "arrow",
-                        tint = AppGray
-                    )
-                }
-            }
-        }
-        item {
-            // Expandable content
-            AnimatedVisibility(
-                modifier = modifier
-                    .fillMaxWidth()
                     .clip(RoundedCornerShape(14.dp))
-                    .background(Color.White),
-                visible = isExpanded
+                    .background(Color.White)
+                    .padding(top = 12.dp, start = 16.dp, end = 16.dp, bottom = 16.dp),
+                horizontalAlignment = Alignment.Start
             ) {
-                Column(
-                    modifier = modifier
+                Text(
+                    "Judul Pencapaian",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.Medium
+                    )
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = diaryTitle,
+                    onValueChange = { diaryTitle = it },
+                    modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(Color.White)
-                        .padding(top = 12.dp, start = 16.dp, end = 16.dp, bottom = 16.dp),
-                    horizontalAlignment = Alignment.Start
-                ) {
-                    Text(
-                        "Judul Pencapaian",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            fontWeight = FontWeight.Medium
-                        )
+                        .height(50.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedBorderColor = AppGray,
+                        errorBorderColor = AppGray,
+                        focusedBorderColor = AppGray,
+                        disabledBorderColor = AppGray
+                    ),
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Next
+                    ),
+                    singleLine = true
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    "Deskripsi",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.Medium
                     )
-                    Spacer(modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = diaryTitle,
-                        onValueChange = { diaryTitle = it },
-                        modifier = modifier
-                            .fillMaxWidth()
-                            .height(50.dp),
-                        shape = RoundedCornerShape(14.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedBorderColor = AppGray,
-                            errorBorderColor = AppGray,
-                            focusedBorderColor = AppGray,
-                            disabledBorderColor = AppGray
-                        ),
-                        keyboardOptions = KeyboardOptions(
-                            imeAction = ImeAction.Next
-                        ),
-                        singleLine = true
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = diaryDescription,
+                    onValueChange = { diaryDescription = it },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(100.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedBorderColor = AppGray,
+                        errorBorderColor = AppGray,
+                        focusedBorderColor = AppGray,
+                        disabledBorderColor = AppGray
+                    ),
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Done
+                    ),
+                    singleLine = false
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    "Tambah Foto",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.Medium
                     )
-                    Spacer(modifier.height(12.dp))
-                    Text(
-                        "Deskripsi",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            fontWeight = FontWeight.Medium
-                        )
-                    )
-                    Spacer(modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = diaryDescription,
-                        onValueChange = { diaryDescription = it },
-                        modifier = modifier
-                            .fillMaxWidth()
-                            .height(100.dp),
-                        shape = RoundedCornerShape(14.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedBorderColor = AppGray,
-                            errorBorderColor = AppGray,
-                            focusedBorderColor = AppGray,
-                            disabledBorderColor = AppGray
-                        ),
-                        keyboardOptions = KeyboardOptions(
-                            imeAction = ImeAction.Done
-                        ),
-                        singleLine = false
-                    )
-                    Spacer(modifier.height(12.dp))
-                    Text(
-                        "Tambah Foto",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            fontWeight = FontWeight.Medium
-                        )
-                    )
-                    Row(
-                        modifier = modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Box(
-                            modifier = modifier
-                                .size(100.dp)
-                                .border(
-                                    width = 1.dp,
-                                    color = AppGray,
-                                    shape = RoundedCornerShape(14.dp)
-                                )
-                                .clip(RoundedCornerShape(14.dp))
-                                .background(Color(0xFFF3F4F6))
-                                .clickable { pickImageLauncher.launch("image/*") }
-                        ) {
-                            if (selectedImageUri != null) {
-                                AsyncImage(
-                                    model = selectedImageUri,
-                                    contentDescription = "Selected Image",
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentScale = ContentScale.Crop
-                                )
-                            } else {
-                                Icon(
-                                    painter = painterResource(R.drawable.ic_camera),
-                                    contentDescription = "camera button",
-                                    tint = Color.Unspecified,
-                                    modifier = modifier
-                                        .align(Alignment.Center)
-                                        .size(30.dp)
-                                )
-                            }
-                        }
-                    }
-                    OutlinedButton(
-                        onClick = {
-                            if (diaryTitle.isBlank() || diaryDescription.isBlank()) {
-                                Toast.makeText(context, "Judul dan deskripsi harus diisi!", Toast.LENGTH_SHORT).show()
-                            } else {
-                                viewModel.addDiaryEntry(
-                                    title = diaryTitle,
-                                    description = diaryDescription,
-                                    imageUri = selectedImageUri,
-                                    context = context
-                                )
-                                diaryTitle = ""
-                                diaryDescription = ""
-                                selectedImageUri = null
-                                isExpanded = false
-                            }
-                        },
-                        modifier = Modifier
-                            .padding(top = 12.dp)
-                            .fillMaxWidth()
-                            .height(55.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = AppPurple,
-                        ),
-                        shape = RoundedCornerShape(14.dp),
-                        border = BorderStroke(width = 0.dp, color = Color.Transparent)
-                    ) {
-                        Text(
-                            "Simpan",
-                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                            color = Color.White
-                        )
-                    }
-                }
-            }
-        }
-        // Diary content
-        if (diaryList.isNotEmpty()) {
-            items(diaryList.size) { index ->
-                DiaryCard(diary = diaryList[index])
-            }
-        } else {
-            item {
+                )
                 Row(
-                    modifier = modifier
+                    modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(Color.White)
-                        .padding(16.dp),
+                        .padding(top = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
+                    Box(
+                        modifier = Modifier
+                            .size(100.dp)
+                            .border(
+                                width = 1.dp,
+                                color = AppGray,
+                                shape = RoundedCornerShape(14.dp)
+                            )
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(Color(0xFFF3F4F6))
+                            .clickable { pickImageLauncher.launch("image/*") }
+                    ) {
+                        if (selectedImageUri != null) {
+                            AsyncImage(
+                                model = selectedImageUri,
+                                contentDescription = "Selected Image",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_camera),
+                                contentDescription = "camera button",
+                                tint = Color.Unspecified,
+                                modifier = Modifier
+                                    .align(Alignment.Center)
+                                    .size(30.dp)
+                            )
+                        }
+                    }
+                }
+                OutlinedButton(
+                    onClick = {
+                        if (diaryTitle.isBlank() || diaryDescription.isBlank()) {
+                            Toast.makeText(context, "Judul dan deskripsi harus diisi!", Toast.LENGTH_SHORT).show()
+                        } else {
+                            viewModel.addDiaryEntry(
+                                title = diaryTitle,
+                                description = diaryDescription,
+                                imageUri = selectedImageUri,
+                                context = context
+                            )
+                            diaryTitle = ""
+                            diaryDescription = ""
+                            selectedImageUri = null
+                            isExpanded = false
+                        }
+                    },
+                    modifier = Modifier
+                        .padding(top = 12.dp)
+                        .fillMaxWidth()
+                        .height(55.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = AppPurple,
+                    ),
+                    shape = RoundedCornerShape(14.dp),
+                    border = BorderStroke(width = 0.dp, color = Color.Transparent)
+                ) {
                     Text(
-                        "Belum ada diary :("
+                        "Simpan",
+                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                        color = Color.White
                     )
                 }
             }
         }
+        if (diaryList.isNotEmpty()) {
+            diaryList.forEach { diary ->
+                DiaryCard(diary = diary)
+            }
+        } else {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(Color.White)
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = if (selectedDate == null) "Belum ada diary :(" else "Tidak ada diary pada tanggal ini",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(16.dp)) // Bottom padding
     }
 }
 

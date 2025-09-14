@@ -24,23 +24,56 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.bubtrack.ui.theme.AppGray
-import com.example.bubtrack.ui.theme.AppPink
+import com.example.bubtrack.R
+import com.example.bubtrack.domain.activities.Activity
 import com.example.bubtrack.ui.theme.BubTrackTheme
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
+import androidx.compose.material3.Icon
+import androidx.compose.ui.res.painterResource
+import java.util.Locale
 
 @Composable
 fun ScheduleCard(
     modifier: Modifier = Modifier,
-    title: String,
-    location: String,
-    date: String,
+    activity: Activity,
+    today: LocalDate
 ) {
+    // Calculate days until activity
+    val activityDate = Instant.ofEpochMilli(activity.date)
+        .atZone(ZoneId.systemDefault()).toLocalDate()
+    val daysUntil = ChronoUnit.DAYS.between(today, activityDate).toInt()
+
+    // Determine colors based on proximity
+    val (cardColor, circleColor) = when {
+        daysUntil <= 1 -> Color(0xFFFBCFE8) to Color(0xFFF87171).copy(alpha = 0.2f)
+        daysUntil <= 4 -> Color(0xFFFBF4CF) to Color(0xFFF8BE71).copy(alpha = 0.2f)
+        else -> Color(0xFFBFDBFE) to Color(0xFF93C5FD).copy(alpha = 0.2f)
+    }
+
+    // Map activity type to icon
+    val iconRes = when (activity.type) {
+        "Vaccine" -> R.drawable.ic_vaccine
+        "Check-Up" -> R.drawable.ic_checkup
+        "Feeding" -> R.drawable.ic_feeding
+        "Playtime" -> R.drawable.ic_playtime
+        else -> R.drawable.ic_other
+    }
+
+    // Format date and time
+    val dateFormatter = DateTimeFormatter.ofPattern("dd MMM yyyy", Locale("id"))
+    val dateString = activityDate.format(dateFormatter)
+    val timeString = String.format("%02d:%02d", activity.hour, activity.minute)
+
     Row(
         modifier = modifier
             .fillMaxWidth()
             .height(80.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(AppPink)
+            .background(cardColor)
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -48,25 +81,33 @@ fun ScheduleCard(
             modifier = modifier
                 .size(50.dp)
                 .clip(CircleShape)
-                .background(color = Color.White)
-        )
-        Spacer(modifier.width(20.dp))
+                .background(color = circleColor),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                painter = painterResource(id = iconRes),
+                contentDescription = "${activity.type} icon",
+                tint = Color.Unspecified,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+        Spacer(modifier = Modifier.width(20.dp))
         Column(
             modifier = modifier.fillMaxHeight(),
             horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.SpaceEvenly
         ) {
             Text(
-                title,
+                text = activity.title,
                 style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
             )
             Text(
-                date,
+                text = "$dateString, $timeString",
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color(0xFF4B5563)
             )
             Text(
-                location,
+                text = activity.description.takeIf { it.isNotBlank() } ?: "Tidak ada deskripsi",
                 style = MaterialTheme.typography.bodySmall,
                 color = Color(0xFF4B5563)
             )
@@ -76,12 +117,19 @@ fun ScheduleCard(
 
 @Preview
 @Composable
-private fun Test() {
+private fun ScheduleCardPreview() {
     BubTrackTheme {
         ScheduleCard(
-            title = "Vaksin Polio",
-            location = "Puskesmas Glonggong",
-            date = "12 Mei 2023"
+            activity = Activity(
+                userId = "user1",
+                title = "Vaksin Polio",
+                description = "Puskesmas Glonggong",
+                date = System.currentTimeMillis(),
+                hour = 10,
+                minute = 30,
+                type = "Other"
+            ),
+            today = LocalDate.now()
         )
     }
 }

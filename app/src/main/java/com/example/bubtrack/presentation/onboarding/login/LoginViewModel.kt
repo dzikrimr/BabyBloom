@@ -91,4 +91,10 @@ class LoginViewModel @Inject constructor(
             )
         }
     }
+
+    fun forgotPassword(email: String){
+        viewModelScope.launch {
+            authRepo.forgotPassword(email)
+        }
+    }
 }

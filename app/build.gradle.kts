@@ -56,6 +56,8 @@ dependencies {
     implementation(libs.androidx.navigation.compose.android)
     implementation(libs.play.services.cast.tv)
     implementation(libs.androidx.espresso.core)
+    implementation(libs.vision.common)
+    implementation(libs.play.services.mlkit.barcode.scanning)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -63,6 +65,8 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    implementation(libs.androidx.media3.common.ktx)
+    implementation(libs.generativeai)
 
     implementation (libs.androidx.navigation.compose)
     implementation(libs.kotlinx.serialization.json)
@@ -93,6 +97,7 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
     implementation(libs.play.services.auth)
+    implementation("com.google.firebase:firebase-database-ktx")
 
     //googleAuth
     implementation(libs.androidx.credentials)
@@ -125,4 +130,21 @@ dependencies {
     implementation ("androidx.camera:camera-camera2:1.3.4")
     implementation ("androidx.camera:camera-lifecycle:1.3.4")
     implementation ("androidx.camera:camera-view:1.3.4")
+
+    // mlkit
+    implementation ("com.google.mlkit:face-detection:16.1.5")
+    implementation ("com.google.mlkit:pose-detection:18.0.0-beta3")
+    implementation ("com.google.mlkit:pose-detection-accurate:18.0.0-beta3")
+
+    // QR Code generation
+    implementation ("com.journeyapps:zxing-android-embedded:4.3.0")
+    implementation ("com.google.zxing:core:3.5.1")
+    implementation("com.google.mlkit:barcode-scanning:17.2.0")
+
+    // webrtc
+    implementation("com.mesibo.api:webrtc:1.0.5")
+
+    //tensorflow
+    implementation("org.tensorflow:tensorflow-lite:2.16.1")
+    implementation("org.tensorflow:tensorflow-lite-support:0.4.4")
 }

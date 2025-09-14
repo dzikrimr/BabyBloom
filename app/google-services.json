@@ -2,7 +2,8 @@
   "project_info": {
     "project_number": "528926580104",
     "project_id": "possible-bolt-464410-g6",
-    "storage_bucket": "possible-bolt-464410-g6.firebasestorage.app"
+    "storage_bucket": "possible-bolt-464410-g6.firebasestorage.app",
+    "firebase_url": "https://possible-bolt-464410-g6-default-rtdb.asia-southeast1.firebasedatabase.app"
   },
   "client": [
     {

@@ -39,6 +39,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.bubtrack.R
 import com.example.bubtrack.presentation.profile.comps.ProfileButton
 import com.example.bubtrack.ui.theme.AppBackground
@@ -47,7 +48,11 @@ import com.example.bubtrack.ui.theme.AppPurple
 import com.example.bubtrack.ui.theme.BubTrackTheme
 
 @Composable
-fun ProfileScreen(modifier: Modifier = Modifier) {
+fun ProfileScreen(
+    modifier: Modifier = Modifier,
+    viewModel: ProfileViewModel = hiltViewModel(),
+    navigateLogin: () -> Unit
+) {
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -167,7 +172,10 @@ fun ProfileScreen(modifier: Modifier = Modifier) {
 
             Spacer(modifier.weight(1f))
             OutlinedButton(
-                onClick = {},
+                onClick = {
+                    viewModel.logout()
+                    navigateLogin()
+                },
                 modifier = modifier
                     .fillMaxWidth()
                     .height(60.dp),
@@ -203,11 +211,4 @@ fun ProfileScreen(modifier: Modifier = Modifier) {
     }
 }
 
-@Preview
-@Composable
-private fun Preview() {
-    BubTrackTheme {
-        ProfileScreen()
-    }
 
-}
