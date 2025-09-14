@@ -65,3 +65,9 @@ data object ParentScreenRoute : AppRoute
 @Serializable
 data object BabyScreenRoute : AppRoute
 
+@Serializable
+data object GrowthAnalysisRoute : AppRoute
+
+@Serializable
+data object NotificationRoute : AppRoute
+
