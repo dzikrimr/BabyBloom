@@ -9,8 +9,10 @@ import androidx.lifecycle.viewModelScope
 import com.example.bubtrack.R
 import com.example.bubtrack.data.home.HomeRepoImpl
 import com.example.bubtrack.domain.activities.Activity
+import com.example.bubtrack.domain.growth.BabyGrowthRepo
 import com.example.bubtrack.domain.growth.GrowthStats
 import com.example.bubtrack.domain.home.HomeRepo
+import com.example.bubtrack.utill.Resource
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -27,7 +29,8 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val repository: HomeRepo,
-    private val auth: FirebaseAuth
+    private val auth: FirebaseAuth,
+    private val babyGrowthRepo: BabyGrowthRepo
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -80,16 +83,22 @@ class HomeViewModel @Inject constructor(
 
     private fun observeGrowthStats(userId: String) {
         viewModelScope.launch {
-            repository.observeGrowthStats(userId).collect { result ->
-                result.fold(
-                    onSuccess = { stats ->
-                        _uiState.update { it.copy(latestGrowthStats = stats) }
-                    },
-                    onFailure = { error ->
-                        _uiState.update { it.copy(errorMessage = error.message) }
+            babyGrowthRepo.getStats().collect { result ->
+                when (result) {
+                    is Resource.Loading -> {
+                        _uiState.update { it.copy(isLoading = true) }
                     }
-                )
+                    is Resource.Error<*> -> {
+                        _uiState.update { it.copy(errorMessage = result.msg) }
+                    }
+                    is Resource.Idle<*> -> Unit
+                    is Resource.Success<*> -> {
+                        val stats = result.data!!
+                        _uiState.update { it.copy(latestGrowthStats = stats) }
+                    }
+                }
             }
+
         }
     }
 

@@ -79,42 +79,36 @@ fun GrowthChartScreen(
     var armCircumference by remember { mutableStateOf("") }
     var ageInMonths by remember { mutableStateOf("") }
     val context = LocalContext.current
+    val babyStats by viewModel.babyStats.collectAsState()
 
     // Dynamically get the latest stats from Firestore
-    val latestStats = chartState.isSuccess.firstOrNull()?.let {
-        GrowthStats(
-            weight = it.weight ?: 0.0,
-            height = it.height ?: 0.0,
-            headCircum = it.headCircumference ?: 0.0,
-            armCircum = it.armLength ?: 0.0
-        )
-    } ?: GrowthStats(weight = 0.0, height = 0.0, headCircum = 0.0, armCircum = 0.0)
+    val latestStats = chartState.isSuccess
 
     val statsList = listOf(
         StatsCardItem(
             title = "Berat",
-            value = latestStats.weight,
+            value = babyStats?.weight ?: 0.0,
             icon = R.drawable.ic_weightscale,
             unit = "kg",
             bgColor = AppPurple
         ),
         StatsCardItem(
             title = "Tinggi",
-            value = latestStats.height,
+            value = babyStats?.height ?: 0.0,
             icon = R.drawable.ic_height,
             unit = "cm",
             bgColor = AppBlue
         ),
         StatsCardItem(
             title = "L. Kepala",
-            value = latestStats.headCircum,
+            value = babyStats?.headCircum ?: 0.0,
             icon = R.drawable.ic_head,
             unit = "cm",
             bgColor = AppPink
         ),
         StatsCardItem(
             title = "L. Lengan",
-            value = latestStats.armCircum,
+            value = babyStats?.armCircum ?: 0.0,
             icon = R.drawable.ic_lengan,
             unit = "cm",
             bgColor = AppLightPurple

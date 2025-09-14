@@ -24,6 +24,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import javax.inject.Inject
 import android.widget.Toast
+import com.example.bubtrack.domain.growth.GrowthStats
 
 @HiltViewModel
 class DiaryViewModel @Inject constructor(
@@ -35,6 +36,9 @@ class DiaryViewModel @Inject constructor(
     private val _diaryState = MutableStateFlow<List<Diary>>(emptyList())
     val diaryState = _diaryState.asStateFlow()
 
+    private val _babyStats = MutableStateFlow<GrowthStats?>(null)
+    val babyStats = _babyStats.asStateFlow()
+
     private val _selectedDate = MutableStateFlow<LocalDate?>(null)
     val selectedDate = _selectedDate.asStateFlow()
 
@@ -45,6 +49,24 @@ class DiaryViewModel @Inject constructor(
     init {
         getGrowth()
         getDiaryEntries()
+        getBabyStats()
+    }
+
+    fun getBabyStats() {
+        viewModelScope.launch {
+            growthRepo.getStats().collect { result ->
+                when (result) {
+                    is Resource.Loading -> {
+                    }
+
+                    is Resource.Error<*> -> Unit
+                    is Resource.Idle<*> -> Unit
+                    is Resource.Success<*> -> {
+                        _babyStats.value = result.data
+                    }
+                }
+            }
+        }
     }
 
     fun setSelectedDate(date: LocalDate?) {
@@ -125,6 +147,20 @@ class DiaryViewModel @Inject constructor(
                 .addOnFailureListener { e ->
                     // Failure handled in UI with Toast
                 }
+
+            val update = hashMapOf(
+                "date" to date,
+                "weight" to weight,
+                "height" to height,
+                "headCircumference" to headCircumference,
+                "armCircumference" to armLength,
+                "ageInMonths" to ageInMonths
+            )
+            firestore.collection("users").document(userId)
+                .collection("babyProfiles")
+                .document("primary")
+                .update(update as Map<String, Any>)
+            getBabyStats()
         }
     }
 
