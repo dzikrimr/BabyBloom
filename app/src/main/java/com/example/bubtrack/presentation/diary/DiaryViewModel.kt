@@ -217,7 +217,7 @@ class DiaryViewModel @Inject constructor(
         }
     }
 
-    fun addDiaryEntry(title: String, description: String, imageUri: String?, context: Context) {
+    fun addDiaryEntry(title: String, description: String, imageUri: String?, context: Context, date: Long) {
         viewModelScope.launch {
             val userId = auth.currentUser?.uid ?: run {
                 Toast.makeText(context, "Pengguna tidak terautentikasi!", Toast.LENGTH_SHORT).show()
@@ -234,7 +234,7 @@ class DiaryViewModel @Inject constructor(
                         override fun onProgress(requestId: String, bytes: Long, totalBytes: Long) {}
                         override fun onSuccess(requestId: String, resultData: Map<*, *>) {
                             val imageUrl = resultData["secure_url"] as? String
-                            saveDiaryToFirestore(title, description, imageUrl, userId, context)
+                            saveDiaryToFirestore(title, description, imageUrl, userId, context,date)
                         }
                         override fun onError(requestId: String, error: ErrorInfo) {
                             Toast.makeText(context, "Gagal mengunggah gambar: ${error.description}", Toast.LENGTH_SHORT).show()
@@ -242,16 +242,16 @@ class DiaryViewModel @Inject constructor(
                         override fun onReschedule(requestId: String, error: ErrorInfo) {}
                     }).dispatch(context)
             } else {
-                saveDiaryToFirestore(title, description, null, userId, context)
+                saveDiaryToFirestore(title, description, null, userId, context,date)
             }
         }
     }
 
-    private fun saveDiaryToFirestore(title: String, description: String, imageUrl: String?, userId: String, context: Context) {
+    private fun saveDiaryToFirestore(title: String, description: String, imageUrl: String?, userId: String, context: Context, date: Long) {
         val diary = hashMapOf(
             "title" to title,
             "description" to description,
-            "date" to System.currentTimeMillis(),
+            "date" to date,
             "imgUrl" to imageUrl
         )
         firestore.collection("users").document(userId)

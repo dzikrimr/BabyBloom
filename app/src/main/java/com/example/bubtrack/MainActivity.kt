@@ -10,6 +10,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.graphics.Color
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.bubtrack.presentation.navigation.OnBoardingNavigation
+import com.example.bubtrack.presentation.navigation.OnBoardingRoute
 import com.example.bubtrack.ui.theme.BubTrackTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import dagger.hilt.android.AndroidEntryPoint
@@ -38,11 +39,14 @@ class MainActivity : ComponentActivity() {
                     SplashScreen(
                         onAnimationComplete = { splashViewModel.completeSplash() }
                     )
-                } else {
+                } else if (startDestination.value != null) {
                     OnBoardingNavigation(
-                        startDestination = startDestination.value
+                        startDestination = startDestination.value!!
                     )
-                }
+                } else
+                    OnBoardingNavigation(
+                        startDestination = OnBoardingRoute
+                    )
             }
         }
     }

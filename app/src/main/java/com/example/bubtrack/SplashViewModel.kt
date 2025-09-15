@@ -25,8 +25,8 @@ class SplashViewModel @Inject constructor(
     var splashCondition by mutableStateOf(true)
         private set
 
-    private val _startDestination = MutableStateFlow<AppRoute>(OnBoardingRoute)
-    val startDestination: StateFlow<AppRoute> = _startDestination
+    private val _startDestination = MutableStateFlow<AppRoute?>(null)
+    val startDestination: StateFlow<AppRoute?> = _startDestination
 
     init {
         getCurrentUser()

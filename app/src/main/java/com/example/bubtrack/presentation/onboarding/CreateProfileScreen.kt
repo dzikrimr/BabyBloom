@@ -103,7 +103,7 @@ fun CreateProfileScreen(
                     )
                     CommonTextField(
                         value = babyName,
-                        placeholder = "Rizqeena",
+                        placeholder = "Nama bayi",
                         onValueChange = { babyName = it }
                     )
                     Spacer(Modifier.height(12.dp))
@@ -180,7 +180,7 @@ fun CreateProfileScreen(
                     )
                     NumberTextField(
                         value = weight,
-                        placeholder = "12",
+                        placeholder = "Berat Badan",
                         onValueChange = { weight = it }
                     )
                     Spacer(Modifier.height(12.dp))
@@ -193,7 +193,7 @@ fun CreateProfileScreen(
                     )
                     NumberTextField(
                         value = height,
-                        placeholder = "12",
+                        placeholder = "Tinggi Badan",
                         onValueChange = { height = it }
                     )
                     Spacer(Modifier.height(12.dp))
@@ -206,7 +206,7 @@ fun CreateProfileScreen(
                     )
                     NumberTextField(
                         value = headCircumference,
-                        placeholder = "12",
+                        placeholder = "Lingkar Kepala",
                         onValueChange = { headCircumference = it }
                     )
                     Spacer(Modifier.height(12.dp))
@@ -219,7 +219,7 @@ fun CreateProfileScreen(
                     )
                     NumberTextField(
                         value = armCircumference,
-                        placeholder = "12",
+                        placeholder = "Lingkar Lengan",
                         onValueChange = { armCircumference = it }
                     )
                 }

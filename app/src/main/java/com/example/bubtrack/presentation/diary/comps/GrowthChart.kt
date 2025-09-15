@@ -125,7 +125,11 @@ fun GrowthChart(
                 }
                 state.isSuccess.isEmpty() -> {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("Belum ada data pertumbuhan bayi")
+                        Text(
+                            "Belum ada data pertumbuhan bayi",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Gray
+                        )
                     }
                 }
                 else -> {

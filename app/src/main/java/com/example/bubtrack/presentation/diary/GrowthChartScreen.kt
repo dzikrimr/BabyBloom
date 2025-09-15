@@ -62,6 +62,7 @@ import com.example.bubtrack.presentation.diary.helper.GrowthUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.time.LocalDate
+import kotlin.math.roundToInt
 
 @Composable
 fun GrowthChartScreen(
@@ -123,7 +124,7 @@ fun GrowthChartScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
-            "Current Stats",
+            "Perkembangan Bayi",
             style = MaterialTheme.typography.titleSmall.copy(
                 fontWeight = FontWeight.SemiBold
             )
@@ -219,7 +220,7 @@ fun GrowthChartScreen(
                 )
                 NumberTextField(
                     value = weight,
-                    placeholder = "12",
+                    placeholder = babyStats?.weight?.roundToInt().toString(),
                     onValueChange = { weight = it }
                 )
                 Spacer(Modifier.height(12.dp))
@@ -229,7 +230,7 @@ fun GrowthChartScreen(
                 )
                 NumberTextField(
                     value = height,
-                    placeholder = "12",
+                    placeholder = babyStats?.height?.roundToInt().toString(),
                     onValueChange = { height = it }
                 )
                 Spacer(Modifier.height(12.dp))
@@ -239,7 +240,7 @@ fun GrowthChartScreen(
                 )
                 NumberTextField(
                     value = headCircumference,
-                    placeholder = "12",
+                    placeholder = babyStats?.headCircum?.roundToInt().toString(),
                     onValueChange = { headCircumference = it }
                 )
                 Spacer(Modifier.height(12.dp))
@@ -249,18 +250,8 @@ fun GrowthChartScreen(
                 )
                 NumberTextField(
                     value = armCircumference,
-                    placeholder = "12",
+                    placeholder = babyStats?.armCircum?.roundToInt().toString(),
                     onValueChange = { armCircumference = it }
-                )
-                Spacer(Modifier.height(12.dp))
-                Text(
-                    "Usia (bulan)",
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
-                )
-                NumberTextField(
-                    value = ageInMonths,
-                    placeholder = "0",
-                    onValueChange = { ageInMonths = it }
                 )
                 Spacer(Modifier.height(12.dp))
                 OutlinedButton(
@@ -338,7 +329,8 @@ fun GrowthChartScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                color = Color.Gray
             )
         }
         Spacer(modifier = Modifier.height(16.dp)) // Bottom padding
