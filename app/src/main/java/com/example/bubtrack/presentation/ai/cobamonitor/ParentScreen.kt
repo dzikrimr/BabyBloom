@@ -68,15 +68,31 @@ fun ParentScreen(
                         modifier = Modifier.padding(8.dp)
                     )
                 }
+                Button(
+                    onClick = {
+                        isMonitoring = false
+                        roomId?.let { id ->
+                            viewModel.stopMonitoring(id) // 🚨 trigger ke baby untuk mulai pose analysis
+                        }
+                    }
+                ) {
+                    Text("Stop Monitoring")
+                }
 
                 SurfaceViewRendererComposable(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(8.dp),
                     onSurfaceReady = { renderer: SurfaceViewRenderer ->
                         Log.d("ParentScreen", "Surface ready, initializing remote renderer")
                         viewModel.initRemoteSurface(renderer)
                     },
                     message = null
                 )
+
+                Spacer(Modifier.height(16.dp))
+
+
             }
         }
     }
