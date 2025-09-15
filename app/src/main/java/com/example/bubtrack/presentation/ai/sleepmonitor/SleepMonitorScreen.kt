@@ -2,8 +2,10 @@ package com.example.bubtrack.presentation.ai.sleepmonitor
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Log
+import android.util.Size
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.*
@@ -32,6 +34,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.bubtrack.R
 import com.example.bubtrack.data.webrtc.ConnectionState
 import com.example.bubtrack.data.webrtc.WebRTCService
@@ -68,12 +71,6 @@ fun SleepMonitorScreen(
     val localRenderer = remember { SurfaceViewRenderer(context) }
     val remoteRenderer = remember { SurfaceViewRenderer(context) }
 
-    // Collect sleep detection states
-    val sleepStatus by if (webRTCService.isHost.collectAsState().value) {
-        sleepViewModel.sleepStatus.collectAsState()
-    } else {
-        sleepViewModel.remoteSleepStatus.collectAsState()
-    }
     val connectionState by webRTCService.connectionState.collectAsState()
     val isHost by webRTCService.isHost.collectAsState()
     val isProcessing by sleepViewModel.isProcessing.collectAsState()
@@ -113,7 +110,7 @@ fun SleepMonitorScreen(
         hasCameraPermission = ContextCompat.checkSelfPermission(
             context,
             Manifest.permission.CAMERA
-        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        ) == PackageManager.PERMISSION_GRANTED
 
         if (!hasCameraPermission) {
             cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
@@ -131,12 +128,12 @@ fun SleepMonitorScreen(
                 cameraProvider = provider
 
                 val newPreview = Preview.Builder()
-                    .setTargetResolution(android.util.Size(640, 480))
+                    .setTargetResolution(Size(640, 480))
                     .build()
                 preview = newPreview
 
                 val newImageAnalyzer = ImageAnalysis.Builder()
-                    .setTargetResolution(android.util.Size(640, 480))
+                    .setTargetResolution(Size(640, 480))
                     .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                     .build()
                     .also {
@@ -146,7 +143,6 @@ fun SleepMonitorScreen(
                                 val mediaImage = imageProxy.image
                                 if (mediaImage != null) {
                                     Log.d("SleepMonitorScreen", "Processing frame: width=${imageProxy.width}, height=${imageProxy.height}, rotation=${imageProxy.imageInfo.rotationDegrees}")
-                                    sleepViewModel.processFrame(imageProxy)
                                     lastProcessedTime = currentTime
                                 } else {
                                     Log.e("SleepMonitorScreen", "No media image available")
@@ -382,35 +378,6 @@ fun SleepMonitorScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                StatusCard(
-                    modifier = Modifier.weight(1f),
-                    title = "Sleep Status",
-                    value = sleepStatus?.let {
-                        when {
-                            it.eyeStatus.contains("Tertutup") -> "Asleep"
-                            it.eyeStatus.contains("Terbuka") -> "Awake"
-                            else -> "Unknown"
-                        }
-                    } ?: "Unknown",
-                    painter = painterResource(R.drawable.ic_eye_off),
-                    backgroundColor = Color(0xFFE3F2FD),
-                    iconColor = Color(0xFF93C5FD),
-                    valueColor = Color(0xFF93C5FD)
-                )
-                StatusCard(
-                    modifier = Modifier.weight(1f),
-                    title = "Motion",
-                    value = sleepStatus?.let {
-                        when {
-                            it.movementStatus.contains("aktif") -> "Active"
-                            else -> "Still"
-                        }
-                    } ?: "Unknown",
-                    painter = painterResource(R.drawable.ic_motion),
-                    backgroundColor = Color(0xFFFCE4EC),
-                    iconColor = Color(0xFFF9A8D4),
-                    valueColor = Color(0xFFF9A8D4)
-                )
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -425,22 +392,6 @@ fun SleepMonitorScreen(
                     iconColor = Color(0xFF4CAF50),
                     valueColor = if (isProcessing) Color.Red else Color(0xFF4CAF50)
                 )
-                StatusCard(
-                    modifier = Modifier.weight(1f),
-                    title = "Rollover",
-                    value = sleepStatus?.let {
-                        when {
-                            it.rolloverStatus.contains("Ya") -> "Detected"
-                            else -> "Normal"
-                        }
-                    } ?: "Unknown",
-                    painter = painterResource(R.drawable.ic_rollover),
-                    backgroundColor = Color(0xFFF3E5F5),
-                    iconColor = Color(0xFFA78BFA),
-                    valueColor = sleepStatus?.let {
-                        if (it.rolloverStatus.contains("Ya")) Color.Red else Color(0xFFA78BFA)
-                    } ?: Color(0xFFA78BFA)
-                )
             }
         }
 
@@ -454,7 +405,6 @@ fun SleepMonitorScreen(
             Button(
                 onClick = {
                     cameraProvider?.unbindAll()
-                    sleepViewModel.resetSession()
                     webRTCService.cleanup()
                     onStopMonitor()
                 },
@@ -622,20 +572,3 @@ private fun StatusCard(
 }
 
 private var lastProcessedTime = 0L
-
-@SuppressLint("ViewModelConstructorInComposable")
-@androidx.compose.ui.tooling.preview.Preview(showBackground = true)
-@Composable
-fun SleepMonitorScreenPreview() {
-    MaterialTheme {
-        val mockViewModel = SleepMonitorViewModel(LocalContext.current, WebRTCService(LocalContext.current))
-        SleepMonitorScreen(
-            navController = androidx.navigation.compose.rememberNavController(),
-            sleepViewModel = mockViewModel,
-            webRTCService = WebRTCService(LocalContext.current),
-            onBackClick = {},
-            onStopMonitor = {},
-            onCryModeClick = {}
-        )
-    }
-}

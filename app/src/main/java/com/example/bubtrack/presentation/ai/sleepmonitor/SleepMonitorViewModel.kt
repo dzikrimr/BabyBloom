@@ -6,9 +6,10 @@ import androidx.camera.core.ImageProxy
 import androidx.camera.core.ExperimentalGetImage
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.bubtrack.data.webrtc.WebRTCService
+import com.example.bubtrack.database.SleepSessionEntity
 import com.example.bubtrack.models.SleepFeatures
 import com.example.bubtrack.models.SleepStatus
+import com.example.bubtrack.domain.ai.SleepRepository
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.face.*
 import com.google.mlkit.vision.pose.*
@@ -26,11 +27,12 @@ import javax.inject.Inject
 import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.sqrt
+import kotlin.random.Random
 
 @HiltViewModel
 class SleepMonitorViewModel @Inject constructor(
-    @ApplicationContext private val context: Context,
-    val webRTCService: WebRTCService
+    private val repository: SleepRepository,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _sleepStatus = MutableStateFlow(SleepStatus())
@@ -39,9 +41,7 @@ class SleepMonitorViewModel @Inject constructor(
     private val _isProcessing = MutableStateFlow(false)
     val isProcessing: StateFlow<Boolean> = _isProcessing.asStateFlow()
 
-    private val _remoteSleepStatus = MutableStateFlow<SleepStatus?>(null)
-    val remoteSleepStatus: StateFlow<SleepStatus?> = _remoteSleepStatus.asStateFlow()
-
+    private var currentSession: SleepSessionEntity? = null
     private var frameCount = 0
     private var totalEAR = 0f
     private var totalMovement = 0f
@@ -49,6 +49,10 @@ class SleepMonitorViewModel @Inject constructor(
     private var consecutiveFramesWithoutFace = 0
     private var consecutiveFramesWithFace = 0
     private var consecutiveLowMovementFrames = 0
+
+    // Simulation variables
+    private var simulationStartTime = 0L
+    private var lastSimulationUpdate = 0L
 
     private val faceDetector = FaceDetection.getClient(
         FaceDetectorOptions.Builder()
@@ -76,16 +80,157 @@ class SleepMonitorViewModel @Inject constructor(
     private val movementThreshold = 0.15f
 
     init {
-        // Observe remote sleep status from WebRTCService
+        startNewSession()
+    }
+
+    private fun startNewSession() {
+        currentSession = SleepSessionEntity(startTime = System.currentTimeMillis())
         viewModelScope.launch {
-            webRTCService.remoteSleepStatus.collect { remoteStatus ->
-                remoteStatus?.let {
-                    _remoteSleepStatus.value = SleepStatus(
-                        eyeStatus = it.eyeStatus,
-                        movementStatus = it.movementStatus,
-                        rolloverStatus = it.rolloverStatus
-                    )
+            currentSession?.let { repository.insertSession(it) }
+            Log.d("SleepDetection", "New session started")
+        }
+    }
+
+    /**
+     * Simulate AI processing for demonstration purposes
+     * This method is called from ParentScreen to simulate sleep detection
+     */
+    fun simulateProcessing(features: Map<String, Any>) {
+        _isProcessing.value = true
+
+        viewModelScope.launch {
+            try {
+                val currentTime = System.currentTimeMillis()
+
+                // Initialize simulation time
+                if (simulationStartTime == 0L) {
+                    simulationStartTime = currentTime
                 }
+
+                // Only update every 2 seconds to prevent too frequent updates
+                if (currentTime - lastSimulationUpdate < 2000) {
+                    return@launch
+                }
+                lastSimulationUpdate = currentTime
+
+                // Extract features from the simulation data
+                val eyeAspectRatio = features["eyeAspectRatio"] as? Float ?: generateSimulatedEAR(currentTime)
+                val movement = features["movement"] as? Float ?: generateSimulatedMovement(currentTime)
+                val isRollover = features["isRollover"] as? Boolean ?: generateSimulatedRollover(currentTime)
+                val isAwake = features["isAwake"] as? Boolean ?: generateSimulatedAwakeState(currentTime)
+
+                val sleepFeatures = SleepFeatures(
+                    eyeAspectRatio = eyeAspectRatio,
+                    movement = movement,
+                    isRollover = isRollover
+                )
+
+                val status = analyzeSimulatedFeatures(sleepFeatures, isAwake)
+                _sleepStatus.value = status
+                updateSimulatedSession(sleepFeatures)
+
+                Log.d("SleepDetection", "Simulated processing: EAR=$eyeAspectRatio, Movement=$movement, Rollover=$isRollover, Status=$status")
+
+            } catch (e: Exception) {
+                Log.e("SleepDetection", "Error in simulation: ${e.message}", e)
+                _sleepStatus.value = _sleepStatus.value.copy(
+                    eyeStatus = "Error dalam simulasi",
+                    movementStatus = "Error dalam simulasi",
+                    rolloverStatus = "Error dalam simulasi"
+                )
+            } finally {
+                _isProcessing.value = false
+            }
+        }
+    }
+
+    private fun generateSimulatedEAR(currentTime: Long): Float {
+        val elapsedMinutes = (currentTime - simulationStartTime) / 60000f
+        val random = Random(currentTime / 5000) // Change every 5 seconds
+
+        return when {
+            elapsedMinutes < 2f -> random.nextFloat() * 0.4f + 0.6f // Awake (0.6-1.0)
+            elapsedMinutes < 5f -> random.nextFloat() * 0.3f + 0.4f // Getting sleepy (0.4-0.7)
+            elapsedMinutes < 10f -> random.nextFloat() * 0.3f + 0.1f // Sleeping (0.1-0.4)
+            else -> random.nextFloat() * 0.2f + 0.05f // Deep sleep (0.05-0.25)
+        }
+    }
+
+    private fun generateSimulatedMovement(currentTime: Long): Float {
+        val random = Random(currentTime / 3000) // Change every 3 seconds
+        val elapsedMinutes = (currentTime - simulationStartTime) / 60000f
+
+        return when {
+            elapsedMinutes < 2f -> random.nextFloat() * 0.3f + 0.1f // Active while awake
+            elapsedMinutes < 5f -> random.nextFloat() * 0.2f + 0.05f // Less movement
+            else -> if (random.nextFloat() < 0.1f) random.nextFloat() * 0.4f else 0f // Occasional movement
+        }
+    }
+
+    private fun generateSimulatedRollover(currentTime: Long): Boolean {
+        val random = Random(currentTime / 30000) // Check every 30 seconds
+        val elapsedMinutes = (currentTime - simulationStartTime) / 60000f
+
+        return when {
+            elapsedMinutes > 3f -> random.nextFloat() < 0.05f // 5% chance after 3 minutes
+            else -> false
+        }
+    }
+
+    private fun generateSimulatedAwakeState(currentTime: Long): Boolean {
+        val elapsedMinutes = (currentTime - simulationStartTime) / 60000f
+        val random = Random(currentTime / 10000)
+
+        return when {
+            elapsedMinutes < 1f -> true // Awake for first minute
+            elapsedMinutes < 3f -> random.nextFloat() < 0.3f // 30% chance awake
+            else -> random.nextFloat() < 0.1f // 10% chance awake during sleep
+        }
+    }
+
+    private fun analyzeSimulatedFeatures(features: SleepFeatures, isAwake: Boolean): SleepStatus {
+        val eyeStatus = when {
+            features.eyeAspectRatio > 0.7f -> "Mata terbuka [${String.format("%.2f", features.eyeAspectRatio)}]"
+            features.eyeAspectRatio > 0.4f -> "Mata setengah terbuka [${String.format("%.2f", features.eyeAspectRatio)}]"
+            else -> "Mata tertutup [${String.format("%.2f", features.eyeAspectRatio)}]"
+        }
+
+        val movementStatus = when {
+            features.movement > 0.2f -> "Bergerak aktif! [${String.format("%.3f", features.movement)}]"
+            features.movement > 0.1f -> "Gerakan ringan [${String.format("%.3f", features.movement)}]"
+            else -> "Tidak bergerak [${String.format("%.3f", features.movement)}]"
+        }
+
+        val rolloverStatus = when {
+            features.isRollover -> "Rollover: Ya (terdeteksi)"
+            else -> "Rollover: Tidak"
+        }
+
+        return SleepStatus(
+            eyeStatus = eyeStatus,
+            movementStatus = movementStatus,
+            rolloverStatus = rolloverStatus
+        )
+    }
+
+    private fun updateSimulatedSession(features: SleepFeatures) {
+        frameCount++
+        totalEAR += features.eyeAspectRatio
+        totalMovement += features.movement
+        if (features.isRollover) rolloverCount++
+
+        currentSession?.let { session ->
+            viewModelScope.launch {
+                repository.updateSession(
+                    session.copy(
+                        averageEAR = totalEAR / frameCount,
+                        averageMovement = totalMovement / frameCount,
+                        rolloverCount = rolloverCount,
+                        pacifierUsage = false,
+                        totalFramesProcessed = frameCount
+                    )
+                )
+                Log.d("SleepDetection", "Simulated session updated: Frames=$frameCount, AvgEAR=${totalEAR / frameCount}, AvgMovement=${totalMovement / frameCount}")
             }
         }
     }
@@ -105,10 +250,7 @@ class SleepMonitorViewModel @Inject constructor(
                 val mediaImage = imageProxy.image
                 if (mediaImage == null) {
                     Log.e("SleepDetection", "ImageProxy has no image")
-                    _sleepStatus.value = SleepStatus(
-                        eyeStatus = "Mata: Tidak terdeteksi",
-                        movementStatus = "Pergerakan: Tidak terdeteksi",
-                        rolloverStatus = "Rollover: Tidak terdeteksi"
+                    _sleepStatus.value = _sleepStatus.value.copy(
                     )
                     return@launch
                 }
@@ -117,20 +259,11 @@ class SleepMonitorViewModel @Inject constructor(
                 val features = extractFeatures(inputImage)
                 val status = analyzeFeatures(features)
                 _sleepStatus.value = status
-                updateAnalytics(features)
-
-                // Sync status with paired device if host
-                if (webRTCService.isHost.value) {
-                    webRTCService.syncSleepStatus(status)
-                }
-
+                updateSession(features)
                 Log.d("SleepDetection", "Processed frame: Features=$features, Status=$status")
             } catch (e: Exception) {
                 Log.e("SleepDetection", "Error processing frame: ${e.message}", e)
-                _sleepStatus.value = SleepStatus(
-                    eyeStatus = "Mata: Tidak terdeteksi",
-                    movementStatus = "Pergerakan: Tidak terdeteksi",
-                    rolloverStatus = "Rollover: Tidak terdeteksi"
+                _sleepStatus.value = _sleepStatus.value.copy(
                 )
             } finally {
                 imageProxy.close()
@@ -177,7 +310,7 @@ class SleepMonitorViewModel @Inject constructor(
                     val limbMovement = calculateLimbMovement(pose.allPoseLandmarks)
 
                     val combinedMovement = if (faceDetected) {
-                        (features.movement * 0.3f + limbMovement * 0.7f)
+                        (features.movement * 0.5f + limbMovement * 0.5f) // Adjusted weights
                     } else {
                         limbMovement
                     }
@@ -195,16 +328,13 @@ class SleepMonitorViewModel @Inject constructor(
             }
 
             smoothedMovement = emaAlpha * features.movement + (1 - emaAlpha) * smoothedMovement
-            Log.d("SleepDetection", "Smoothed movement: $smoothedMovement")
 
             movementHistory.add(smoothedMovement)
             if (movementHistory.size > maxHistorySize) {
                 movementHistory.removeAt(0)
             }
-            Log.d("SleepDetection", "Movement history: $movementHistory")
 
-            val avgMovementHistory = if (movementHistory.isNotEmpty()) movementHistory.average().toFloat() else 0f
-            val finalMovement = if (smoothedMovement > movementThreshold && poseDetected && (pose?.allPoseLandmarks?.size ?: 0) >= 3 && movementHistory.count { it > movementThreshold } >= 5 && avgMovementHistory > movementThreshold) {
+            val finalMovement = if (smoothedMovement > movementThreshold && poseDetected && (pose?.allPoseLandmarks?.size ?: 0) >= 4 && movementHistory.count { it > movementThreshold } >= 3) {
                 smoothedMovement
             } else {
                 if (smoothedMovement < movementThreshold) {
@@ -218,10 +348,9 @@ class SleepMonitorViewModel @Inject constructor(
                 }
                 0f
             }
-            Log.d("SleepDetection", "Final movement: $finalMovement, Pose landmarks: ${pose?.allPoseLandmarks?.size ?: 0}, AvgMovementHistory: $avgMovementHistory")
             features = features.copy(movement = finalMovement)
 
-            if (!faceDetected && consecutiveFramesWithoutFace >= 5) {
+            if (!faceDetected && consecutiveFramesWithoutFace >= 3) {
                 features = features.copy(isRollover = true)
                 Log.d("SleepDetection", "Rollover detected: No face for $consecutiveFramesWithoutFace consecutive frames")
             }
@@ -282,7 +411,7 @@ class SleepMonitorViewModel @Inject constructor(
         }
 
         previousFaceContours = currentContours
-        val normalizedMovement = if (movement > 15f) movement / 100f else 0f
+        val normalizedMovement = if (movement > 10f) movement / 100f else 0f
         Log.d("SleepDetection", "Face contour movement: Raw=$movement, Normalized=$normalizedMovement")
         return normalizedMovement
     }
@@ -298,10 +427,10 @@ class SleepMonitorViewModel @Inject constructor(
                 PoseLandmark.RIGHT_WRIST,
                 PoseLandmark.LEFT_ELBOW,
                 PoseLandmark.RIGHT_ELBOW
-            ) && it.inFrameLikelihood > 0.6f
+            ) && it.inFrameLikelihood > 0.8f
         }
 
-        if (previousPoseLandmarks == null || limbLandmarks.size < 3) {
+        if (previousPoseLandmarks == null || limbLandmarks.size < 4) {
             previousPoseLandmarks = limbLandmarks
             Log.d("SleepDetection", "No previous or insufficient limb landmarks (${limbLandmarks.size}), movement=0")
             return 0f
@@ -316,7 +445,7 @@ class SleepMonitorViewModel @Inject constructor(
 
         limbLandmarks.forEach { current ->
             previousPoseLandmarks?.find {
-                it.landmarkType == current.landmarkType && it.inFrameLikelihood > 0.6f
+                it.landmarkType == current.landmarkType && it.inFrameLikelihood > 0.8f
             }?.let { previous ->
                 val distance = sqrt(
                     (current.position.x - previous.position.x).pow(2) +
@@ -342,33 +471,28 @@ class SleepMonitorViewModel @Inject constructor(
         val averageLegMovement = if (legComparisons > 0) legMovement / legComparisons else 0f
         val averageArmMovement = if (armComparisons > 0) armMovement / armComparisons else 0f
         val weightedMovement = (averageLegMovement * 0.7f + averageArmMovement * 0.3f)
-        val normalizedMovement = if (weightedMovement > 15f) weightedMovement / 100f else 0f
+        val normalizedMovement = if (weightedMovement > 20f) weightedMovement / 200f else 0f
 
         Log.d("SleepDetection", "Limb movement: Legs=$averageLegMovement, Arms=$averageArmMovement, Weighted=$weightedMovement, Normalized=$normalizedMovement")
         return normalizedMovement
     }
 
     private fun detectRollover(landmarks: List<PoseLandmark>): Boolean {
-        if (landmarks.size < 5) {
-            Log.d("SleepDetection", "Rollover skipped: Insufficient landmarks (${landmarks.size})")
-            return false
-        }
-
-        val nose = landmarks.find { it.landmarkType == PoseLandmark.NOSE && it.inFrameLikelihood > 0.8f }
+        val nose = landmarks.find { it.landmarkType == PoseLandmark.NOSE && it.inFrameLikelihood > 0.7f }
         val leftShoulder = landmarks.find { it.landmarkType == PoseLandmark.LEFT_SHOULDER && it.inFrameLikelihood > 0.5f }
         val rightShoulder = landmarks.find { it.landmarkType == PoseLandmark.RIGHT_SHOULDER && it.inFrameLikelihood > 0.5f }
         val leftHip = landmarks.find { it.landmarkType == PoseLandmark.LEFT_HIP && it.inFrameLikelihood > 0.5f }
         val rightHip = landmarks.find { it.landmarkType == PoseLandmark.RIGHT_HIP && it.inFrameLikelihood > 0.5f }
 
-        if (nose == null || nose.inFrameLikelihood < 0.6f) {
-            Log.d("SleepDetection", "Rollover detected: Nose not visible or low confidence (likelihood=${nose?.inFrameLikelihood})")
+        if (nose == null || nose.inFrameLikelihood < 0.5f) {
+            Log.d("SleepDetection", "Rollover detected: Nose not visible or low confidence")
             return true
         }
 
         if (leftShoulder != null && rightShoulder != null && leftHip != null && rightHip != null) {
             val shoulderYDiff = abs(leftShoulder.position.y - rightShoulder.position.y)
             val hipYDiff = abs(leftHip.position.y - rightHip.position.y)
-            val isRollover = shoulderYDiff > 50f || hipYDiff > 50f
+            val isRollover = shoulderYDiff > 20f || hipYDiff > 20f
             Log.d("SleepDetection", "Rollover detection from pose: ShoulderYDiff=$shoulderYDiff, HipYDiff=$hipYDiff, Rollover=$isRollover")
             return isRollover
         }
@@ -410,39 +534,47 @@ class SleepMonitorViewModel @Inject constructor(
         )
     }
 
-    private fun updateAnalytics(features: SleepFeatures) {
+    private fun updateSession(features: SleepFeatures) {
         frameCount++
         totalEAR += features.eyeAspectRatio
         totalMovement += features.movement
         if (features.isRollover) rolloverCount++
 
-        Log.d("SleepDetection", "Analytics updated: Frames=$frameCount, AvgEAR=${totalEAR / frameCount}, AvgMovement=${totalMovement / frameCount}")
+        currentSession?.let { session ->
+            viewModelScope.launch {
+                repository.updateSession(
+                    session.copy(
+                        averageEAR = totalEAR / frameCount,
+                        averageMovement = totalMovement / frameCount,
+                        rolloverCount = rolloverCount,
+                        pacifierUsage = false,
+                        totalFramesProcessed = frameCount
+                    )
+                )
+                Log.d("SleepDetection", "Session updated: Frames=$frameCount, AvgEAR=${totalEAR / frameCount}, AvgMovement=${totalMovement / frameCount}")
+            }
+        }
     }
 
-    fun resetSession() {
-        frameCount = 0
-        totalEAR = 0f
-        totalMovement = 0f
-        rolloverCount = 0
-        consecutiveFramesWithoutFace = 0
-        consecutiveFramesWithFace = 0
-        consecutiveLowMovementFrames = 0
-        previousPoseLandmarks = null
-        previousFaceContours = null
-        smoothedMovement = 0f
-        movementHistory.clear()
-
+    /**
+     * Reset simulation state
+     */
+    fun resetSimulation() {
+        simulationStartTime = 0L
+        lastSimulationUpdate = 0L
+        _isProcessing.value = false
         _sleepStatus.value = SleepStatus()
-        _remoteSleepStatus.value = null
-        webRTCService.disconnect()
-        Log.d("SleepDetection", "Session reset")
     }
 
     override fun onCleared() {
         super.onCleared()
         faceDetector.close()
         poseDetector.close()
-        webRTCService.cleanup()
-        Log.d("SleepDetection", "ViewModel cleared")
+        viewModelScope.launch {
+            currentSession?.let {
+                repository.updateSession(it.copy(endTime = System.currentTimeMillis()))
+            }
+            Log.d("SleepDetection", "ViewModel cleared, session ended")
+        }
     }
 }

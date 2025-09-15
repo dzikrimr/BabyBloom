@@ -1,6 +1,8 @@
 package com.example.bubtrack.domain.ai
 
 import com.example.bubtrack.database.SleepSessionEntity
+import javax.inject.Inject
+import javax.inject.Singleton
 
 interface SleepRepository {
     suspend fun insertSession(session: SleepSessionEntity): Long
@@ -11,7 +13,8 @@ interface SleepRepository {
 }
 
 // Simple in-memory implementation for testing
-class SimpleSleepRepository : SleepRepository {
+@Singleton
+class SimpleSleepRepository @Inject constructor() : SleepRepository {
     private val sessions = mutableMapOf<Long, SleepSessionEntity>()
 
     override suspend fun insertSession(session: SleepSessionEntity): Long {
