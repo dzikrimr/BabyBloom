@@ -12,12 +12,16 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.bubtrack.data.notification.FcmPayload
+import com.example.bubtrack.data.notification.FcmRepo
 import com.example.bubtrack.data.webrtc.FirebaseClient
 import com.example.bubtrack.data.webrtc.IceCandidateDto
 import com.example.bubtrack.data.webrtc.MyPeerObserver
 import com.example.bubtrack.data.webrtc.RTCClient
 import com.example.bubtrack.data.webrtc.RTCClientImpl
 import com.example.bubtrack.data.webrtc.WebRTCFactory
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.messaging.FirebaseMessaging
 import com.google.gson.Gson
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.pose.PoseLandmark
@@ -27,10 +31,15 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import java.util.concurrent.Executors
 import org.webrtc.IceCandidate
 import org.webrtc.SessionDescription
 import org.webrtc.SurfaceViewRenderer
+import java.io.IOException
 import javax.inject.Inject
 
 @OptIn(ExperimentalGetImage::class)
@@ -39,6 +48,7 @@ class MonitorRoomViewModel @Inject constructor(
     private val firebaseClient: FirebaseClient,
     private val webRTCFactory: WebRTCFactory,
     private val gson: Gson,
+    private val fcmRepo: FcmRepo,
     private val application: Application
 ) : ViewModel() {
 
@@ -60,6 +70,9 @@ class MonitorRoomViewModel @Inject constructor(
     var roomId: String? = null
         private set
     private var role: String = "parent" // or "baby"
+    private var parentToken: String? = null
+    private var lastPose: String? = null
+
 
     // ML Kit pose detector (stream mode)
     private val poseDetector by lazy {
@@ -102,6 +115,8 @@ class MonitorRoomViewModel @Inject constructor(
                 rtcClient?.answer()
                 _state.value = MonitorState.Connecting
             }
+
+            saveParentToken(roomId ?: "TEST123")
 
             // Listen ICE from baby
             firebaseClient.observeIceCandidates(newRoomId, "baby") { candidateJson ->
@@ -297,6 +312,21 @@ class MonitorRoomViewModel @Inject constructor(
 
                 // TODO: jika perlu kirim alert FCM untuk kondisi berbahaya
                 // if (label.contains("Prone")) sendPoseAlertToParent(...)
+                if (role == "baby" && roomId != null && label != lastPose) {
+                    lastPose = label
+                    fetchParentToken { token ->
+                        token?.let {
+                            when {
+                                label.contains("Prone") -> {
+                                    sendFcmToParent(it, "Warning!", "Baby is in prone position (danger).")
+                                }
+                                label.contains("Sleeping") -> {
+                                    sendFcmToParent(it, "Update", "Baby is sleeping.")
+                                }
+                            }
+                        }
+                    }
+                }
             }
             .addOnFailureListener { e ->
                 Log.e(TAG, "pose detect failed: ${e.message}")
@@ -315,6 +345,44 @@ class MonitorRoomViewModel @Inject constructor(
             val cp = ProcessCameraProvider.getInstance(context).get()
             cp.unbindAll()
         }, ContextCompat.getMainExecutor(context))
+    }
+
+    fun saveParentToken(roomId: String) {
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val token = task.result
+                parentToken= token
+                val dbRef = FirebaseDatabase.getInstance().getReference("rooms/$roomId")
+                dbRef.child("parentToken").setValue(token)
+            }
+        }
+    }
+
+    private fun fetchParentToken(onResult: (String?) -> Unit) {
+        if (parentToken != null) {
+            onResult(parentToken)
+            return
+        }
+        roomId?.let { id ->
+            val dbRef = FirebaseDatabase.getInstance().getReference("rooms/$id/parentToken")
+            dbRef.get().addOnSuccessListener { snap ->
+                parentToken = snap.value as? String
+                onResult(parentToken)
+            }.addOnFailureListener {
+                onResult(null)
+            }
+        } ?: onResult(null)
+    }
+
+    private fun sendFcmToParent(parentToken: String, title: String, body: String) {
+        val payload = FcmPayload(
+            parentToken,
+            title,
+            body
+        )
+        viewModelScope.launch {
+            fcmRepo.sendNotification(payload)
+        }
     }
 
     override fun onCleared() {

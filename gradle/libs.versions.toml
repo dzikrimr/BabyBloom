@@ -1,7 +1,6 @@
 [versions]
 accompanistPagerVersion = "0.36.0"
 agp = "8.8.0"
-googleFirebaseDatabaseKtx = "21.0.0"
 kotlin = "2.0.0"
 coreKtx = "1.16.0"
 junit = "4.13.2"
@@ -28,17 +27,15 @@ paging = "3.3.2"
 pagerVersion = "1.7.2"
 accompanistSystemuicontrollerVersion = "0.32.0"
 accompanistPermissionsVersion = "0.37.3"
-splash ="1.0.1"
+splash = "1.0.1"
 navigationComposeAndroidVersion = "2.9.3"
 playServicesCastTvVersion = "21.1.1"
 visionCommonVersion = "17.3.0"
-firebaseDatabaseKtxVersion = "22.0.0"
 playServicesMlkitBarcodeScanningVersion = "18.3.1"
 media3CommonKtxVersion = "1.8.0"
 generativeaiVersion = "0.9.0"
 
 [libraries]
-
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
@@ -57,42 +54,41 @@ accompanist-permissions = { module = "com.google.accompanist:accompanist-permiss
 google-accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanistSystemuicontrollerVersion" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
-androidx-room-runtime = {group = "androidx.room", name ="room-runtime", version.ref="room"}
-androidx-room-compiler = {group = "androidx.room", name ="room-compiler", version.ref = "room"}
-androidx-room-ktx = {group = "androidx.room", name ="room-ktx", version.ref = "room"}
-androidx-room-paging = {group = "androidx.room", name="room-paging", version.ref="room"}
-hilt-android = {group="com.google.dagger", name="hilt-android", version.ref="hilt"}
-hilt-compiler = { group="com.google.dagger", name="hilt-compiler", version.ref="hilt"}
-hilt-navigation-compose = {group ="androidx.hilt", name="hilt-navigation-compose", version.ref = "hiltFragment"}
-firebase-bom = {group = "com.google.firebase", name="firebase-bom", version.ref = "firebaseBom"}
-firebase-analytics = {group = "com.google.firebase", name="firebase-analytics"}
-firebase-auth = {group = "com.google.firebase", name="firebase-auth"}
-firebase-firestore = {group = "com.google.firebase", name="firebase-firestore"}
-play-services-auth = {group = "com.google.android.gms", name ="play-services-auth", version.ref="playServices"}
-androidx-credentials = {module="androidx.credentials:credentials", version.ref="credentialsPlayServiceAuth"}
-androidx-credentials-play-services-auth = {module = "androidx.credentials:credentials-play-services-auth", version.ref="credentialsPlayServiceAuth"}
-googleid = {module ="com.google.android.libraries.identity.googleid:googleid", version.ref="googleid"}
+androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+androidx-room-paging = { group = "androidx.room", name = "room-paging", version.ref = "room" }
+hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
+hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
+hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltFragment" }
+firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
+firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics" }
+firebase-auth = { group = "com.google.firebase", name = "firebase-auth-ktx" }
+firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore-ktx" }
+firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging-ktx" }
+firebase-database-ktx = { group = "com.google.firebase", name = "firebase-database-ktx" } # Remove version, managed by BOM
+play-services-auth = { group = "com.google.android.gms", name = "play-services-auth", version.ref = "playServices" }
+androidx-credentials = { module = "androidx.credentials:credentials", version.ref = "credentialsPlayServiceAuth" }
+androidx-credentials-play-services-auth = { module = "androidx.credentials:credentials-play-services-auth", version.ref = "credentialsPlayServiceAuth" }
+googleid = { module = "com.google.android.libraries.identity.googleid:googleid", version.ref = "googleid" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
-paging-runtime = {group = "androidx.paging", name="paging-runtime", version.ref = "paging"}
-paging-compose = {group = "androidx.paging", name="paging-compose", version.ref = "paging"}
+paging-runtime = { group = "androidx.paging", name = "paging-runtime", version.ref = "paging" }
+paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "paging" }
 foundation-pager = { group = "androidx.compose.foundation", name = "foundation", version.ref = "pagerVersion" }
-core-splashscreen = { group = "androidx.core", name="core-splashscreen", version.ref="splash"}
+core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "splash" }
 androidx-navigation-compose-android = { group = "androidx.navigation", name = "navigation-compose-android", version.ref = "navigationComposeAndroidVersion" }
 play-services-cast-tv = { group = "com.google.android.gms", name = "play-services-cast-tv", version.ref = "playServicesCastTvVersion" }
 vision-common = { group = "com.google.mlkit", name = "vision-common", version.ref = "visionCommonVersion" }
-firebase-database-ktx = { group = "com.google.firebase", name = "firebase-database-ktx", version.ref = "firebaseDatabaseKtxVersion" }
 play-services-mlkit-barcode-scanning = { group = "com.google.android.gms", name = "play-services-mlkit-barcode-scanning", version.ref = "playServicesMlkitBarcodeScanningVersion" }
 androidx-media3-common-ktx = { group = "androidx.media3", name = "media3-common-ktx", version.ref = "media3CommonKtxVersion" }
 generativeai = { group = "com.google.ai.client.generativeai", name = "generativeai", version.ref = "generativeaiVersion" }
-
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-devtools-ksp = {id = "com.google.devtools.ksp", version.ref = "ksp"}
-hiltAndroid = { id="com.google.dagger.hilt.android", version.ref="hilt"}
-google-services = {id="com.google.gms.google-services", version.ref="gService"}
-
+devtools-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+hiltAndroid = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
+google-services = { id = "com.google.gms.google-services", version.ref = "gService" }

@@ -1,6 +1,5 @@
 package com.example.bubtrack.presentation.ai.cobamonitor
 
-import com.example.bubtrack.presentation.ai.monitor.SurfaceViewRendererComposable
 import android.util.Log
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
