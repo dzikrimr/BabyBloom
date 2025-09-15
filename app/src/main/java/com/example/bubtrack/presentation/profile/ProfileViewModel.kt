@@ -112,4 +112,27 @@ class ProfileViewModel @Inject constructor(
             _userProfile.value = UserProfile()
         }
     }
+
+    fun deleteAccount() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            authRepo.deleteAccount().collect { resource ->
+                when (resource) {
+                    is Resource.Success -> {
+                        _userProfile.value = UserProfile()
+                    }
+                    is Resource.Error -> {
+                        // Optionally handle error (e.g., emit error state for UI to show)
+                    }
+                    is Resource.Loading -> {
+                        // Loading state already set
+                    }
+                    is Resource.Idle -> {
+                        // No action needed
+                    }
+                }
+                _isLoading.value = false
+            }
+        }
+    }
 }

@@ -9,15 +9,14 @@ import kotlinx.coroutines.flow.Flow
 
 interface AuthRepo {
 
-    suspend fun loginEmail (email:String, password:String) : Flow<Resource<AuthResult>>
-    suspend fun registerEmail (
-        name : String,
+    suspend fun loginEmail(email: String, password: String): Flow<Resource<AuthResult>>
+    suspend fun registerEmail(
+        name: String,
         email: String,
         password: String,
         confirmPassword: String
-    ) : Flow<Resource<AuthResult>>
-    suspend fun forgotPassword (email: String) : Resource<Unit>
-
+    ): Flow<Resource<AuthResult>>
+    suspend fun forgotPassword(email: String): Resource<Unit>
     suspend fun createBabyProfile(
         babyName: String,
         dateMillis: Long,
@@ -37,6 +36,7 @@ interface AuthRepo {
     ): Resource<Unit>
     suspend fun loginWithGoogle(account: GoogleSignInAccount): Flow<Resource<AuthResult>>
     suspend fun checkOnBoardingStatus(): Resource<Boolean>
-    suspend fun getCurrentUser() : Flow<Resource<FirebaseUser>>
-    suspend fun logout() : Resource<Unit>
+    suspend fun getCurrentUser(): Flow<Resource<FirebaseUser>>
+    suspend fun logout(): Resource<Unit>
+    suspend fun deleteAccount(): Flow<Resource<Unit>> // Add this line
 }

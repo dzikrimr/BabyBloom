@@ -229,6 +229,43 @@ class AuthRepoImpl @Inject constructor(
         }
     }
 
+    override suspend fun deleteAccount(): Flow<Resource<Unit>> = flow {
+        emit(Resource.Loading())
+        val user = auth.currentUser
+        if (user == null) {
+            emit(Resource.Error("No authenticated user found"))
+            return@flow
+        }
+
+        try {
+            // Delete Firestore data
+            val userId = user.uid
+            firestore.collection("users").document(userId)
+                .collection("babyProfiles").document("primary")
+                .delete()
+                .await()
+
+            firestore.collection("users").document(userId)
+                .delete()
+                .await()
+
+            // Delete Firebase Authentication account
+            user.delete().await()
+
+            emit(Resource.Success(Unit))
+        } catch (e: FirebaseAuthException) {
+            val message = when (e.errorCode) {
+                "ERROR_REQUIRES_RECENT_LOGIN" -> "Please re-authenticate to delete your account."
+                else -> "Failed to delete account: ${e.message}"
+            }
+            emit(Resource.Error(message))
+        } catch (e: Exception) {
+            emit(Resource.Error("An error occurred: ${e.message}"))
+        }
+    }.catch { e ->
+        emit(Resource.Error("An unexpected error occurred: ${e.message}"))
+    }
+
     override suspend fun logout(): Resource<Unit> {
         return try {
             Resource.Success(auth.signOut())

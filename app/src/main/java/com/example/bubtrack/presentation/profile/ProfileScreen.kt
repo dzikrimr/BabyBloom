@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -28,10 +29,14 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -61,6 +66,7 @@ fun ProfileScreen(
 ) {
     val userProfile by viewModel.userProfile.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.fetchUserProfile()
@@ -192,6 +198,41 @@ fun ProfileScreen(
 
                 Spacer(modifier.weight(1f))
 
+                // Delete Account Button
+                OutlinedButton(
+                    onClick = { showDeleteDialog = true },
+                    modifier = modifier
+                        .fillMaxWidth()
+                        .height(60.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = Color.White,
+                    ),
+                    border = BorderStroke(2.dp, Color(0xFFEF4444)) // Red color for delete
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_delete), // Ensure this icon exists
+                            contentDescription = "delete account",
+                            tint = Color.Unspecified
+                        )
+                        Spacer(modifier.width(8.dp))
+                        Text(
+                            "Hapus Akun",
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                                fontWeight = FontWeight.Medium,
+                                color = Color(0xFFEF4444)
+                            )
+                        )
+                    }
+                }
+
+                Spacer(modifier.height(8.dp))
+
+                // Logout Button
                 OutlinedButton(
                     onClick = {
                         viewModel.logout()
@@ -228,5 +269,50 @@ fun ProfileScreen(
                 Spacer(modifier.height(18.dp))
             }
         }
+    }
+
+    // Delete Account Confirmation Dialog
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = {
+                Text(
+                    text = "Konfirmasi Hapus Akun",
+                    style = MaterialTheme.typography.titleMedium
+                )
+            },
+            text = {
+                Text(
+                    text = "Apakah Anda yakin ingin menghapus akun Anda? Tindakan ini tidak dapat dibatalkan.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.deleteAccount()
+                        showDeleteDialog = false
+                        navigateLogin()
+                    }
+                ) {
+                    Text(
+                        "Hapus",
+                        color = Color(0xFFEF4444),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showDeleteDialog = false }
+                ) {
+                    Text(
+                        "Batal",
+                        color = AppBlue,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+            }
+        )
     }
 }
