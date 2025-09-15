@@ -22,6 +22,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.bubtrack.presentation.diary.helper.GrowthUiState
+import com.example.bubtrack.ui.theme.AppBackground
 import com.example.bubtrack.ui.theme.AppPurple
 import com.example.bubtrack.utill.Utility
 import kotlin.math.roundToInt
@@ -80,7 +81,8 @@ fun GrowthChart(
                 }
                 DropdownMenu(
                     expanded = isDropdownExpanded,
-                    onDismissRequest = { isDropdownExpanded = false }
+                    onDismissRequest = { isDropdownExpanded = false },
+                    containerColor = AppBackground
                 ) {
                     listOf(
                         ChartType.Weight,
@@ -94,7 +96,7 @@ fun GrowthChart(
                                 selectedChartType = chartType
                                 isDropdownExpanded = false
                             },
-                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                         )
                     }
                 }
@@ -123,7 +125,11 @@ fun GrowthChart(
                 }
                 state.isSuccess.isEmpty() -> {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("Belum ada data pertumbuhan bayi")
+                        Text(
+                            "Belum ada data pertumbuhan bayi",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Gray
+                        )
                     }
                 }
                 else -> {

@@ -222,4 +222,24 @@ class FirebaseClient @Inject constructor(
     suspend fun removeRoom(roomId: String) {
         database.child("rooms").child(roomId).removeValue().await()
     }
+
+    suspend fun notifyParentLeft(roomId: String) {
+        database.child("rooms").child(roomId).child("parentLeft")
+            .setValue(true).await()
+    }
+
+    /**
+     * Dipanggil bayi untuk listen kapan parent left
+     */
+    fun observeParentLeft(roomId: String, onParentLeft: () -> Unit) {
+        database.child("rooms").child(roomId).child("parentLeft")
+            .addValueEventListener(object : MyValueEventListener() {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val left = snapshot.getValue(Boolean::class.java) ?: false
+                    if (left) {
+                        onParentLeft()
+                    }
+                }
+            })
+    }
 }

@@ -1,6 +1,7 @@
 package com.example.bubtrack.data.auth
 
 import com.example.bubtrack.domain.auth.AuthRepo
+import com.example.bubtrack.presentation.profile.UserProfile
 import com.example.bubtrack.utill.Resource
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.firebase.auth.AuthResult
@@ -154,6 +155,77 @@ class AuthRepoImpl @Inject constructor(
             } catch (e: Exception) {
                 emit(Resource.Error(e.localizedMessage))
             }
+        }
+    }
+
+    override suspend fun getUserProfile(): Flow<Resource<UserProfile>> = flow {
+        emit(Resource.Loading())
+        val userId = auth.currentUser?.uid
+        if (userId == null) {
+            emit(Resource.Error("User not authenticated"))
+            return@flow
+        }
+
+        try {
+            // Get user data
+            val userDoc = firestore.collection("users").document(userId).get().await()
+            val userData = userDoc.data
+
+            // Get baby profile data
+            val babyDoc = firestore.collection("users").document(userId)
+                .collection("babyProfiles").document("primary").get().await()
+            val babyData = babyDoc.data
+
+            val profile = UserProfile(
+                name = userData?.get("name") as? String ?: "",
+                email = userData?.get("email") as? String ?: "",
+                babyName = babyData?.get("babyName") as? String ?: "",
+                birthDate = babyData?.get("birthDate") as? Long ?: 0L,
+                gender = babyData?.get("gender") as? String ?: "",
+                profileImageUrl = userData?.get("profileImageUrl") as? String ?: ""
+            )
+
+            emit(Resource.Success(profile))
+        } catch (e: Exception) {
+            emit(Resource.Error("Failed to fetch profile: ${e.message}"))
+        }
+    }
+
+    override suspend fun updateUserProfile(
+        name: String,
+        babyName: String,
+        birthDate: Long,
+        gender: String,
+        profileImageUrl: String?
+    ): Resource<Unit> {
+        val userId = auth.currentUser?.uid ?: return Resource.Error("User not authenticated")
+
+        try {
+            // Update user data
+            val userUpdates = mutableMapOf<String, Any>(
+                "name" to name
+            )
+            if (profileImageUrl != null) {
+                userUpdates["profileImageUrl"] = profileImageUrl
+            }
+
+            firestore.collection("users").document(userId).update(userUpdates).await()
+
+            // Update baby profile
+            val babyUpdates = mapOf(
+                "babyName" to babyName,
+                "birthDate" to birthDate,
+                "gender" to gender,
+                "updatedAt" to System.currentTimeMillis()
+            )
+
+            firestore.collection("users").document(userId)
+                .collection("babyProfiles").document("primary")
+                .update(babyUpdates).await()
+
+            return Resource.Success(Unit)
+        } catch (e: Exception) {
+            return Resource.Error("Failed to update profile: ${e.message}")
         }
     }
 

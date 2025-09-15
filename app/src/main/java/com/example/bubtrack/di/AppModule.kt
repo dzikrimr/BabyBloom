@@ -1,6 +1,7 @@
 package com.example.bubtrack.di
 
 import android.content.Context
+import com.example.bubtrack.data.cloudinary.CloudinaryManager
 import com.example.bubtrack.data.home.HomeRepoImpl
 import com.example.bubtrack.domain.ai.SleepRepository
 import com.example.bubtrack.domain.ai.SimpleSleepRepository
@@ -58,5 +59,13 @@ abstract class AppModule {
         @Provides
         @Singleton
         fun provideContext(@ApplicationContext context: Context): Context = context.applicationContext
+
+        @Provides
+        @Singleton
+        fun provideCloudinaryManager(
+            @ApplicationContext context: Context
+        ): CloudinaryManager {
+            return CloudinaryManager(context)
+        }
     }
 }

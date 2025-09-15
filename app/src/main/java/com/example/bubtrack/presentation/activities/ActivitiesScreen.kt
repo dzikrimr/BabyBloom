@@ -98,13 +98,13 @@ fun ActivitiesScreen(
             modifier = modifier
                 .fillMaxSize()
                 .background(AppBackground)
-                .statusBarsPadding()
+
         ) {
             Row(
                 modifier = modifier
                     .fillMaxWidth()
                     .background(Color.White)
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                    .padding(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -190,7 +190,7 @@ fun ActivitiesScreen(
                     .padding(horizontal = 14.dp, vertical = 8.dp),
             ) {
                 Text(
-                    "Activities on This Day",
+                    "Aktivitas Hari Ini",
                     style = MaterialTheme.typography.titleSmall.copy(
                         fontWeight = FontWeight.SemiBold
                     )
@@ -203,7 +203,7 @@ fun ActivitiesScreen(
                         Text("Error: ${uiState.isError}")
                     }
                     uiState.activitiesForSelectedDate.isEmpty() -> {
-                        Text("No activities on this date")
+                        Text("Tidak ada aktivitas di hari ini")
                     }
                     else -> {
                         Spacer(modifier = modifier.height(12.dp))

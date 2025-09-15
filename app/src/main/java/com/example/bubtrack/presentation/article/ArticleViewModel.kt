@@ -19,7 +19,7 @@ class ArticleViewModel @Inject constructor(
     private val _state = MutableStateFlow(ArticleUiState())
     val state = _state.asStateFlow()
 
-    private val _detailArticle = MutableStateFlow<Resource<Article>>(Resource.Idle())
+    private val _detailArticle = MutableStateFlow<Resource<Article>>(Resource.Idle)
     val detailArticle = _detailArticle.asStateFlow()
 
 

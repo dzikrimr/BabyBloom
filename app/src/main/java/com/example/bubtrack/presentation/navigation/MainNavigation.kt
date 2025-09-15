@@ -46,6 +46,9 @@ import com.example.bubtrack.presentation.diary.DiaryScreen
 import com.example.bubtrack.presentation.home.HomeScreen
 import com.example.bubtrack.presentation.notification.NotificationScreen
 import com.example.bubtrack.presentation.profile.ProfileScreen
+import com.example.bubtrack.presentation.profile.comps.EditProfileScreen
+import com.example.bubtrack.presentation.profile.comps.HelpAndReportScreen
+import com.example.bubtrack.presentation.profile.comps.SettingScreen
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.firebase.auth.FirebaseAuth
 
@@ -189,8 +192,21 @@ fun MainNavigation(
                     ) { navController.navigate(ArticleDetailRoute(it)) }
                 }
             }
-            composable<ProfileRoute> {
-                ProfileScreen(navigateLogin = { navigateLogin() })
+            navigation<InitialProfileRoute>(startDestination = ProfileRoute) {
+                composable<ProfileRoute> {
+                    ProfileScreen(
+                        navController = navController,
+                        navigateLogin = { navigateLogin() })
+                }
+                composable<EditProfileRoute> {
+                    EditProfileScreen(navigateBack = { navController.popBackStack() })
+                }
+                composable<SettingRoute> {
+                    SettingScreen(navigateBack = {navController.popBackStack()})
+                }
+                composable<HelpAndReportRoute>{
+                    HelpAndReportScreen(navigateBack = {navController.popBackStack()})
+                }
             }
             composable<NotificationRoute> {
                 NotificationScreen(
@@ -199,12 +215,10 @@ fun MainNavigation(
             }
             composable<ParentScreenRoute> {
                 ParentScreen(
-                    onBackClick = { navController.popBackStack() }
                 )
             }
             composable<BabyScreenRoute> {
                 BabyScreen(
-                    onBackClick = { navController.popBackStack() }
                 )
             }
         }

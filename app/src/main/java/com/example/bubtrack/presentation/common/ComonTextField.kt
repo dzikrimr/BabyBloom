@@ -22,12 +22,14 @@ fun CommonTextField(
     value: String,
     placeholder: String,
     onValueChange: (String) -> Unit,
+    enabled: Boolean = true,
     singleLine: Boolean = true
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         modifier = modifier.fillMaxWidth(),
+        enabled = enabled,
         placeholder = {
             Text(
                 text = placeholder,

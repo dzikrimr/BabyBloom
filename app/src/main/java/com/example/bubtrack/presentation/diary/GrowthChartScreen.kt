@@ -62,6 +62,7 @@ import com.example.bubtrack.presentation.diary.helper.GrowthUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.time.LocalDate
+import kotlin.math.roundToInt
 
 @Composable
 fun GrowthChartScreen(
@@ -79,42 +80,36 @@ fun GrowthChartScreen(
     var armCircumference by remember { mutableStateOf("") }
     var ageInMonths by remember { mutableStateOf("") }
     val context = LocalContext.current
+    val babyStats by viewModel.babyStats.collectAsState()
 
     // Dynamically get the latest stats from Firestore
-    val latestStats = chartState.isSuccess.firstOrNull()?.let {
-        GrowthStats(
-            weight = it.weight ?: 0.0,
-            height = it.height ?: 0.0,
-            headCircum = it.headCircumference ?: 0.0,
-            armCircum = it.armLength ?: 0.0
-        )
-    } ?: GrowthStats(weight = 0.0, height = 0.0, headCircum = 0.0, armCircum = 0.0)
+    val latestStats = chartState.isSuccess
 
     val statsList = listOf(
         StatsCardItem(
             title = "Berat",
-            value = latestStats.weight,
+            value = babyStats?.weight ?: 0.0,
             icon = R.drawable.ic_weightscale,
             unit = "kg",
             bgColor = AppPurple
         ),
         StatsCardItem(
             title = "Tinggi",
-            value = latestStats.height,
+            value = babyStats?.height ?: 0.0,
             icon = R.drawable.ic_height,
             unit = "cm",
             bgColor = AppBlue
         ),
         StatsCardItem(
             title = "L. Kepala",
-            value = latestStats.headCircum,
+            value = babyStats?.headCircum ?: 0.0,
             icon = R.drawable.ic_head,
             unit = "cm",
             bgColor = AppPink
         ),
         StatsCardItem(
             title = "L. Lengan",
-            value = latestStats.armCircum,
+            value = babyStats?.armCircum ?: 0.0,
             icon = R.drawable.ic_lengan,
             unit = "cm",
             bgColor = AppLightPurple
@@ -129,7 +124,7 @@ fun GrowthChartScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
-            "Current Stats",
+            "Perkembangan Bayi",
             style = MaterialTheme.typography.titleSmall.copy(
                 fontWeight = FontWeight.SemiBold
             )
@@ -225,7 +220,7 @@ fun GrowthChartScreen(
                 )
                 NumberTextField(
                     value = weight,
-                    placeholder = "12",
+                    placeholder = babyStats?.weight?.roundToInt().toString(),
                     onValueChange = { weight = it }
                 )
                 Spacer(Modifier.height(12.dp))
@@ -235,7 +230,7 @@ fun GrowthChartScreen(
                 )
                 NumberTextField(
                     value = height,
-                    placeholder = "12",
+                    placeholder = babyStats?.height?.roundToInt().toString(),
                     onValueChange = { height = it }
                 )
                 Spacer(Modifier.height(12.dp))
@@ -245,7 +240,7 @@ fun GrowthChartScreen(
                 )
                 NumberTextField(
                     value = headCircumference,
-                    placeholder = "12",
+                    placeholder = babyStats?.headCircum?.roundToInt().toString(),
                     onValueChange = { headCircumference = it }
                 )
                 Spacer(Modifier.height(12.dp))
@@ -255,18 +250,8 @@ fun GrowthChartScreen(
                 )
                 NumberTextField(
                     value = armCircumference,
-                    placeholder = "12",
+                    placeholder = babyStats?.armCircum?.roundToInt().toString(),
                     onValueChange = { armCircumference = it }
-                )
-                Spacer(Modifier.height(12.dp))
-                Text(
-                    "Usia (bulan)",
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
-                )
-                NumberTextField(
-                    value = ageInMonths,
-                    placeholder = "0",
-                    onValueChange = { ageInMonths = it }
                 )
                 Spacer(Modifier.height(12.dp))
                 OutlinedButton(
@@ -344,7 +329,8 @@ fun GrowthChartScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                color = Color.Gray
             )
         }
         Spacer(modifier = Modifier.height(16.dp)) // Bottom padding

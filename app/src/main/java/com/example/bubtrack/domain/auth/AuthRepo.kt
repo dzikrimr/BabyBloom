@@ -1,5 +1,6 @@
 package com.example.bubtrack.domain.auth
 
+import com.example.bubtrack.presentation.profile.UserProfile
 import com.example.bubtrack.utill.Resource
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.firebase.auth.AuthResult
@@ -25,6 +26,14 @@ interface AuthRepo {
         height: String,
         headCircumference: String,
         armCircumference: String
+    ): Resource<Unit>
+    suspend fun getUserProfile(): Flow<Resource<UserProfile>>
+    suspend fun updateUserProfile(
+        name: String,
+        babyName: String,
+        birthDate: Long,
+        gender: String,
+        profileImageUrl: String? = null
     ): Resource<Unit>
     suspend fun loginWithGoogle(account: GoogleSignInAccount): Flow<Resource<AuthResult>>
     suspend fun checkOnBoardingStatus(): Resource<Boolean>

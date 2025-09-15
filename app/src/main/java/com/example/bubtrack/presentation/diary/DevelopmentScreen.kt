@@ -54,7 +54,13 @@ import com.example.bubtrack.ui.theme.AppPurple
 import com.example.bubtrack.ui.theme.BubTrackTheme
 import android.widget.Toast
 import androidx.compose.foundation.layout.width
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.layout.ContentScale
+import com.example.bubtrack.presentation.onboarding.comps.DatePickerModal
+import com.example.bubtrack.utill.Utility
 
 @Composable
 fun DevelopmentScreen(
@@ -63,6 +69,8 @@ fun DevelopmentScreen(
 ) {
     var isExpanded by rememberSaveable { mutableStateOf(false) }
     var diaryTitle by rememberSaveable { mutableStateOf("") }
+    var date by remember { mutableStateOf("dd/mm/yyyy") }
+    var dateMillis by remember { mutableLongStateOf(0L) }
     var diaryDescription by rememberSaveable { mutableStateOf("") }
     var selectedImageUri by rememberSaveable { mutableStateOf<String?>(null) }
     val context = LocalContext.current
@@ -118,7 +126,7 @@ fun DevelopmentScreen(
                     }
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        "Tambah Pencapaian",
+                        "Tambah Diary",
                         style = MaterialTheme.typography.bodyMedium.copy(
                             fontWeight = FontWeight.SemiBold
                         ),
@@ -147,6 +155,17 @@ fun DevelopmentScreen(
                     .padding(top = 12.dp, start = 16.dp, end = 16.dp, bottom = 16.dp),
                 horizontalAlignment = Alignment.Start
             ) {
+                Text(
+                    "Tanggal",
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
+                )
+                DatePickerModal(date = date) {
+                    it?.let { millis ->
+                        dateMillis = millis
+                        date = Utility.formatDate(millis)
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     "Judul Pencapaian",
                     style = MaterialTheme.typography.bodyMedium.copy(
@@ -245,19 +264,22 @@ fun DevelopmentScreen(
                 }
                 OutlinedButton(
                     onClick = {
-                        if (diaryTitle.isBlank() || diaryDescription.isBlank()) {
+                        if (diaryTitle.isBlank() || diaryDescription.isBlank() || dateMillis == 0L) {
                             Toast.makeText(context, "Judul dan deskripsi harus diisi!", Toast.LENGTH_SHORT).show()
                         } else {
                             viewModel.addDiaryEntry(
                                 title = diaryTitle,
                                 description = diaryDescription,
                                 imageUri = selectedImageUri,
-                                context = context
+                                context = context,
+                                date = dateMillis
                             )
                             diaryTitle = ""
                             diaryDescription = ""
                             selectedImageUri = null
                             isExpanded = false
+                            date = "dd/mm/yyyy"
+                            dateMillis = 0L
                         }
                     },
                     modifier = Modifier
@@ -293,8 +315,9 @@ fun DevelopmentScreen(
                 horizontalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = if (selectedDate == null) "Belum ada diary :(" else "Tidak ada diary pada tanggal ini",
-                    style = MaterialTheme.typography.bodyMedium
+                    text = if (selectedDate == null) "Belum ada diary" else "Tidak ada diary pada tanggal ini",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray
                 )
             }
         }
