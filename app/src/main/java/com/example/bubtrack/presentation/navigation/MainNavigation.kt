@@ -216,10 +216,14 @@ fun MainNavigation(
                 )
             }
             composable<ParentScreenRoute> {
-                ParentScreen()
+                ParentScreen(
+                    onBackClick = { navController.popBackStack() }
+                )
             }
             composable<BabyScreenRoute> {
-                BabyScreen()
+                BabyScreen(
+                    onBackClick = { navController.popBackStack() }
+                )
             }
         }
     }
