@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.bubtrack.R
 import com.example.bubtrack.presentation.ai.comps.BabyNeedPager
 import com.example.bubtrack.ui.theme.AppBackground
@@ -34,7 +35,7 @@ import kotlinx.coroutines.delay
 fun CryAnalyzerScreen(
     modifier: Modifier = Modifier,
     onNavigateBack: () -> Unit,
-    viewModel: CryAnalyzerViewModel // Added to match MainNavigation
+    viewModel: CryAnalyzerViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val state by viewModel.state.collectAsState()

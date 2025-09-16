@@ -1,8 +1,9 @@
 package com.example.bubtrack.domain.usecase
 
 import com.example.bubtrack.data.ai.ModelRepository
+import javax.inject.Inject
 
-class ClassifyAudioUseCase(
+class ClassifyAudioUseCase @Inject constructor(
     private val modelRepository: ModelRepository
 ) {
     suspend fun initialize() {

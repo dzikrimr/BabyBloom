@@ -54,12 +54,13 @@ class MonitorRoomViewModel @Inject constructor(
     private val webRTCFactory: WebRTCFactory,
     private val gson: Gson,
     private val fcmRepo: FcmRepo,
+    private val sleepAnalyzer : SleepDetectionAnalyzer,
     private val application: Application
 ) : ViewModel() {
 
     companion object { private const val TAG = "MonitorVM" }
 
-    private val sleepAnalyzer = SleepDetectionAnalyzer()
+
 
     // UI states
     private val _state = MutableStateFlow<MonitorState>(MonitorState.Idle)
@@ -80,14 +81,6 @@ class MonitorRoomViewModel @Inject constructor(
     private var parentToken: String? = null
     private var lastPose: String? = null
 
-
-    // ML Kit pose detector (stream mode)
-    private val poseDetector by lazy {
-        val options = AccuratePoseDetectorOptions.Builder()
-            .setDetectorMode(AccuratePoseDetectorOptions.STREAM_MODE)
-            .build()
-        PoseDetection.getClient(options)
-    }
     private var lastAnalyzedTime = 0L
     private val THROTTLE_MS = 500L // 2 fps
 
@@ -95,10 +88,6 @@ class MonitorRoomViewModel @Inject constructor(
     fun initRemoteSurface(renderer: SurfaceViewRenderer) {
         remoteSurface = renderer
         webRTCFactory.initSurfaceView(renderer)
-    }
-
-    fun startLocalStream(surface: SurfaceViewRenderer) {
-        webRTCFactory.prepareLocalStream(surface)
     }
 
     // --- Parent flow ---
@@ -313,17 +302,6 @@ class MonitorRoomViewModel @Inject constructor(
     }
 
 
-    // optional helper to programmatically stop pose analysis
-    fun stopPoseAnalysis(lifecycleOwner: LifecycleOwner, context: Context) {
-        _isAnalyzingPose.value = false
-        _state.value = MonitorState.Idle
-        // CameraX lifecycle owner unbind handled by CameraX when UI unbinds; if needed:
-        ProcessCameraProvider.getInstance(context).addListener({
-            val cp = ProcessCameraProvider.getInstance(context).get()
-            cp.unbindAll()
-        }, ContextCompat.getMainExecutor(context))
-    }
-
     fun saveParentToken(roomId: String) {
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
             if (task.isSuccessful) {
@@ -373,15 +351,6 @@ class MonitorRoomViewModel @Inject constructor(
         viewModelScope.launch {
             fcmRepo.saveNotification(notificationItem)
         }
-    }
-
-    private val faceDetector: FaceDetector by lazy {
-        val options = FaceDetectorOptions.Builder()
-            .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_FAST)
-            .setLandmarkMode(FaceDetectorOptions.LANDMARK_MODE_ALL)
-            .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL) // penting untuk eye open prob
-            .build()
-        FaceDetection.getClient(options)
     }
 
 

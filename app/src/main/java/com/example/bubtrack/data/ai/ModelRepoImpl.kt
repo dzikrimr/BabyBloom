@@ -7,6 +7,7 @@ import java.io.FileInputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.channels.FileChannel
+import javax.inject.Inject
 import kotlin.math.exp
 
 interface ModelRepository {
@@ -15,7 +16,7 @@ interface ModelRepository {
     fun release()
 }
 
-class ModelRepoImpl(
+class ModelRepoImpl @Inject constructor(
     private val context: Context,
     private val mfccExtractor: MFCCExtractor
 ) : ModelRepository {

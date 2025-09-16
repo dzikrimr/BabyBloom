@@ -3,10 +3,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.bubtrack.domain.usecase.ClassifyAudioUseCase
 import com.example.bubtrack.domain.usecase.RecordAudioUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 data class VoiceAnalyzerState(
     val isRecording: Boolean = false,
@@ -19,7 +21,8 @@ sealed class VoiceAnalyzerEvent {
     object PermissionDenied : VoiceAnalyzerEvent()
 }
 
-class CryAnalyzerViewModel(
+@HiltViewModel
+class CryAnalyzerViewModel @Inject constructor(
     private val recordAudioUseCase: RecordAudioUseCase,
     private val classifyAudioUseCase: ClassifyAudioUseCase
 ) : ViewModel() {

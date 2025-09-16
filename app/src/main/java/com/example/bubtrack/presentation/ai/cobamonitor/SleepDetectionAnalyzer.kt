@@ -11,11 +11,14 @@ import com.google.mlkit.vision.face.*
 import com.google.mlkit.vision.pose.*
 import com.google.mlkit.vision.pose.defaults.PoseDetectorOptions
 import kotlinx.coroutines.tasks.await
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.sqrt
 
-class SleepDetectionAnalyzer {
+@Singleton
+class SleepDetectionAnalyzer @Inject constructor() {
 
     private val faceDetector = FaceDetection.getClient(
         FaceDetectorOptions.Builder()

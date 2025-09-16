@@ -233,7 +233,7 @@ fun EditProfileScreen(
 
             EditProfileField(
                 value = email,
-                onValueChange = { },
+                onValueChange = { email = it },
                 label = "Email",
                 enabled = false
             )
