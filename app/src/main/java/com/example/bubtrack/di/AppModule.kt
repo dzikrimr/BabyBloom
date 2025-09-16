@@ -3,8 +3,9 @@ package com.example.bubtrack.di
 import android.content.Context
 import com.example.bubtrack.data.cloudinary.CloudinaryManager
 import com.example.bubtrack.data.home.HomeRepoImpl
-import com.example.bubtrack.domain.ai.SleepRepository
+import com.example.bubtrack.data.notification.FcmApi
 import com.example.bubtrack.domain.ai.SimpleSleepRepository
+import com.example.bubtrack.domain.ai.SleepRepository
 import com.example.bubtrack.domain.home.HomeRepo
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
@@ -17,6 +18,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -59,6 +62,21 @@ abstract class AppModule {
         @Provides
         @Singleton
         fun provideContext(@ApplicationContext context: Context): Context = context.applicationContext
+
+        @Provides
+        @Singleton
+        fun provideRetrofit(): Retrofit {
+            return Retrofit.Builder()
+                .baseUrl("http://34.101.146.105:3000")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
+        }
+
+        @Provides
+        @Singleton
+        fun provideFcmApi(retrofit: Retrofit): FcmApi {
+            return retrofit.create(FcmApi::class.java)
+        }
 
         @Provides
         @Singleton

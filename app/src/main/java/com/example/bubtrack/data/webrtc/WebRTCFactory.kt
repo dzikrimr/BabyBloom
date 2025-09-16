@@ -108,7 +108,7 @@ class WebRTCFactory @Inject constructor(
     private fun getVideoCapture(): CameraVideoCapturer {
         return Camera2Enumerator(application).run {
             deviceNames.find {
-                isFrontFacing(it)
+                isBackFacing(it)
             }?.let {
                 createCapturer(it, null)
             } ?: throw IllegalStateException()

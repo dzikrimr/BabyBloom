@@ -26,6 +26,7 @@ import androidx.navigation.navArgument
 import androidx.navigation.toRoute
 import com.example.bubtrack.data.ai.AudioRepoImpl
 import com.example.bubtrack.data.ai.ModelRepoImpl
+import com.example.bubtrack.data.webrtc.WebRTCService
 import com.example.bubtrack.domain.ai.audio.MFCCExtractor
 import com.example.bubtrack.domain.usecase.ClassifyAudioUseCase
 import com.example.bubtrack.domain.usecase.RecordAudioUseCase
@@ -80,6 +81,7 @@ fun MainNavigation(
 
     // Dependencies from your branch for AiScreen and CryAnalyzerScreen
     val context = LocalContext.current
+    val webRTCService = WebRTCService(context)
     val sleepViewModel: SleepMonitorViewModel = hiltViewModel()
     val audioRepository = AudioRepoImpl(context) { true }
     val modelRepository = ModelRepoImpl(context, MFCCExtractor())
@@ -215,10 +217,12 @@ fun MainNavigation(
             }
             composable<ParentScreenRoute> {
                 ParentScreen(
+                    onBackClick = { navController.popBackStack() }
                 )
             }
             composable<BabyScreenRoute> {
                 BabyScreen(
+                    onBackClick = { navController.popBackStack() }
                 )
             }
         }
