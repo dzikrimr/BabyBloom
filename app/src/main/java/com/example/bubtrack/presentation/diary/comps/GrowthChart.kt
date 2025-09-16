@@ -44,7 +44,7 @@ fun GrowthChart(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Growth Chart",
+                text = "Grafik Pertumbuhan",
                 style = MaterialTheme.typography.titleSmall.copy(
                     fontWeight = FontWeight.SemiBold
                 )
@@ -274,7 +274,7 @@ fun LineChart(
                 canvasWidth / 2
             }
             val y = canvasHeight + 30.dp.toPx()
-            val formattedDate = Utility.formatDate(chartData.date)
+            val formattedDate = Utility.formatToDateMonth(chartData.date)
             drawContext.canvas.nativeCanvas.drawText(
                 formattedDate,
                 x - 40f,

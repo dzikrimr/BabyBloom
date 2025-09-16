@@ -257,8 +257,7 @@ fun GrowthChartScreen(
                 OutlinedButton(
                     onClick = {
                         if (dateMillis == 0L || weight.isBlank() || height.isBlank() ||
-                            headCircumference.isBlank() || armCircumference.isBlank() ||
-                            ageInMonths.isBlank()
+                            headCircumference.isBlank() || armCircumference.isBlank()
                         ) {
                             Toast.makeText(context, "Semua field harus diisi!", Toast.LENGTH_SHORT).show()
                         } else {

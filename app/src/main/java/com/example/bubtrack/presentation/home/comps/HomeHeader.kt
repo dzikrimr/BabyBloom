@@ -77,7 +77,7 @@ fun HomeHeader(
                 Spacer(modifier = Modifier.width(12.dp))
                 Column {
                     Text(
-                        "BabyGrow",
+                        "BabyBloom",
                         style = MaterialTheme.typography.headlineSmall,
                         color = Color.White
                     )

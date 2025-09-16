@@ -124,7 +124,7 @@ class ModelRepoImpl(
         )
 
         val results = scores.mapIndexed { idx, score ->
-            val label = labels.getOrNull(idx) ?: "unknown_$idx"
+            val label = labels.getOrNull(idx) ?: "Other"
             Pair(label, score)
         }.sortedByDescending { it.second }
 
