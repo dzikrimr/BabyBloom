@@ -15,17 +15,16 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.bubtrack.R
+import com.example.bubtrack.utill.Utility
 
 data class NotificationItem(
-    val id: String,
-    val title: String,
-    val timestamp: String,
-    val type: NotificationType
+    val id: String = "",
+    val title: String = "",
+    val timestamp: Long = 0,
+    val type: String = ""
 )
 
-enum class NotificationType {
-    ACTIVITY, AI, DIARY
-}
+
 
 @Composable
 fun NotificationCard(
@@ -58,9 +57,10 @@ fun NotificationCard(
                 Icon(
                     painter = painterResource(
                         id = when (notification.type) {
-                            NotificationType.ACTIVITY -> R.drawable.ic_feeding
-                            NotificationType.AI -> R.drawable.ic_ai
-                            NotificationType.DIARY -> R.drawable.ic_diary
+                            "ACTIVITY" -> R.drawable.ic_feeding
+                            "AI" -> R.drawable.ic_ai
+                            "DIARY" -> R.drawable.ic_diary
+                            else -> R.drawable.ic_notification
                         }
                     ),
                     contentDescription = null,
@@ -87,7 +87,7 @@ fun NotificationCard(
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
-                    text = notification.timestamp,
+                    text = Utility.formatNotificationTimestamp(notification.timestamp),
                     fontSize = 12.sp,
                     color = Color.Gray
                 )

@@ -20,6 +20,8 @@ import com.example.bubtrack.data.webrtc.MyPeerObserver
 import com.example.bubtrack.data.webrtc.RTCClient
 import com.example.bubtrack.data.webrtc.RTCClientImpl
 import com.example.bubtrack.data.webrtc.WebRTCFactory
+import com.example.bubtrack.presentation.notification.comps.NotificationItem
+import com.example.bubtrack.utill.Utility
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.gson.Gson
@@ -319,9 +321,15 @@ class MonitorRoomViewModel @Inject constructor(
                             when {
                                 label.contains("Prone") -> {
                                     sendFcmToParent(it, "Warning!", "Baby is in prone position (danger).")
+                                    saveNotification("Baby is in prone position (danger).")
                                 }
                                 label.contains("Sleeping") -> {
                                     sendFcmToParent(it, "Update", "Baby is sleeping.")
+                                    saveNotification("Baby is sleeping.")
+                                }
+                                label.contains("Awake") -> {
+                                    sendFcmToParent(it, "Update", "Baby is awake.")
+                                    saveNotification("Baby is awake.")
                                 }
                             }
                         }
@@ -382,6 +390,19 @@ class MonitorRoomViewModel @Inject constructor(
         )
         viewModelScope.launch {
             fcmRepo.sendNotification(payload)
+        }
+    }
+
+    private fun saveNotification(
+        title: String
+    ){
+        val notificationItem = NotificationItem(
+            title = title,
+            timestamp = Utility.getCurrentTimestamp(),
+            type = "ACTIVITY"
+        )
+        viewModelScope.launch {
+            fcmRepo.saveNotification(notificationItem)
         }
     }
 

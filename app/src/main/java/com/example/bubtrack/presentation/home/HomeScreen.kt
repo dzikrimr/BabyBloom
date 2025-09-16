@@ -32,6 +32,7 @@ import com.example.bubtrack.presentation.home.comps.SmartBabyCareSection
 import com.example.bubtrack.presentation.home.comps.UpcomingActivitiesSection
 import com.example.bubtrack.presentation.navigation.ActivitiesRoute
 import com.example.bubtrack.presentation.navigation.CryAnalyzerRoute
+import com.example.bubtrack.presentation.navigation.DiaryRoute
 import com.example.bubtrack.presentation.navigation.NotificationRoute
 import com.example.bubtrack.presentation.navigation.SleepMonitorRoute
 import com.example.bubtrack.ui.theme.AppBackground
@@ -131,7 +132,7 @@ fun HomeScreen(
 
             GrowthStatsSection(
                 statsList = statsList,
-                onSeeAllClick = { navController.navigate("diary/Growth Chart") }
+                onSeeAllClick = { navController.navigate(DiaryRoute) }
             )
 
             Spacer(modifier = Modifier.height(22.dp))

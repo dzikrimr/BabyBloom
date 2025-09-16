@@ -36,6 +36,13 @@ object Utility {
         return formatter.format(Date(millis))
     }
 
+    fun formatNotificationTimestamp(timestampMillis: Long): String {
+        val instant = Instant.ofEpochMilli(timestampMillis)
+        val formatter = DateTimeFormatter.ofPattern("d MMMM • h:mm a", Locale("id", "ID"))
+            .withZone(ZoneId.systemDefault())
+        return formatter.format(instant)
+    }
+
     fun Long.toLocalDate(): LocalDate =
         Instant.ofEpochMilli(this).atZone(ZoneId.systemDefault()).toLocalDate()
 
