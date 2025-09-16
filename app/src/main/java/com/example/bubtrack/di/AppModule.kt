@@ -3,8 +3,9 @@ package com.example.bubtrack.di
 import android.content.Context
 import com.example.bubtrack.data.cloudinary.CloudinaryManager
 import com.example.bubtrack.data.home.HomeRepoImpl
-import com.example.bubtrack.domain.ai.SleepRepository
+import com.example.bubtrack.data.notification.FcmApi
 import com.example.bubtrack.domain.ai.SimpleSleepRepository
+import com.example.bubtrack.domain.ai.SleepRepository
 import com.example.bubtrack.data.notification.FcmApi
 import com.example.bubtrack.domain.home.HomeRepo
 import com.google.firebase.auth.FirebaseAuth
@@ -65,20 +66,27 @@ abstract class AppModule {
 
         @Provides
         @Singleton
-        fun provideCloudinaryManager(
-            @ApplicationContext context: Context
-        ): CloudinaryManager {
-            return CloudinaryManager(context)
-        }
-
-        @Provides
-        @Singleton
         fun provideRetrofit(): Retrofit {
             return Retrofit.Builder()
                 .baseUrl("http://34.101.146.105:3000")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build()
         }
+
+        @Provides
+        @Singleton
+        fun provideFcmApi(retrofit: Retrofit): FcmApi {
+            return retrofit.create(FcmApi::class.java)
+        }
+
+        @Provides
+        @Singleton
+        fun provideCloudinaryManager(
+            @ApplicationContext context: Context
+        ): CloudinaryManager {
+            return CloudinaryManager(context)
+        }
+
 
         @Provides
         @Singleton
