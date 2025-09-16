@@ -128,7 +128,6 @@ fun ParentScreen(
                 Spacer(modifier = Modifier.width(25.dp))
             }
 
-            // Subtitle
             Text(
                 text = if (isMonitoring) "Monitoring Active" else "Ready to Monitor",
                 fontSize = 14.sp,
@@ -140,9 +139,9 @@ fun ParentScreen(
             )
         }
 
-        // Video Feed Section
+        // ================= MONITORING MODE =================
         if (isMonitoring) {
-            // Timer Section
+            // Header with RoomId + Timer
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -150,26 +149,15 @@ fun ParentScreen(
                     .padding(vertical = 12.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "Monitoring Time",
-                        color = Color.White.copy(alpha = 0.8f),
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 14.sp
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = monitoringTime,
-                        color = Color.White,
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+                Text(
+                    text = monitoringTime,
+                    color = Color.White,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold
+                )
             }
 
-            // Video Preview Card
+            // Video Preview
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -179,9 +167,7 @@ fun ParentScreen(
                 colors = CardDefaults.cardColors(containerColor = Color.White),
                 elevation = CardDefaults.cardElevation(8.dp)
             ) {
-                Box(
-                    modifier = Modifier.fillMaxSize()
-                ) {
+                Box(modifier = Modifier.fillMaxSize()) {
                     AndroidView(
                         modifier = Modifier
                             .fillMaxSize()
@@ -198,7 +184,7 @@ fun ParentScreen(
                         }
                     )
 
-                    // Status overlays (removed Connecting state overlay)
+                    // Status overlays
                     when {
                         !isPreviewVisible -> {
                             Box(
@@ -207,9 +193,7 @@ fun ParentScreen(
                                     .background(Color.Black.copy(alpha = 0.8f)),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     Icon(
                                         painter = painterResource(id = R.drawable.ic_eye_off),
                                         contentDescription = null,
@@ -233,9 +217,7 @@ fun ParentScreen(
                                     .background(Color(0xFF8B5CF6).copy(alpha = 0.9f)),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     CircularProgressIndicator(
                                         color = Color.White,
                                         strokeWidth = 3.dp
@@ -256,7 +238,6 @@ fun ParentScreen(
                                 }
                             }
                         }
-                        // Removed Connecting state overlay - video will show directly without overlay
                         state is MonitorState.Error -> {
                             Box(
                                 modifier = Modifier
@@ -264,34 +245,15 @@ fun ParentScreen(
                                     .background(Color(0xFFEF4444).copy(alpha = 0.9f)),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.ic_eye_off),
-                                        contentDescription = null,
-                                        tint = Color.White,
-                                        modifier = Modifier.size(32.dp)
-                                    )
-                                    Spacer(modifier = Modifier.height(16.dp))
-                                    Text(
-                                        text = "Connection Error",
-                                        color = Color.White,
-                                        fontSize = 18.sp,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Text(
-                                        text = (state as MonitorState.Error).msg,
-                                        color = Color.White.copy(alpha = 0.8f),
-                                        fontSize = 14.sp,
-                                        textAlign = TextAlign.Center
-                                    )
-                                }
+                                Text(
+                                    text = "Error: ${(state as MonitorState.Error).msg}",
+                                    color = Color.White,
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
                             }
                         }
                         state is MonitorState.Connected -> {
-                            // Connection status indicator
                             Box(
                                 modifier = Modifier
                                     .align(Alignment.TopStart)
@@ -302,34 +264,18 @@ fun ParentScreen(
                                     )
                                     .padding(horizontal = 12.dp, vertical = 6.dp)
                             ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(8.dp)
-                                            .background(Color.White, CircleShape)
-                                    )
-                                    Spacer(modifier = Modifier.width(6.dp))
-                                    Text(
-                                        text = "Live",
-                                        color = Color.White,
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
+                                Text("Live", color = Color.White, fontSize = 12.sp)
                             }
                         }
                     }
 
-                    // Monitor preview toggle
+                    // Toggle visibility
                     Box(
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
                             .padding(16.dp)
                             .size(48.dp)
-                            .background(
-                                Color.Black.copy(alpha = 0.6f),
-                                CircleShape
-                            )
+                            .background(Color.Black.copy(alpha = 0.6f), CircleShape)
                             .clickable { isPreviewVisible = !isPreviewVisible },
                         contentAlignment = Alignment.Center
                     ) {
@@ -337,7 +283,7 @@ fun ParentScreen(
                             painter = painterResource(
                                 if (isPreviewVisible) R.drawable.ic_eye else R.drawable.ic_eye_off
                             ),
-                            contentDescription = if (isPreviewVisible) "Hide Monitor" else "Show Monitor",
+                            contentDescription = null,
                             tint = Color.White,
                             modifier = Modifier.size(24.dp)
                         )
@@ -345,66 +291,95 @@ fun ParentScreen(
                 }
             }
 
+            if (roomId != null) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(6.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column {
+                            Text(
+                                text = "Room ID",
+                                fontSize = 14.sp,
+                                color = Color.Gray
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = roomId!!,
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF8B5CF6)
+                            )
+                        }
+
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_copy),
+                            contentDescription = "Copy Room ID",
+                            tint = Color(0xFF8B5CF6),
+                            modifier = Modifier
+                                .size(24.dp)
+                                .clickable {
+                                    clipboardManager.setText(AnnotatedString(roomId!!))
+                                    showRoomIdCopied = true
+                                }
+                        )
+                    }
+                }
+            }
+
             Spacer(modifier = Modifier.weight(1f))
 
-            // Action Buttons
+            // Buttons
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(24.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                Button(
+                    onClick = {
+                        roomId?.let {
+                            clipboardManager.setText(AnnotatedString(it))
+                            showRoomIdCopied = true
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF60A5FA)),
+                    shape = RoundedCornerShape(12.dp),
+                    enabled = roomId != null
                 ) {
-                    Button(
-                        onClick = {
-                            roomId?.let {
-                                clipboardManager.setText(AnnotatedString(it))
-                                showRoomIdCopied = true
-                            }
-                        },
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(48.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF60A5FA)
-                        ),
-                        shape = RoundedCornerShape(12.dp),
-                        enabled = roomId != null
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_copy),
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp),
-                            tint = Color.White
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = "Copy Room ID",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.White
-                        )
-                    }
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_copy),
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                        tint = Color.White
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Copy Room ID", color = Color.White)
                 }
 
                 Button(
                     onClick = {
-                        Log.d("ParentScreen", "Stop monitoring clicked")
                         isMonitoring = false
-                        roomId?.let { id ->
-                            viewModel.stopMonitoring(id)
-                        }
+                        roomId?.let { viewModel.stopMonitoring(it) }
                         roomId = null
                     },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFEF4444)
-                    ),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF4444)),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Icon(
@@ -414,16 +389,12 @@ fun ParentScreen(
                         tint = Color.White
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Stop Monitoring",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color.White
-                    )
+                    Text("Stop Monitoring", color = Color.White)
                 }
             }
-        } else {
-            // Setup Mode Card
+        }
+        // ================= SETUP MODE =================
+        else {
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -438,30 +409,18 @@ fun ParentScreen(
                         .padding(32.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Icon
-                    Box(
-                        modifier = Modifier
-                            .size(80.dp)
-                            .background(
-                                Color(0xFF8B5CF6).copy(alpha = 0.1f),
-                                CircleShape
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_eye),
-                            contentDescription = null,
-                            modifier = Modifier.size(40.dp),
-                            tint = Color(0xFF8B5CF6)
-                        )
-                    }
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_eye),
+                        contentDescription = null,
+                        modifier = Modifier.size(40.dp),
+                        tint = Color(0xFF8B5CF6)
+                    )
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // Title
                     Text(
-                        text = "Start Baby Monitor",
-                        fontSize = 24.sp,
+                        text = "Mulai Baby Monitor",
+                        fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF2D3748),
                         textAlign = TextAlign.Center
@@ -469,97 +428,21 @@ fun ParentScreen(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    // Description
                     Text(
-                        text = "Create a monitoring room and share the Room ID with your baby device to start remote monitoring.",
+                        text = "Buat ruang monitoring dan bagikan Room ID ke perangkat bayi Anda",
                         fontSize = 16.sp,
                         color = Color(0xFF718096),
-                        textAlign = TextAlign.Center,
-                        lineHeight = 24.sp
+                        textAlign = TextAlign.Center
                     )
 
                     Spacer(modifier = Modifier.height(32.dp))
 
-                    // Loading Indicator for Surface Initialization
-                    if (!isSurfaceReady && roomId == null) {
-                        CircularProgressIndicator(
-                            color = Color(0xFF8B5CF6),
-                            strokeWidth = 3.dp
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = "Initializing video surface...",
-                            fontSize = 14.sp,
-                            color = Color(0xFF718096),
-                            textAlign = TextAlign.Center
-                        )
-                        Spacer(modifier = Modifier.height(24.dp))
-                    }
-
-                    // Room ID Display (if created)
-                    if (roomId != null) {
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(
-                                containerColor = Color(0xFFF0F9FF)
-                            ),
-                            shape = RoundedCornerShape(16.dp)
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(20.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Text(
-                                    text = "Room ID",
-                                    fontSize = 14.sp,
-                                    color = Color(0xFF64748B),
-                                    fontWeight = FontWeight.Medium
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable {
-                                            clipboardManager.setText(AnnotatedString(roomId ?: ""))
-                                            showRoomIdCopied = true
-                                        },
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.Center
-                                ) {
-                                    Text(
-                                        text = roomId ?: "",
-                                        fontSize = 28.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color(0xFF8B5CF6)
-                                    )
-                                    Spacer(modifier = Modifier.width(12.dp))
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.ic_copy),
-                                        contentDescription = "Copy",
-                                        modifier = Modifier.size(24.dp),
-                                        tint = Color(0xFF8B5CF6)
-                                    )
-                                }
-                                if (showRoomIdCopied) {
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Text(
-                                        text = "Room ID copied to clipboard!",
-                                        fontSize = 12.sp,
-                                        color = Color(0xFF10B981),
-                                        fontWeight = FontWeight.Medium
-                                    )
-                                }
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(24.dp))
-                    }
-
-                    // Main Action Button
                     Button(
                         onClick = {
                             if (roomId == null) {
                                 viewModel.createRoom { generatedId ->
                                     roomId = generatedId
+                                    isMonitoring = true // langsung masuk monitoring
                                 }
                             } else {
                                 isMonitoring = true
@@ -568,36 +451,21 @@ fun ParentScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF8B5CF6)
-                        ),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8B5CF6)),
                         shape = RoundedCornerShape(16.dp),
-                        enabled = isSurfaceReady || roomId != null
+                        enabled = isSurfaceReady
                     ) {
                         Icon(
-                            painter = painterResource(
-                                if (roomId == null) R.drawable.ic_add else R.drawable.ic_play
-                            ),
+                            painter = painterResource(R.drawable.ic_add),
                             contentDescription = null,
-                            modifier = Modifier.size(20.dp),
                             tint = Color.White
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
-                            text = if (roomId == null) "Create Monitor Room" else "Start Monitoring",
+                            text = "Buat Monitor Room",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = Color.White
-                        )
-                    }
-
-                    if (roomId != null) {
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = "Share this Room ID with your baby device to connect",
-                            fontSize = 14.sp,
-                            color = Color(0xFF718096),
-                            textAlign = TextAlign.Center
                         )
                     }
                 }
@@ -605,22 +473,20 @@ fun ParentScreen(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // Hidden AndroidView to initialize SurfaceViewRenderer early
-            if (!isMonitoring) {
-                AndroidView(
-                    modifier = Modifier.size(0.dp), // Invisible but still initializes
-                    factory = { ctx ->
-                        Log.d("ParentScreen", "Creating hidden SurfaceViewRenderer")
-                        val renderer = SurfaceViewRenderer(ctx).apply {
-                            setMirror(false)
-                            setEnableHardwareScaler(true)
-                        }
-                        viewModel.initRemoteSurface(renderer)
-                        isSurfaceReady = true
-                        renderer
+            // Hidden SurfaceView init
+            AndroidView(
+                modifier = Modifier.size(0.dp),
+                factory = { ctx ->
+                    Log.d("ParentScreen", "Creating hidden SurfaceViewRenderer")
+                    val renderer = SurfaceViewRenderer(ctx).apply {
+                        setMirror(false)
+                        setEnableHardwareScaler(true)
                     }
-                )
-            }
+                    viewModel.initRemoteSurface(renderer)
+                    isSurfaceReady = true
+                    renderer
+                }
+            )
         }
     }
 }

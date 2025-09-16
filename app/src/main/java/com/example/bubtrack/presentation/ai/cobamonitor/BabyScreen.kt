@@ -167,7 +167,7 @@ fun BabyScreen(
 
                         // Title
                         Text(
-                            text = "Connect to Monitor",
+                            text = "Hubungkan ke Monitor",
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF2D3748),
@@ -178,7 +178,7 @@ fun BabyScreen(
 
                         // Description
                         Text(
-                            text = "Enter the Room ID from the parent device to start streaming your camera feed with AI motion detection.",
+                            text = "Masukkan Room ID dari perangkat orang tua untuk mulai streaming kamera dengan deteksi gerakan AI.",
                             fontSize = 16.sp,
                             color = Color(0xFF718096),
                             textAlign = TextAlign.Center,
@@ -191,13 +191,14 @@ fun BabyScreen(
                         OutlinedTextField(
                             value = roomId,
                             onValueChange = { roomId = it },
-                            label = { Text("Room ID from Parent Device") },
+                            label = { Text("Room ID dari Perangkat Orang Tua") },
                             modifier = Modifier.fillMaxWidth(),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = Color(0xFF60A5FA),
                                 focusedLabelColor = Color(0xFF60A5FA)
                             ),
-                            shape = RoundedCornerShape(16.dp)
+                            shape = RoundedCornerShape(16.dp),
+                            singleLine = true
                         )
 
                         Spacer(modifier = Modifier.height(32.dp))
@@ -211,7 +212,7 @@ fun BabyScreen(
                             },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(56.dp),
+                                .height(80.dp),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color(0xFF60A5FA)
                             ),
@@ -226,7 +227,7 @@ fun BabyScreen(
                             )
                             Spacer(modifier = Modifier.width(12.dp))
                             Text(
-                                text = "Start Camera Stream",
+                                text = "Mulai Stream Kamera",
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = Color.White
