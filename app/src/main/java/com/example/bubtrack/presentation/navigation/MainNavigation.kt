@@ -13,6 +13,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
@@ -37,6 +38,7 @@ import com.example.bubtrack.presentation.diary.DiaryScreen
 import com.example.bubtrack.presentation.home.HomeScreen
 import com.example.bubtrack.presentation.notification.NotificationScreen
 import com.example.bubtrack.presentation.profile.ProfileScreen
+import com.example.bubtrack.presentation.profile.ProfileViewModel
 import com.example.bubtrack.presentation.profile.comps.EditProfileScreen
 import com.example.bubtrack.presentation.profile.comps.HelpAndReportScreen
 import com.example.bubtrack.presentation.profile.comps.SettingScreen
@@ -53,7 +55,7 @@ fun MainNavigation(
     val insets = WindowInsets.statusBars.asPaddingValues()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
-
+    val profileViewModel : ProfileViewModel = hiltViewModel()
 
     val screenWithoutNavbar = listOf(
         ActivitiesRoute::class.qualifiedName!!,
@@ -61,7 +63,13 @@ fun MainNavigation(
         CryAnalyzerRoute::class.qualifiedName!!,
         GrowthAnalysisRoute::class.qualifiedName!!,
         ParentScreenRoute::class.qualifiedName!!,
-        BabyScreenRoute::class.qualifiedName!!
+        BabyScreenRoute::class.qualifiedName!!,
+        ArticleDetailRoute::class.qualifiedName!!,
+        ArticleSearchRoute::class.qualifiedName!!,
+        EditProfileRoute::class.qualifiedName!!,
+        SettingRoute::class.qualifiedName!!,
+        HelpAndReportRoute::class.qualifiedName!!,
+        NotificationRoute::class.qualifiedName!!
     )
     val showBottomBar = currentDestination?.route?.let { currentRoute ->
         !screenWithoutNavbar.any { routeWithoutNavbar ->
@@ -81,7 +89,7 @@ fun MainNavigation(
                         HomeRoute::class.qualifiedName -> 0
                         DiaryRoute::class.qualifiedName -> 1
                         AiRoute::class.qualifiedName -> 2
-                        ArticleRoute::class.qualifiedName -> 3
+                        ArticleHomeRoute::class.qualifiedName -> 3
                         ProfileRoute::class.qualifiedName -> 4
                         else -> -1 // tidak ada yang dipilih
                     },
@@ -106,7 +114,10 @@ fun MainNavigation(
             modifier = modifier.padding(bottom = bottomPadding)
         ) {
             composable<HomeRoute> {
-                HomeScreen(navController = navController,)
+                HomeScreen(
+                    navController = navController,
+                    navigate = { navigateToTab(navController, it) }
+                )
             }
             composable<ActivitiesRoute> {
                 ActivitiesScreen(navController = navController)
@@ -173,10 +184,10 @@ fun MainNavigation(
                     EditProfileScreen(navigateBack = { navController.popBackStack() })
                 }
                 composable<SettingRoute> {
-                    SettingScreen(navigateBack = {navController.popBackStack()})
+                    SettingScreen(navigateBack = { navController.popBackStack() })
                 }
-                composable<HelpAndReportRoute>{
-                    HelpAndReportScreen(navigateBack = {navController.popBackStack()})
+                composable<HelpAndReportRoute> {
+                    HelpAndReportScreen(navigateBack = { navController.popBackStack() })
                 }
             }
             composable<NotificationRoute> {

@@ -23,11 +23,15 @@ import java.time.LocalDate
 import java.time.ZoneId
 import javax.inject.Inject
 import android.widget.Toast
+import com.example.bubtrack.presentation.profile.UserProfile
+import kotlinx.coroutines.flow.StateFlow
 
 @HiltViewModel
 class DiaryViewModel @Inject constructor(
     private val growthRepo: BabyGrowthRepo,
-    private val cloudinaryManager: CloudinaryManager
+    private val cloudinaryManager: CloudinaryManager,
+    private val auth: FirebaseAuth,
+    private val firestore: FirebaseFirestore
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(GrowthUiState())
     val uiState = _uiState.asStateFlow()
@@ -41,13 +45,14 @@ class DiaryViewModel @Inject constructor(
     private val _selectedDate = MutableStateFlow<LocalDate?>(null)
     val selectedDate = _selectedDate.asStateFlow()
 
-    private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
-    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+    private val _userProfile = MutableStateFlow(UserProfile())
+    val userProfile: StateFlow<UserProfile> = _userProfile.asStateFlow()
 
     init {
         getGrowth()
         getDiaryEntries()
         getBabyStats()
+        getUserProfile()
     }
 
     fun getBabyStats() {
@@ -228,5 +233,25 @@ class DiaryViewModel @Inject constructor(
             .addOnFailureListener { e ->
                 Toast.makeText(context, "Gagal menyimpan diary: ${e.message}", Toast.LENGTH_SHORT).show()
             }
+    }
+
+    private fun getUserProfile(){
+        viewModelScope.launch {
+            growthRepo.getBabyProfile().collect { resource ->
+                when (resource) {
+                    is Resource.Success -> {
+                        _userProfile.value = resource.data ?: UserProfile()
+                    }
+                    is Resource.Error -> {
+                        _userProfile.value = UserProfile()
+                    }
+                    is Resource.Loading -> {
+                    }
+                    is Resource.Idle -> {
+                        // No action needed for Idle state
+                    }
+                }
+            }
+        }
     }
 }

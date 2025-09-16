@@ -23,23 +23,20 @@ class BabyDataRepo @Inject constructor(
 
     suspend fun getAllUserBabyData(userId: String): UserBabyData {
         return try {
-            val activitiesTask = firestore.collection("activities")
-                .whereEqualTo("userId", userId)
+            val docRef = firestore.collection("users").document(userId)
+            val activitiesTask = docRef.collection("activities")
                 .get()
                 .await()
 
-            val diariesTask = firestore.collection("diaries")
-                .whereEqualTo("userId", userId)
+            val diariesTask = docRef.collection("diaries")
                 .get()
                 .await()
 
-            val babyProfilesTask = firestore.collection("babyprofiles")
-                .whereEqualTo("userId", userId)
+            val babyProfilesTask = docRef.collection("babyProfiles")
                 .get()
                 .await()
 
-            val growthRecordsTask = firestore.collection("growthrecords")
-                .whereEqualTo("userId", userId)
+            val growthRecordsTask = docRef.collection("growthRecords")
                 .get()
                 .await()
 

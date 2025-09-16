@@ -31,6 +31,7 @@ import com.example.bubtrack.presentation.home.comps.HomeHeader
 import com.example.bubtrack.presentation.home.comps.SmartBabyCareSection
 import com.example.bubtrack.presentation.home.comps.UpcomingActivitiesSection
 import com.example.bubtrack.presentation.navigation.ActivitiesRoute
+import com.example.bubtrack.presentation.navigation.AppRoute
 import com.example.bubtrack.presentation.navigation.CryAnalyzerRoute
 import com.example.bubtrack.presentation.navigation.DiaryRoute
 import com.example.bubtrack.presentation.navigation.NotificationRoute
@@ -49,7 +50,8 @@ import java.time.LocalDate
 fun HomeScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
-    viewModel: HomeViewModel = hiltViewModel()
+    viewModel: HomeViewModel = hiltViewModel(),
+    navigate : (AppRoute) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
@@ -124,15 +126,15 @@ fun HomeScreen(
                 .padding(horizontal = 14.dp)
         ) {
             SmartBabyCareSection(
-                onCryAnalyzerClick = { navController.navigate(CryAnalyzerRoute) },
-                onSleepMonitorClick = { navController.navigate(SleepMonitorRoute) }
+                onCryAnalyzerClick = { navigate(CryAnalyzerRoute)},
+                onSleepMonitorClick = { navigate(SleepMonitorRoute)}
             )
 
             Spacer(modifier = Modifier.height(22.dp))
 
             GrowthStatsSection(
                 statsList = statsList,
-                onSeeAllClick = { navController.navigate(DiaryRoute) }
+                onSeeAllClick = { navigate(DiaryRoute) }
             )
 
             Spacer(modifier = Modifier.height(22.dp))
@@ -140,7 +142,7 @@ fun HomeScreen(
             UpcomingActivitiesSection(
                 activities = uiState.upcomingActivities,
                 today = today,
-                onSeeAllClick = { navController.navigate(ActivitiesRoute) }
+                onSeeAllClick = { navigate(ActivitiesRoute) }
             )
 
             Spacer(modifier = Modifier.height(22.dp))
@@ -148,10 +150,3 @@ fun HomeScreen(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun HomeScreenPreview() {
-    BubTrackTheme {
-        HomeScreen(navController = rememberNavController())
-    }
-}
