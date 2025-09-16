@@ -23,6 +23,11 @@ object Utility {
         return currentDate
     }
 
+    fun formatToDateMonth(millis: Long) : String {
+        val formatter = DateTimeFormatter.ofPattern("dd MMM")
+        return Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate().format(formatter)
+    }
+
     fun getCurrentTimestamp(): Long {
         return System.currentTimeMillis()
     }

@@ -38,8 +38,8 @@ fun SmartBabyCareSection(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         SmartCareCard(
-            title = "Cry Analyzer",
-            description = "Understand baby's \n need",
+            title = "Analisis Tangisana",
+            description = "Pahami tangisan si kecil",
             icon = R.drawable.ic_mic,
             backgroundColor = AppLightPurple,
             iconBackgroundColor = AppPurple.copy(alpha = 0.2f),
@@ -48,8 +48,8 @@ fun SmartBabyCareSection(
         )
         Spacer(modifier = Modifier.width(12.dp))
         SmartCareCard(
-            title = "Sleep Monitor",
-            description = "Monitor baby's sleep",
+            title = "Monitor tidur",
+            description = "Pantau tidur si kecil",
             icon = R.drawable.ic_moon,
             backgroundColor = AppLightBlue,
             iconBackgroundColor = Color(0xFF93C5FD).copy(alpha = 0.2f),

@@ -26,6 +26,9 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.gson.Gson
 import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.face.FaceDetection
+import com.google.mlkit.vision.face.FaceDetector
+import com.google.mlkit.vision.face.FaceDetectorOptions
 import com.google.mlkit.vision.pose.PoseLandmark
 import com.google.mlkit.vision.pose.accurate.AccuratePoseDetectorOptions
 import com.google.mlkit.vision.pose.PoseDetection
@@ -289,47 +292,48 @@ class MonitorRoomViewModel @Inject constructor(
         }
         lastAnalyzedTime = now
 
-        val mediaImage = imageProxy.image
-        if (mediaImage == null) {
+        val mediaImage = imageProxy.image ?: run {
             imageProxy.close()
             return
         }
 
         val inputImage = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
-        poseDetector.process(inputImage)
-            .addOnSuccessListener { pose ->
-                // simple heuristics
-                val nose = pose.getPoseLandmark(PoseLandmark.NOSE)
-                val leftEye = pose.getPoseLandmark(PoseLandmark.LEFT_EYE)
-                val rightEye = pose.getPoseLandmark(PoseLandmark.RIGHT_EYE)
-                val leftShoulder = pose.getPoseLandmark(PoseLandmark.LEFT_SHOULDER)
-                val rightShoulder = pose.getPoseLandmark(PoseLandmark.RIGHT_SHOULDER)
 
-                val label = when {
-                    nose == null && leftShoulder != null && rightShoulder != null -> "Prone (Danger!)"
-                    nose != null && leftEye != null && rightEye != null -> "Sleeping"
-                    else -> "Normal / Awake"
+        faceDetector.process(inputImage)
+            .addOnSuccessListener { faces ->
+                var currentLabel = "Unknown"
+
+                if (faces.isNotEmpty()) {
+                    val face = faces[0]
+                    val leftProb = face.leftEyeOpenProbability ?: -1f
+                    val rightProb = face.rightEyeOpenProbability ?: -1f
+
+                    if (leftProb >= 0f && rightProb >= 0f) {
+                        val eyeOpenAvg = (leftProb + rightProb) / 2f
+                        currentLabel = if (eyeOpenAvg < 0.3f) "Sleeping" else "Awake"
+                    } else {
+                        currentLabel = "Face detected (no eye data)"
+                    }
+                } else {
+                    currentLabel = "No face detected"
                 }
-                _poseState.value = label
 
-                // TODO: jika perlu kirim alert FCM untuk kondisi berbahaya
-                // if (label.contains("Prone")) sendPoseAlertToParent(...)
-                if (role == "baby" && roomId != null && label != lastPose) {
-                    lastPose = label
+                // update state
+                _poseState.value = currentLabel
+
+                // kirim FCM kalau berubah
+                if (role == "baby" && roomId != null && currentLabel != lastPose) {
+                    lastPose = currentLabel
                     fetchParentToken { token ->
                         token?.let {
-                            when {
-                                label.contains("Prone") -> {
-                                    sendFcmToParent(it, "Warning!", "Baby is in prone position (danger).")
-                                    saveNotification("Baby is in prone position (danger).")
+                            when (currentLabel) {
+                                "Sleeping" -> {
+                                    sendFcmToParent(it, "Update", "Baby is sleeping (eyes closed).")
+                                    saveNotification("Baby is sleeping (eyes closed).")
                                 }
-                                label.contains("Sleeping") -> {
-                                    sendFcmToParent(it, "Update", "Baby is sleeping.")
-                                    saveNotification("Baby is sleeping.")
-                                }
-                                label.contains("Awake") -> {
-                                    sendFcmToParent(it, "Update", "Baby is awake.")
-                                    saveNotification("Baby is awake.")
+                                "Awake" -> {
+                                    sendFcmToParent(it, "Update", "Baby is awake (eyes open).")
+                                    saveNotification("Baby is awake (eyes open).")
                                 }
                             }
                         }
@@ -337,12 +341,13 @@ class MonitorRoomViewModel @Inject constructor(
                 }
             }
             .addOnFailureListener { e ->
-                Log.e(TAG, "pose detect failed: ${e.message}")
+                Log.e(TAG, "face detect failed: ${e.message}")
             }
             .addOnCompleteListener {
                 imageProxy.close()
             }
     }
+
 
     // optional helper to programmatically stop pose analysis
     fun stopPoseAnalysis(lifecycleOwner: LifecycleOwner, context: Context) {
@@ -405,6 +410,16 @@ class MonitorRoomViewModel @Inject constructor(
             fcmRepo.saveNotification(notificationItem)
         }
     }
+
+    private val faceDetector: FaceDetector by lazy {
+        val options = FaceDetectorOptions.Builder()
+            .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_FAST)
+            .setLandmarkMode(FaceDetectorOptions.LANDMARK_MODE_ALL)
+            .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL) // penting untuk eye open prob
+            .build()
+        FaceDetection.getClient(options)
+    }
+
 
     override fun onCleared() {
         super.onCleared()
