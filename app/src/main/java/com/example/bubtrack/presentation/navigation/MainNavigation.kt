@@ -16,6 +16,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -96,15 +98,22 @@ fun MainNavigation(
         bottomBar = {
             if (showBottomBar) {
                 BottomNavBar(
-                    selectedItem = selectedItem,
+                    selectedItem = when (currentDestination?.route) {
+                        HomeRoute::class.qualifiedName -> 0
+                        DiaryRoute::class.qualifiedName -> 1
+                        AiRoute::class.qualifiedName -> 2
+                        ArticleRoute::class.qualifiedName -> 3
+                        ProfileRoute::class.qualifiedName -> 4
+                        else -> -1 // tidak ada yang dipilih
+                    },
                     onItemClick = {
                         selectedItem = it
                         when (it) {
-                            0 -> navController.navigate(HomeRoute)
-                            1 -> navController.navigate(DiaryRoute)
-                            2 -> navController.navigate(AiRoute)
-                            3 -> navController.navigate(ArticleRoute)
-                            4 -> navController.navigate(ProfileRoute)
+                            0 -> navigateToTab(navController, HomeRoute)
+                            1 -> navigateToTab(navController, DiaryRoute)
+                            2 -> navigateToTab(navController, AiRoute)
+                            3 -> navigateToTab(navController, ArticleRoute)
+                            4 -> navigateToTab(navController, ProfileRoute)
                         }
                     }
                 )
@@ -226,5 +235,18 @@ fun MainNavigation(
                 )
             }
         }
+    }
+}
+
+private fun navigateToTab(
+    navController: NavController,
+    route: AppRoute
+) {
+    navController.navigate(route) {
+        popUpTo(navController.graph.findStartDestination().id) {
+            saveState = true
+        }
+        launchSingleTop = true
+        restoreState = true
     }
 }

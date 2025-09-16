@@ -38,7 +38,7 @@ fun SmartBabyCareSection(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         SmartCareCard(
-            title = "Analisis Tangisana",
+            title = "Analisis Tangisan",
             description = "Pahami tangisan si kecil",
             icon = R.drawable.ic_mic,
             backgroundColor = AppLightPurple,

@@ -126,7 +126,7 @@ fun DevelopmentScreen(
                     }
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        "Tambah Diary",
+                        "Tambah Catatan",
                         style = MaterialTheme.typography.bodyMedium.copy(
                             fontWeight = FontWeight.SemiBold
                         ),

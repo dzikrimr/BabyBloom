@@ -59,6 +59,8 @@ class MonitorRoomViewModel @Inject constructor(
 
     companion object { private const val TAG = "MonitorVM" }
 
+    private val sleepAnalyzer = SleepDetectionAnalyzer()
+
     // UI states
     private val _state = MutableStateFlow<MonitorState>(MonitorState.Idle)
     val state: StateFlow<MonitorState> = _state
@@ -284,6 +286,7 @@ class MonitorRoomViewModel @Inject constructor(
         }, ContextCompat.getMainExecutor(context))
     }
 
+    @ExperimentalGetImage
     private fun analyzePose(imageProxy: ImageProxy) {
         val now = System.currentTimeMillis()
         if (now - lastAnalyzedTime < THROTTLE_MS) {
@@ -292,60 +295,21 @@ class MonitorRoomViewModel @Inject constructor(
         }
         lastAnalyzedTime = now
 
-        val mediaImage = imageProxy.image ?: run {
+        viewModelScope.launch {
+            val status = sleepAnalyzer.analyzeFrame(imageProxy)
+            _poseState.value = status.overallStatus
+
+            if (role == "baby" && roomId != null && status.overallStatus != lastPose) {
+                lastPose = status.overallStatus
+                fetchParentToken { token ->
+                    token?.let {
+                        sendFcmToParent(it, "Update", status.overallStatus)
+                        saveNotification(status.overallStatus)
+                    }
+                }
+            }
             imageProxy.close()
-            return
         }
-
-        val inputImage = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
-
-        faceDetector.process(inputImage)
-            .addOnSuccessListener { faces ->
-                var currentLabel = "Unknown"
-
-                if (faces.isNotEmpty()) {
-                    val face = faces[0]
-                    val leftProb = face.leftEyeOpenProbability ?: -1f
-                    val rightProb = face.rightEyeOpenProbability ?: -1f
-
-                    if (leftProb >= 0f && rightProb >= 0f) {
-                        val eyeOpenAvg = (leftProb + rightProb) / 2f
-                        currentLabel = if (eyeOpenAvg < 0.3f) "Sleeping" else "Awake"
-                    } else {
-                        currentLabel = "Face detected (no eye data)"
-                    }
-                } else {
-                    currentLabel = "No face detected"
-                }
-
-                // update state
-                _poseState.value = currentLabel
-
-                // kirim FCM kalau berubah
-                if (role == "baby" && roomId != null && currentLabel != lastPose) {
-                    lastPose = currentLabel
-                    fetchParentToken { token ->
-                        token?.let {
-                            when (currentLabel) {
-                                "Sleeping" -> {
-                                    sendFcmToParent(it, "Update", "Baby is sleeping (eyes closed).")
-                                    saveNotification("Baby is sleeping (eyes closed).")
-                                }
-                                "Awake" -> {
-                                    sendFcmToParent(it, "Update", "Baby is awake (eyes open).")
-                                    saveNotification("Baby is awake (eyes open).")
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            .addOnFailureListener { e ->
-                Log.e(TAG, "face detect failed: ${e.message}")
-            }
-            .addOnCompleteListener {
-                imageProxy.close()
-            }
     }
 
 
