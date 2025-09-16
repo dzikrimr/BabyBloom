@@ -56,6 +56,9 @@ dependencies {
     // Hilt
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
+    implementation(libs.androidx.hilt.common)
+    implementation(libs.androidx.espresso.core)
+    implementation(libs.androidx.hilt.work)
     ksp(libs.hilt.compiler)
 
     // Core libraries
