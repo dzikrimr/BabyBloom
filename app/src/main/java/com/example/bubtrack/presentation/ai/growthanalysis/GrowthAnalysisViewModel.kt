@@ -53,7 +53,7 @@ class GrowthAnalysisViewModel @Inject constructor(
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
 
             try {
-                val babyData = babyDataRepository.getAllUserBabyData(userId)
+                val babyData = babyDataRepository.getAllUserBabyData()
 
                 // Extract baby name from profile if available
                 if (babyData.babyProfiles.isNotEmpty()) {

@@ -1,6 +1,5 @@
 package com.example.bubtrack.di
 
-import com.example.bubtrack.data.activities.ActivitiesRepoImpl
 import com.example.bubtrack.data.article.ArticleRepoImpl
 import com.example.bubtrack.data.auth.AuthRepoImpl
 import com.example.bubtrack.data.growth.BabyGrowthRepoImpl
@@ -29,12 +28,6 @@ abstract class RepoModule {
     abstract fun bindArticleRepo(
         articleRepoImpl: ArticleRepoImpl
     ) : ArticleRepo
-
-    @Binds
-    @Singleton
-    abstract fun bindActivitiesRepo(
-        activitiesRepoImpl: ActivitiesRepoImpl
-    ) : ActivitiesRepo
 
     @Binds
     @Singleton

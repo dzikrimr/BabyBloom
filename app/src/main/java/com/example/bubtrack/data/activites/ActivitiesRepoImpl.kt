@@ -1,4 +1,4 @@
-package com.example.bubtrack.data.activities
+package com.example.bubtrack.data.activites
 
 import com.example.bubtrack.domain.activities.ActivitiesRepo
 import com.example.bubtrack.domain.activities.Activity
