@@ -87,7 +87,7 @@ fun LandingScreen(navController: NavController) {
                     )
                 }
                 Text(
-                    "BabyMonitor",
+                    "Monitor Bayi",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color(0xFF2D3748)
@@ -111,7 +111,7 @@ fun LandingScreen(navController: NavController) {
 
         // Parent Mode Card
         ModeCard(
-            title = "Masuk sebagai Parent",
+            title = "Masuk sebagai Moms",
             description = "Mode ini memungkinkan Anda untuk memantau bayi dari jarak jauh. Terima notifikasi real-time dan lihat video streaming langsung dari perangkat bayi.",
             buttonText = "Masuk sebagai Parent",
             buttonColor = Color(0xFF8B5CF6),
@@ -123,7 +123,7 @@ fun LandingScreen(navController: NavController) {
 
         // Baby Mode Card
         ModeCard(
-            title = "Masuk sebagai Baby",
+            title = "Masuk sebagai Bayi",
             description = "Mode ini mengubah perangkat menjadi kamera bayi dengan deteksi gerakan otomatis. Kirim alert ke parent saat bayi bergerak.",
             buttonText = "Masuk sebagai Baby",
             buttonColor = Color(0xFF60A5FA),

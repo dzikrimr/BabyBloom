@@ -184,7 +184,7 @@ fun ParentScreen(
                                     )
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Text(
-                                        text = "Monitor Feed Hidden",
+                                        text = "Monitor Disembunyikan",
                                         color = Color.White,
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.Medium
@@ -206,14 +206,14 @@ fun ParentScreen(
                                     )
                                     Spacer(modifier = Modifier.height(16.dp))
                                     Text(
-                                        text = "Waiting for Baby Device",
+                                        text = "Menunggu Perangkat Bayi",
                                         color = Color.White,
                                         fontSize = 18.sp,
                                         fontWeight = FontWeight.Bold
                                     )
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Text(
-                                        text = "Share Room ID with baby device",
+                                        text = "Bagikan Room ID dengan perangkat bayi",
                                         color = Color.White.copy(alpha = 0.8f),
                                         fontSize = 14.sp
                                     )
