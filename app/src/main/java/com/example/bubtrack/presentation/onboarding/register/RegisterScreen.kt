@@ -68,7 +68,7 @@ fun RegisterScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Buat Akun BabyGrow Mu!",
+            text = "Buat Akun BabyBloom Mu!",
             style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
             modifier = Modifier.padding(bottom = 12.dp)
         )
