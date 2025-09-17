@@ -123,7 +123,7 @@ fun LandingScreen(navController: NavController) {
 
         // Baby Mode Card
         ModeCard(
-            title = "Masuk sebagai Bayi",
+            title = "Masuk sebagai Anak",
             description = "Mode ini mengubah perangkat menjadi kamera bayi dengan deteksi gerakan otomatis. Kirim alert ke parent saat bayi bergerak.",
             buttonText = "Masuk sebagai Baby",
             buttonColor = Color(0xFF60A5FA),

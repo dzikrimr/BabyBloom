@@ -401,7 +401,7 @@ fun ParentScreen(
                     Spacer(modifier = Modifier.height(24.dp))
 
                     Text(
-                        text = "Mulai Baby Monitor",
+                        text = "Mulai Monitor Tidur",
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF2D3748),
