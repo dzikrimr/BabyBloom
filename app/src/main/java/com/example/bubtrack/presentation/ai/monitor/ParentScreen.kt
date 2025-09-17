@@ -120,7 +120,7 @@ fun ParentScreen(
                     )
                 }
                 Text(
-                    "Parent Device (Monitor)",
+                    "Perangkat Ortu (Monitor)",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color(0xFF2D3748)
@@ -129,7 +129,7 @@ fun ParentScreen(
             }
 
             Text(
-                text = if (isMonitoring) "Monitoring Active" else "Ready to Monitor",
+                text = if (isMonitoring) "Monitoring Aktif" else "Siap Memulai Pemantauan",
                 fontSize = 14.sp,
                 color = Color(0xFF718096),
                 textAlign = TextAlign.Center,

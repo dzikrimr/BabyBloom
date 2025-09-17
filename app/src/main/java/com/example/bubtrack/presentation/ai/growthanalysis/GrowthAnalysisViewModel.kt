@@ -20,7 +20,7 @@ data class GrowthAnalysisUiState(
     val babyData: UserBabyData? = null,
     val analysisResult: BabyAnalysisResult? = null,
     val chatMessages: List<ChatMessage> = emptyList(),
-    val selectedPeriod: String = "Last 7 days",
+    val selectedPeriod: String = "7 Hari Terakhir",
     val error: String? = null,
     val isAnalysisGenerated: Boolean = false,
     val isChatLoading: Boolean = false
@@ -165,9 +165,9 @@ class GrowthAnalysisViewModel @Inject constructor(
 
     private fun filterDataByPeriod(data: UserBabyData, period: String): UserBabyData {
         val daysToFilter = when (period) {
-            "Last 7 days" -> 7
-            "Last 14 days" -> 14
-            "Last 30 days" -> 30
+            "7 Hari Terakhir" -> 7
+            "14 Hari Terakhir" -> 14
+            "30 Hari Terakhir" -> 30
             else -> 30
         }
 

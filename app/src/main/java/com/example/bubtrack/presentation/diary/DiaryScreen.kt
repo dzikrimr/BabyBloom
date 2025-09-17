@@ -253,7 +253,7 @@ fun DiaryScreen(
                         border = BorderStroke(width = 0.dp, color = Color.Transparent)
                     ) {
                         Text(
-                            "Cancel",
+                            "Batal",
                             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                             color = Color.Black
                         )

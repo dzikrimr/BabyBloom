@@ -52,10 +52,10 @@ fun ActivityCard(
 
     // Map activity type to icon
     val iconRes = when (activity.type) {
-        "vaccine" -> R.drawable.ic_vaccine
-        "checkup" -> R.drawable.ic_checkup
-        "feeding" -> R.drawable.ic_feeding
-        "playtime" -> R.drawable.ic_playtime
+        ActivityType.VACCINE.value -> R.drawable.ic_vaccine
+        ActivityType.CHECKUP.value -> R.drawable.ic_checkup
+        ActivityType.FEEDING.value -> R.drawable.ic_feeding
+        ActivityType.PLAYTIME.value -> R.drawable.ic_playtime
         else -> R.drawable.ic_other
     }
 

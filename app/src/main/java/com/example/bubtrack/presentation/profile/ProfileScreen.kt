@@ -258,7 +258,7 @@ fun ProfileScreen(
                         )
                         Spacer(modifier.width(8.dp))
                         Text(
-                            "Logout",
+                            "Keluar",
                             style = MaterialTheme.typography.bodyLarge.copy(
                                 fontWeight = FontWeight.Medium,
                                 color = Color(0xFFF87171)

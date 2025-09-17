@@ -32,6 +32,7 @@ import com.example.bubtrack.R
 import com.example.bubtrack.presentation.ai.growthanalysis.comps.AiChatSection
 import com.example.bubtrack.presentation.ai.growthanalysis.comps.GrowthSummarySection
 import com.example.bubtrack.presentation.ai.growthanalysis.comps.PeriodDropdown
+import com.example.bubtrack.ui.theme.AppBackground
 import com.example.bubtrack.ui.theme.BubTrackTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -59,18 +60,18 @@ fun GrowthAnalysisScreen(
         }
     }
 
-    val periods = listOf("Last 7 days", "Last 14 days", "Last 30 days")
+    val periods = listOf("7 Hari Terakhir", "14 Hari Terakhir", "30 Hari Terakhir")
 
     if (!uiState.isReady) {
         Box(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().background(AppBackground),
             contentAlignment = Alignment.Center
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 CircularProgressIndicator()
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Generating personalized analysis...",
+                    text = "Sedang membuat analisis personal...",
                     color = Color.Gray,
                     fontSize = 14.sp
                 )
@@ -96,7 +97,7 @@ fun GrowthAnalysisScreen(
                 ) {
                     // Description text
                     Text(
-                        text = "These insights are based on the daily development and growth records you provide.",
+                        text = "Insight ini dibuat berdasarkan catatan harian tumbuh kembang si kecil.",
                         fontSize = 14.sp,
                         color = Color(0xFF6B7280),
                         textAlign = TextAlign.Center,
@@ -127,7 +128,7 @@ fun GrowthAnalysisScreen(
                         // Growth Summary Section
                         GrowthSummarySection(
                             summaryText = uiState.analysisResult?.summary
-                                ?: "No analysis available yet.",
+                                ?: "Belum ada analisis yang tersedia.",
                             iconRes = com.example.bubtrack.R.drawable.ic_growth,
                             backgroundColor = Color(0xFFE0F7FF),
                             iconBackgroundColor = Color(0xFF06B6D4)
@@ -208,7 +209,7 @@ private fun GrowthAnalysisHeader(
             )
 
             Text(
-                text = "Growth Analysis",
+                text = "Analisis Tumbuh Kembang",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = Color(0xFF1F2937)
@@ -244,7 +245,7 @@ private fun AnalysisDetailsSection(
         ) {
             if (insights.isNotEmpty()) {
                 AnalysisSection(
-                    title = "Insights",
+                    title = "Wawasan",
                     items = insights,
                     iconRes = com.example.bubtrack.R.drawable.ic_insights,
                     iconBackgroundColor = Color(0xFF10B981)
@@ -252,7 +253,7 @@ private fun AnalysisDetailsSection(
             }
             if (recommendations.isNotEmpty()) {
                 AnalysisSection(
-                    title = "Recommendations",
+                    title = "Rekomendasi",
                     items = recommendations,
                     iconRes = com.example.bubtrack.R.drawable.ic_recommendations,
                     iconBackgroundColor = Color(0xFF3B82F6)
@@ -260,7 +261,7 @@ private fun AnalysisDetailsSection(
             }
             if (concerns.isNotEmpty()) {
                 AnalysisSection(
-                    title = "Concerns",
+                    title = "Hal yang perlu diperhatikan",
                     items = concerns,
                     iconRes = com.example.bubtrack.R.drawable.ic_concerns,
                     iconBackgroundColor = Color(0xFFEF4444)

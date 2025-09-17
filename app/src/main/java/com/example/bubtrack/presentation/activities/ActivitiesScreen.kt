@@ -119,7 +119,7 @@ fun ActivitiesScreen(
                     )
                 }
                 Text(
-                    "Schedule",
+                    "Kalender",
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                 )
                 Spacer(modifier = modifier.width(25.dp))

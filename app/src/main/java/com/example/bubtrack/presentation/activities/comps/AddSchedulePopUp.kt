@@ -93,7 +93,7 @@ fun AddSchedulePopUp(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Add Schedule",
+                        text = "Tambah Jadwal",
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
                     )
                     IconButton(onClick = { onDismiss() }) {
@@ -105,7 +105,7 @@ fun AddSchedulePopUp(
                 }
                 Spacer(modifier.height(24.dp))
                 Text(
-                    "Activity Name",
+                    "Nama Kegiatan",
                     style = MaterialTheme.typography.bodyMedium.copy(
                         fontWeight = FontWeight.Medium
                     ),
@@ -113,12 +113,12 @@ fun AddSchedulePopUp(
                 )
                 CommonTextField(
                     value = activityName,
-                    placeholder = "Enter Activity Name",
+                    placeholder = "Tambah Nama Kegiatan",
                     onValueChange = { activityName = it}
                 )
                 Spacer(modifier.height(14.dp))
                 Text(
-                    "Activity Type",
+                    "Jenis Kegiatan",
                     style = MaterialTheme.typography.bodyMedium.copy(
                         fontWeight = FontWeight.Medium
                     ),
@@ -132,7 +132,7 @@ fun AddSchedulePopUp(
                         value = activityType,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text("Activity Type") },
+                        label = { Text("Tipe Kegiatan") },
                         trailingIcon = {
                             ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
                         },
@@ -174,7 +174,7 @@ fun AddSchedulePopUp(
                         modifier = modifier.weight(1f)
                     ) {
                         Text(
-                            "Date",
+                            "Tanggal",
                             style = MaterialTheme.typography.bodyMedium.copy(
                                 fontWeight = FontWeight.Medium
                             ),
@@ -196,7 +196,7 @@ fun AddSchedulePopUp(
                         modifier = modifier.weight(1f)
                     ){
                         Text(
-                            "Time",
+                            "Waktu",
                             style = MaterialTheme.typography.bodyMedium.copy(
                                 fontWeight = FontWeight.Medium
                             ),
@@ -223,7 +223,7 @@ fun AddSchedulePopUp(
                 }
                 Spacer(modifier.height(14.dp))
                 Text(
-                    "Additional Notes",
+                    "Catatan Tambahan",
                     style = MaterialTheme.typography.bodyMedium.copy(
                         fontWeight = FontWeight.Medium
                     ),
@@ -257,7 +257,7 @@ fun AddSchedulePopUp(
                 OutlinedButton(
                     onClick = {
                         if (activityName.isBlank() || activityType.isBlank() || dateMillis == 0L || selectedTime == null) {
-                            errorMessage = "Please fill all fields"
+                            errorMessage = "Isi semua data terlebih dahulu"
                         } else {
                             onSave(activityName, activityType, dateMillis, selectedTime, notes)
                             onDismiss()
@@ -329,7 +329,7 @@ fun TimePickerDialog(
                     horizontalArrangement = Arrangement.End
                 ) {
                     TextButton(onClick = { onDismissRequest() }) {
-                        Text("Cancel")
+                        Text("Batal")
                     }
                     TextButton(onClick = {
                         onConfirm(LocalTime.of(state.hour, state.minute))

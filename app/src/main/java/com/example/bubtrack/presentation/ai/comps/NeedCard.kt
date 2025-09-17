@@ -2,6 +2,7 @@ package com.example.bubtrack.presentation.ai.comps
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -38,8 +39,14 @@ fun NeedCard(
 ) {
 
     val title = when(label){
-        "cold_hot" -> "Cold/Hot"
-        "belly_pain" -> "Belly Pain"
+        "cold_hot" -> "Panas/Dingin"
+        "belly_pain" -> "Sakit Perut"
+        "hungry" -> "Lapar"
+        "tired" -> "Lelah"
+        "discomfort" -> "Tidak Nyaman"
+        "burping" -> "Perlu Sendawa"
+        "scared" -> "Ketakutan"
+        "unknown" -> "Tidak Diketahui"
         else -> {
             label.replaceFirstChar { it.uppercase() }
         }
@@ -67,6 +74,7 @@ fun NeedCard(
     ) {
         Row(
             modifier = Modifier.padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
@@ -85,13 +93,14 @@ fun NeedCard(
             }
             Spacer(modifier = Modifier.width(8.dp))
             Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.Start
+                modifier = Modifier.fillMaxWidth().height(55.dp),
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.Center
             ) {
                 Text(
                     text = title,
-                    fontWeight = if (isActive && shoudSelect) FontWeight.Bold else FontWeight.Normal,
-                    fontSize = 16.sp,
+                    fontWeight = if (isActive && shoudSelect) FontWeight.SemiBold else FontWeight.Normal,
+                    fontSize = 14.sp,
                     color = Color.Black
                 )
                 Text(

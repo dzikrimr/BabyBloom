@@ -13,7 +13,16 @@ import javax.inject.Inject
 data class VoiceAnalyzerState(
     val isRecording: Boolean = false,
     val classificationResult: String = "Tekan tombol untuk merekam",
-    val confidenceScores: List<Pair<String, Float>> = emptyList()
+    val confidenceScores: List<Pair<String, Float>> = listOf(
+        "hungry" to 0f,
+        "cold_hot" to 0f,
+        "tired" to 0f,
+        "belly_pain" to 0f,
+        "discomfort" to 0f,
+        "burping" to 0f,
+        "scared" to 0f,
+        "unknown" to 0f
+    )
 )
 
 sealed class VoiceAnalyzerEvent {
@@ -28,6 +37,17 @@ class CryAnalyzerViewModel @Inject constructor(
 ) : ViewModel() {
     private val _state = MutableStateFlow(VoiceAnalyzerState())
     val state: StateFlow<VoiceAnalyzerState> = _state.asStateFlow()
+
+    private val defaultNeeds =  listOf(
+        "hungry" to 0f,
+        "cold_hot" to 0f,
+        "tired" to 0f,
+        "belly_pain" to 0f,
+        "discomfort" to 0f,
+        "burping" to 0f,
+        "scared" to 0f,
+        "unknown" to 0f
+    )
 
     // Define sampleRate as a constant
     private val sampleRate = 22050 // Matches AudioRepoImpl
@@ -51,15 +71,17 @@ class CryAnalyzerViewModel @Inject constructor(
     }
 
     private fun toggleRecording() {
+        val isStarting = !_state.value.isRecording
         _state.value = _state.value.copy(
-            isRecording = !_state.value.isRecording,
-            classificationResult = if (!_state.value.isRecording) "Merekam..." else "Rekaman dihentikan."
+            isRecording = isStarting,
+            classificationResult = if (isStarting) "Merekam..." else "Rekaman dihentikan.",
+            confidenceScores = if (isStarting) defaultNeeds else _state.value.confidenceScores
         )
-        if (_state.value.isRecording) {
+        if (isStarting) {
             viewModelScope.launch {
                 try {
                     val audioData = recordAudioUseCase()
-                    if (audioData != null && audioData.size >= sampleRate / 2) { // Use defined sampleRate
+                    if (audioData != null && audioData.size >= sampleRate / 2) {
                         val (label, scores) = classifyAudioUseCase(audioData)
                         _state.value = _state.value.copy(
                             classificationResult = "Hasil: $label",

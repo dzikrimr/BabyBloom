@@ -35,7 +35,7 @@ fun BabyCareCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .height(280.dp),
+            .height(300.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color.White
         ),

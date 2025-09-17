@@ -67,7 +67,7 @@ fun GrowthSummarySection(
                     )
                 }
                 Text(
-                    text = "Growth Summary",
+                    text = "Ringkasan Pertumbuhan",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color(0xFF1F2937)

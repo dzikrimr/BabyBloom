@@ -20,7 +20,7 @@ import com.example.bubtrack.ui.theme.BubTrackTheme
 data class ChatMessage(
     val text: String,
     val isFromUser: Boolean,
-    val senderName: String = if (isFromUser) "You" else "Gemini AI"
+    val senderName: String = if (isFromUser) "Anda" else "Gemini AI"
 )
 
 @Composable
@@ -35,7 +35,7 @@ fun AiChatSection(
     val defaultMessages = if (chatMessages.isEmpty()) {
         listOf(
             ChatMessage(
-                text = "Hello! I'm here to help you understand your baby's growth patterns. Feel free to ask me anything!",
+                text = "Halo! Saya di sini untuk membantu Anda memahami pola tumbuh kembang bayi. Silakan tanyakan apa saja!",
                 isFromUser = false
             )
         )
@@ -114,7 +114,7 @@ fun AiChatSection(
                     onValueChange = { chatMessage = it },
                     placeholder = {
                         Text(
-                            "Ask about your baby's growth...",
+                            "Tanyakan tentang tumbuh kembang bayi Anda...",
                             color = Color(0xFF9CA3AF),
                             fontSize = 14.sp
                         )

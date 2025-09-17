@@ -39,7 +39,6 @@ fun CryAnalyzerScreen(
 ) {
     val context = LocalContext.current
     val state by viewModel.state.collectAsState()
-    val coroutineScope = rememberCoroutineScope()
 
     // Permission launcher
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -104,7 +103,7 @@ fun CryAnalyzerScreen(
                 )
             }
             Text(
-                "Cry Analyzer",
+                "Analisis Tangisan",
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
             )
             Spacer(modifier = modifier.width(25.dp))
@@ -148,7 +147,7 @@ fun CryAnalyzerScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    "Cry Duration",
+                    "Durasi Tangisan",
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -170,7 +169,7 @@ fun CryAnalyzerScreen(
                 .padding(12.dp)
         ) {
             Text(
-                "Baby's need analysis",
+                "Analisis Kebutuhan Bayi",
                 style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold)
             )
             Spacer(modifier = Modifier.height(12.dp))
@@ -204,7 +203,7 @@ fun CryAnalyzerScreen(
                 )
                 Spacer(modifier = Modifier.width(5.dp))
                 Text(
-                    text = if (state.isRecording) "Stop Recording" else "Start Recording",
+                    text = if (state.isRecording) "Stop Merekam" else "Mulai Merekam",
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 16.sp
                 )

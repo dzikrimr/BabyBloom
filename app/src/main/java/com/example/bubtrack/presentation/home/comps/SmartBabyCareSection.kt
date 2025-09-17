@@ -26,7 +26,7 @@ fun SmartBabyCareSection(
     modifier: Modifier = Modifier
 ) {
     Text(
-        "Smart Baby Care",
+        "Perawatan Bayi Cerdas",
         style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
     )
     Spacer(modifier = Modifier.height(12.dp))
