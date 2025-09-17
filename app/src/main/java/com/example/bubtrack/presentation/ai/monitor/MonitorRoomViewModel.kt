@@ -1,8 +1,7 @@
-package com.example.bubtrack.presentation.ai.cobamonitor
+package com.example.bubtrack.presentation.ai.monitor
 
 import android.app.Application
 import android.content.Context
-import android.graphics.Bitmap
 import android.util.Log
 import androidx.annotation.OptIn
 import androidx.camera.core.*
@@ -25,26 +24,14 @@ import com.example.bubtrack.utill.Utility
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.gson.Gson
-import com.google.mlkit.vision.common.InputImage
-import com.google.mlkit.vision.face.FaceDetection
-import com.google.mlkit.vision.face.FaceDetector
-import com.google.mlkit.vision.face.FaceDetectorOptions
-import com.google.mlkit.vision.pose.PoseLandmark
-import com.google.mlkit.vision.pose.accurate.AccuratePoseDetectorOptions
-import com.google.mlkit.vision.pose.PoseDetection
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
 import java.util.concurrent.Executors
 import org.webrtc.IceCandidate
 import org.webrtc.SessionDescription
 import org.webrtc.SurfaceViewRenderer
-import java.io.IOException
 import javax.inject.Inject
 
 @OptIn(ExperimentalGetImage::class)

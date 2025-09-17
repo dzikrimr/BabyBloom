@@ -16,6 +16,7 @@ import javax.inject.Inject
 
 data class GrowthAnalysisUiState(
     val isLoading: Boolean = false,
+    val isReady: Boolean = false, // tambahkan
     val babyData: UserBabyData? = null,
     val analysisResult: BabyAnalysisResult? = null,
     val chatMessages: List<ChatMessage> = emptyList(),
@@ -95,7 +96,8 @@ class GrowthAnalysisViewModel @Inject constructor(
                 _uiState.value = _uiState.value.copy(
                     analysisResult = analysisResult,
                     isLoading = false,
-                    isAnalysisGenerated = true
+                    isAnalysisGenerated = true,
+                    isReady = true
                 )
 
             } catch (e: Exception) {

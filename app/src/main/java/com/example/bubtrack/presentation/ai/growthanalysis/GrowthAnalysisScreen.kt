@@ -61,77 +61,96 @@ fun GrowthAnalysisScreen(
 
     val periods = listOf("Last 7 days", "Last 14 days", "Last 30 days")
 
-    LazyColumn(
-        modifier = modifier
-            .fillMaxSize()
-            .background(Color(0xFFF8F9FA))
-    ) {
-        // Header
-        item {
-            GrowthAnalysisHeader(onNavigateBack = onNavigateBack)
-        }
-
-        // Content
-        item {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                // Description text
+    if (!uiState.isReady) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                CircularProgressIndicator()
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "These insights are based on the daily development and growth records you provide.",
-                    fontSize = 14.sp,
-                    color = Color(0xFF6B7280),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
+                    text = "Generating personalized analysis...",
+                    color = Color.Gray,
+                    fontSize = 14.sp
                 )
+            }
+        }
+    } else {
 
-                // Baby illustration card
-                BabyIllustrationCard()
+        LazyColumn(
+            modifier = modifier
+                .fillMaxSize()
+                .background(Color(0xFFF8F9FA))
+        ) {
+            // Header
+            item {
+                GrowthAnalysisHeader(onNavigateBack = onNavigateBack)
+            }
 
-                // Dropdown for time period
-                PeriodDropdown(
-                    selectedPeriod = uiState.selectedPeriod,
-                    periods = periods,
-                    onPeriodSelected = { period ->
-                        viewModel.updateSelectedPeriod(period)
-                    }
-                )
-
-                // Loading indicator
-                if (uiState.isLoading) {
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                } else {
-                    // Growth Summary Section
-                    GrowthSummarySection(
-                        summaryText = uiState.analysisResult?.summary ?: "No analysis available yet.",
-                        iconRes = com.example.bubtrack.R.drawable.ic_growth,
-                        backgroundColor = Color(0xFFE0F7FF),
-                        iconBackgroundColor = Color(0xFF06B6D4)
+            // Content
+            item {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Description text
+                    Text(
+                        text = "These insights are based on the daily development and growth records you provide.",
+                        fontSize = 14.sp,
+                        color = Color(0xFF6B7280),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
                     )
 
-                    // Additional analysis details (insights, recommendations, concerns)
-                    uiState.analysisResult?.let { result ->
-                        AnalysisDetailsSection(
-                            insights = result.insights,
-                            recommendations = result.recommendations,
-                            concerns = result.concerns
-                        )
-                    }
+                    // Baby illustration card
+                    BabyIllustrationCard()
 
-                    // Gemini AI Assistant Section
-                    AiChatSection(
-                        chatMessages = uiState.chatMessages,
-                        isLoading = uiState.isChatLoading,
-                        onSendMessage = { message ->
-                            viewModel.sendChatMessage(message)
+                    // Dropdown for time period
+                    PeriodDropdown(
+                        selectedPeriod = uiState.selectedPeriod,
+                        periods = periods,
+                        onPeriodSelected = { period ->
+                            viewModel.updateSelectedPeriod(period)
                         }
                     )
+
+                    // Loading indicator
+                    if (uiState.isLoading) {
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    } else {
+                        // Growth Summary Section
+                        GrowthSummarySection(
+                            summaryText = uiState.analysisResult?.summary
+                                ?: "No analysis available yet.",
+                            iconRes = com.example.bubtrack.R.drawable.ic_growth,
+                            backgroundColor = Color(0xFFE0F7FF),
+                            iconBackgroundColor = Color(0xFF06B6D4)
+                        )
+
+                        // Additional analysis details (insights, recommendations, concerns)
+                        uiState.analysisResult?.let { result ->
+                            AnalysisDetailsSection(
+                                insights = result.insights,
+                                recommendations = result.recommendations,
+                                concerns = result.concerns
+                            )
+                        }
+
+                        // Gemini AI Assistant Section
+                        AiChatSection(
+                            chatMessages = uiState.chatMessages,
+                            isLoading = uiState.isChatLoading,
+                            onSendMessage = { message ->
+                                viewModel.sendChatMessage(message)
+                            }
+                        )
+                    }
                 }
             }
         }

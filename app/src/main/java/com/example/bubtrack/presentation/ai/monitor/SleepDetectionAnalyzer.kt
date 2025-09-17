@@ -1,4 +1,4 @@
-package com.example.bubtrack.presentation.ai.cobamonitor
+package com.example.bubtrack.presentation.ai.monitor
 
 import android.graphics.PointF
 import android.util.Log
@@ -13,7 +13,6 @@ import com.google.mlkit.vision.pose.defaults.PoseDetectorOptions
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.sqrt
 

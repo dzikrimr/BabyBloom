@@ -1,4 +1,4 @@
-package com.example.bubtrack.presentation.ai.cobamonitor
+package com.example.bubtrack.presentation.ai.monitor
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background

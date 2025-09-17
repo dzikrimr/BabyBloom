@@ -1,4 +1,4 @@
-package com.example.bubtrack.presentation.ai.cobamonitor
+package com.example.bubtrack.presentation.ai.monitor
 
 import android.util.Log
 import android.widget.Toast

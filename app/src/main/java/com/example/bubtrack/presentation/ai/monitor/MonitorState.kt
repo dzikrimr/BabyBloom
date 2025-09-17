@@ -1,4 +1,4 @@
-package com.example.bubtrack.presentation.ai.cobamonitor
+package com.example.bubtrack.presentation.ai.monitor
 
 sealed class MonitorState {
     object Idle : MonitorState()
