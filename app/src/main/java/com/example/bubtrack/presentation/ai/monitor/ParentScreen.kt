@@ -48,25 +48,7 @@ fun ParentScreen(
 
     val state by viewModel.state.collectAsState()
 
-    // Permission handler
-    val permissionRequestLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
-        val allGranted = permissions.all { it.value }
-        Log.d("ParentScreen", "Permissions granted: $allGranted")
-        if (!allGranted) {
-            Toast.makeText(context, "Camera and Audio permissions required", Toast.LENGTH_LONG).show()
-        }
-    }
 
-    LaunchedEffect(Unit) {
-        permissionRequestLauncher.launch(
-            arrayOf(
-                android.Manifest.permission.CAMERA,
-                android.Manifest.permission.RECORD_AUDIO
-            )
-        )
-    }
 
     // Timer logic
     LaunchedEffect(isMonitoring) {
