@@ -1,13 +1,15 @@
 package com.example.bubtrack.presentation.home
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.widget.Toast
-import androidx.compose.animation.AnimatedContent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -19,11 +21,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.example.bubtrack.R
 import com.example.bubtrack.presentation.diary.comps.StatsCardItem
 import com.example.bubtrack.presentation.home.comps.GrowthStatsSection
@@ -38,11 +39,9 @@ import com.example.bubtrack.presentation.navigation.NotificationRoute
 import com.example.bubtrack.presentation.navigation.SleepMonitorRoute
 import com.example.bubtrack.ui.theme.AppBackground
 import com.example.bubtrack.ui.theme.AppBlue
-import com.example.bubtrack.ui.theme.AppLightBlue
 import com.example.bubtrack.ui.theme.AppLightPurple
 import com.example.bubtrack.ui.theme.AppPink
 import com.example.bubtrack.ui.theme.AppPurple
-import com.example.bubtrack.ui.theme.BubTrackTheme
 import java.time.LocalDate
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -57,6 +56,29 @@ fun HomeScreen(
     val context = LocalContext.current
     val scrollState = rememberScrollState()
     val today = LocalDate.now()
+
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted ->
+            if (isGranted) {
+                Toast.makeText(context, "Izin notifikasi diberikan ✅", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(context, "Izin notifikasi ditolak ❌", Toast.LENGTH_SHORT).show()
+            }
+        }
+    )
+
+    LaunchedEffect(Unit) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val isGranted = ContextCompat.checkSelfPermission(
+                context, Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+
+            if (!isGranted) {
+                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
 
     // Handle error messages
     LaunchedEffect(uiState.errorMessage) {
