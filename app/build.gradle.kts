@@ -24,7 +24,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -41,10 +42,33 @@ android {
     buildFeatures {
         compose = true
     }
+
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("armeabi-v7a", "arm64-v8a")
+            isUniversalApk = false
+        }
+    }
 }
 
 dependencies {
+    // Firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
+    implementation(libs.firebase.messaging)
+    implementation(libs.firebase.database.ktx)
+    implementation(libs.play.services.auth)
 
+    // Hilt
+    implementation(libs.hilt.android)
+    implementation(libs.hilt.navigation.compose)
+    ksp(libs.hilt.compiler)
+
+    // Core libraries
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -53,54 +77,59 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.ui.test.junit4)
-    debugImplementation(libs.androidx.ui.tooling)
-    debugImplementation(libs.androidx.ui.test.manifest)
-
-    implementation (libs.androidx.navigation.compose)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.navigation.compose.android)
     implementation(libs.kotlinx.serialization.json)
 
-    implementation (libs.google.accompanist.systemuicontroller)
+    // Accompanist
     implementation(libs.accompanist.permissions)
-    implementation(libs.foundation.pager)
+    implementation(libs.google.accompanist.systemuicontroller)
 
-    //room
-    implementation(libs.androidx.room.runtime)
-    implementation(libs.androidx.room.paging)
-    implementation(libs.androidx.room.ktx)
-    ksp(libs.androidx.room.compiler)
-
-    //hilt
-    implementation(libs.hilt.android)
-    implementation(libs.hilt.navigation.compose)
-    ksp(libs.hilt.compiler)
-
-    //paging
-    implementation(libs.paging.runtime)
-    implementation(libs.paging.compose)
-
-    //firebase
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.analytics)
-    implementation(libs.firebase.auth)
-    implementation(libs.firebase.firestore)
-    implementation(libs.play.services.auth)
-
-    //googleAuth
-    implementation(libs.androidx.credentials)
+    // Google Auth
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
 
-    // coil
+    // Coil
     implementation(libs.coil.compose)
 
-    // retrofit
+    // Retrofit and Gson
     implementation(libs.retrofit)
-
-    // gson
     implementation(libs.converter.gson)
+
+
+
+    // ML Kit and Vision
+    implementation("com.google.mlkit:face-detection:16.1.5")
+    implementation("com.google.mlkit:pose-detection:18.0.0-beta3")
+    implementation("com.google.mlkit:pose-detection-accurate:18.0.0-beta3")
+    implementation(libs.vision.common)
+    // CameraX
+    implementation("androidx.camera:camera-core:1.3.4")
+    implementation("androidx.camera:camera-camera2:1.3.4")
+    implementation("androidx.camera:camera-lifecycle:1.3.4")
+    implementation("androidx.camera:camera-view:1.3.4")
+
+    // TensorFlow Lite
+    implementation("org.tensorflow:tensorflow-lite:2.16.1")
+
+
+    // WebRTC
+    implementation("com.mesibo.api:webrtc:1.0.5")
+
+    // Calendar
+    implementation("com.kizitonwose.calendar:compose:2.6.1")
+
+    // Cloudinary
+    implementation("com.cloudinary:cloudinary-android:3.0.2")
+
+    // Other
+    implementation(libs.generativeai)
+    implementation(libs.play.services.cast.tv)
+
+    // Test dependencies
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    debugImplementation(libs.androidx.ui.tooling)
+    debugImplementation(libs.androidx.ui.test.manifest)
 }

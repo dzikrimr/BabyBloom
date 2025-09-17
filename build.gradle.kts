@@ -6,4 +6,5 @@ plugins {
     alias(libs.plugins.devtools.ksp) apply false
     alias(libs.plugins.hiltAndroid) apply  false
     alias(libs.plugins.google.services) apply  false
+    id ("com.autonomousapps.dependency-analysis") version "1.33.0"
 }
