@@ -1,6 +1,7 @@
 package com.example.bubtrack.presentation.ai.growthanalysis
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -19,6 +20,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -26,6 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.bubtrack.R
 import com.example.bubtrack.presentation.ai.growthanalysis.comps.AiChatSection
 import com.example.bubtrack.presentation.ai.growthanalysis.comps.GrowthSummarySection
 import com.example.bubtrack.presentation.ai.growthanalysis.comps.PeriodDropdown
@@ -136,6 +139,31 @@ fun GrowthAnalysisScreen(
 }
 
 @Composable
+private fun BabyIllustrationCard() {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(180.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFE8EFFC)
+        ),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.img_babyillustration),
+                contentDescription = "Baby Illustration",
+                modifier = Modifier.size(300.dp),
+                contentScale = ContentScale.Fit
+            )
+        }
+    }
+}
+
+@Composable
 private fun GrowthAnalysisHeader(
     onNavigateBack: () -> Unit
 ) {
@@ -173,72 +201,6 @@ private fun GrowthAnalysisHeader(
                 tint = Color(0xFF9CA3AF),
                 modifier = Modifier.size(24.dp)
             )
-        }
-    }
-}
-
-@Composable
-private fun BabyIllustrationCard() {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(180.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFE8E3FF)
-        ),
-        shape = RoundedCornerShape(16.dp)
-    ) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            // Background decorative shapes
-            Canvas(
-                modifier = Modifier.fillMaxSize()
-            ) {
-                drawRoundRect(
-                    color = Color(0xFFD4C5FF),
-                    topLeft = Offset(size.width * 0.15f, size.height * 0.25f),
-                    size = Size(size.width * 0.25f, size.height * 0.35f),
-                    cornerRadius = CornerRadius(16.dp.toPx())
-                )
-
-                drawRoundRect(
-                    color = Color(0xFFBEA9FF),
-                    topLeft = Offset(size.width * 0.65f, size.height * 0.15f),
-                    size = Size(size.width * 0.2f, size.height * 0.25f),
-                    cornerRadius = CornerRadius(12.dp.toPx())
-                )
-
-                drawRoundRect(
-                    color = Color(0xFFBEA9FF).copy(alpha = 0.6f),
-                    topLeft = Offset(size.width * 0.05f, size.height * 0.65f),
-                    size = Size(size.width * 0.3f, size.height * 0.2f),
-                    cornerRadius = CornerRadius(8.dp.toPx())
-                )
-            }
-
-            // Main baby shape
-            Canvas(
-                modifier = Modifier.size(70.dp)
-            ) {
-                val path = Path().apply {
-                    moveTo(size.width * 0.2f, size.height * 0.9f)
-                    lineTo(size.width * 0.2f, size.height * 0.4f)
-                    cubicTo(
-                        size.width * 0.2f, size.height * 0.1f,
-                        size.width * 0.5f, size.height * 0.05f,
-                        size.width * 0.8f, size.height * 0.3f
-                    )
-                    lineTo(size.width * 0.9f, size.height * 0.9f)
-                    close()
-                }
-
-                drawPath(
-                    path = path,
-                    color = Color(0xFF4F46E5)
-                )
-            }
         }
     }
 }
