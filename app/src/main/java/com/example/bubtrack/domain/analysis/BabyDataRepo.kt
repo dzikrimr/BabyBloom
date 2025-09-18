@@ -4,7 +4,6 @@ import com.example.bubtrack.domain.activities.Activity
 import com.example.bubtrack.domain.diary.Diary
 import com.example.bubtrack.domain.growth.BabyGrowth
 import com.example.bubtrack.domain.profile.BabyProfile
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -19,35 +18,25 @@ data class UserBabyData(
 
 @Singleton
 class BabyDataRepo @Inject constructor(
-    private val firestore: FirebaseFirestore,
-    private val auth: FirebaseAuth
+    private val firestore: FirebaseFirestore
 ) {
 
-    suspend fun getAllUserBabyData(): UserBabyData {
+    suspend fun getAllUserBabyData(userId: String): UserBabyData {
         return try {
-            val userId = auth.currentUser?.uid ?: return emptyUserData()
-
-            val activitiesTask = firestore.collection("users")
-                .document(userId)
-                .collection("activities")
+            val docRef = firestore.collection("users").document(userId)
+            val activitiesTask = docRef.collection("activities")
                 .get()
                 .await()
 
-            val diariesTask = firestore.collection("users")
-                .document(userId)
-                .collection("diaries")
+            val diariesTask = docRef.collection("diaries")
                 .get()
                 .await()
 
-            val babyProfilesTask = firestore.collection("users")
-                .document(userId)
-                .collection("babyProfiles")
+            val babyProfilesTask = docRef.collection("babyProfiles")
                 .get()
                 .await()
 
-            val growthRecordsTask = firestore.collection("users")
-                .document(userId)
-                .collection("growthRecords")
+            val growthRecordsTask = docRef.collection("growthRecords")
                 .get()
                 .await()
 
@@ -55,7 +44,7 @@ class BabyDataRepo @Inject constructor(
                 try {
                     Activity(
                         id = doc.getLong("id")?.toInt() ?: 0,
-                        userId = userId,
+                        userId = doc.getString("userId") ?: "",
                         title = doc.getString("title") ?: "",
                         description = doc.getString("description") ?: "",
                         date = doc.getLong("date") ?: 0L,
@@ -63,7 +52,7 @@ class BabyDataRepo @Inject constructor(
                         minute = doc.getLong("minute")?.toInt() ?: 0,
                         type = doc.getString("type") ?: ""
                     )
-                } catch (_: Exception) {
+                } catch (e: Exception) {
                     null
                 }
             }
@@ -77,7 +66,7 @@ class BabyDataRepo @Inject constructor(
                         date = doc.getLong("date") ?: 0L,
                         imgUrl = doc.getString("imgUrl")
                     )
-                } catch (_: Exception) {
+                } catch (e: Exception) {
                     null
                 }
             }
@@ -93,7 +82,7 @@ class BabyDataRepo @Inject constructor(
                         headCircumference = doc.getString("headCircumference") ?: "",
                         armCircumference = doc.getString("armCircumference") ?: ""
                     )
-                } catch (_: Exception) {
+                } catch (e: Exception) {
                     null
                 }
             }
@@ -109,7 +98,7 @@ class BabyDataRepo @Inject constructor(
                         armLength = doc.getDouble("armLength"),
                         ageInMonths = doc.getLong("ageInMonths")?.toInt() ?: 0
                     )
-                } catch (_: Exception) {
+                } catch (e: Exception) {
                     null
                 }
             }
@@ -120,16 +109,13 @@ class BabyDataRepo @Inject constructor(
                 babyProfiles = babyProfiles,
                 growthRecords = growthRecords
             )
-
         } catch (e: Exception) {
-            emptyUserData()
+            UserBabyData(
+                activities = emptyList(),
+                diaries = emptyList(),
+                babyProfiles = emptyList(),
+                growthRecords = emptyList()
+            )
         }
     }
-
-    private fun emptyUserData() = UserBabyData(
-        activities = emptyList(),
-        diaries = emptyList(),
-        babyProfiles = emptyList(),
-        growthRecords = emptyList()
-    )
 }

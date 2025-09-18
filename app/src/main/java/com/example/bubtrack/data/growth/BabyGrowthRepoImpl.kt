@@ -3,6 +3,8 @@ package com.example.bubtrack.data.growth
 import com.example.bubtrack.domain.growth.BabyGrowth
 import com.example.bubtrack.domain.growth.BabyGrowthRepo
 import com.example.bubtrack.domain.growth.GrowthStats
+import com.example.bubtrack.domain.profile.BabyProfile
+import com.example.bubtrack.presentation.profile.UserProfile
 import com.example.bubtrack.utill.Resource
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -106,6 +108,39 @@ class BabyGrowthRepoImpl @Inject constructor(
 //                )
 //            )
             emit(Resource.Success(data))
+        }
+    }
+
+    override suspend fun getBabyProfile(): Flow<Resource<UserProfile>> = flow {
+        emit(Resource.Loading())
+        val userId = auth.currentUser?.uid
+        if (userId == null) {
+            emit(Resource.Error("User not authenticated"))
+            return@flow
+        }
+
+        try {
+            // Get user data
+            val userDoc = firestore.collection("users").document(userId).get().await()
+            val userData = userDoc.data
+
+            // Get baby profile data
+            val babyDoc = firestore.collection("users").document(userId)
+                .collection("babyProfiles").document("primary").get().await()
+            val babyData = babyDoc.data
+
+            val profile = UserProfile(
+                name = userData?.get("name") as? String ?: "",
+                email = userData?.get("email") as? String ?: "",
+                babyName = babyData?.get("babyName") as? String ?: "",
+                birthDate = babyData?.get("birthDate") as? Long ?: 0L,
+                gender = babyData?.get("gender") as? String ?: "",
+                profileImageUrl = userData?.get("profileImageUrl") as? String ?: ""
+            )
+
+            emit(Resource.Success(profile))
+        } catch (e: Exception) {
+            emit(Resource.Error("Failed to fetch profile: ${e.message}"))
         }
     }
 }

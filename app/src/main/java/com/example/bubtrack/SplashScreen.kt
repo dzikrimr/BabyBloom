@@ -11,9 +11,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.bubtrack.ui.theme.BubTrackTheme
 import kotlinx.coroutines.delay
 
 @Composable
@@ -132,13 +130,5 @@ fun SplashScreen(
                     .scale(star3Scale)
             )
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun SplashScreenPreview() {
-    BubTrackTheme {
-        SplashScreen()
     }
 }

@@ -26,7 +26,7 @@ fun SmartBabyCareSection(
     modifier: Modifier = Modifier
 ) {
     Text(
-        "Smart Baby Care",
+        "Perawatan Bayi Cerdas",
         style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
     )
     Spacer(modifier = Modifier.height(12.dp))
@@ -38,7 +38,7 @@ fun SmartBabyCareSection(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         SmartCareCard(
-            title = "Analisis Tangisana",
+            title = "Analisis Tangisan",
             description = "Pahami tangisan si kecil",
             icon = R.drawable.ic_mic,
             backgroundColor = AppLightPurple,

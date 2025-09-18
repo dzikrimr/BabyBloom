@@ -16,10 +16,11 @@ import javax.inject.Inject
 
 data class GrowthAnalysisUiState(
     val isLoading: Boolean = false,
+    val isReady: Boolean = false, // tambahkan
     val babyData: UserBabyData? = null,
     val analysisResult: BabyAnalysisResult? = null,
     val chatMessages: List<ChatMessage> = emptyList(),
-    val selectedPeriod: String = "Last 7 days",
+    val selectedPeriod: String = "7 Hari Terakhir",
     val error: String? = null,
     val isAnalysisGenerated: Boolean = false,
     val isChatLoading: Boolean = false
@@ -53,7 +54,7 @@ class GrowthAnalysisViewModel @Inject constructor(
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
 
             try {
-                val babyData = babyDataRepository.getAllUserBabyData()
+                val babyData = babyDataRepository.getAllUserBabyData(userId)
 
                 // Extract baby name from profile if available
                 if (babyData.babyProfiles.isNotEmpty()) {
@@ -95,7 +96,8 @@ class GrowthAnalysisViewModel @Inject constructor(
                 _uiState.value = _uiState.value.copy(
                     analysisResult = analysisResult,
                     isLoading = false,
-                    isAnalysisGenerated = true
+                    isAnalysisGenerated = true,
+                    isReady = true
                 )
 
             } catch (e: Exception) {
@@ -163,9 +165,9 @@ class GrowthAnalysisViewModel @Inject constructor(
 
     private fun filterDataByPeriod(data: UserBabyData, period: String): UserBabyData {
         val daysToFilter = when (period) {
-            "Last 7 days" -> 7
-            "Last 14 days" -> 14
-            "Last 30 days" -> 30
+            "7 Hari Terakhir" -> 7
+            "14 Hari Terakhir" -> 14
+            "30 Hari Terakhir" -> 30
             else -> 30
         }
 

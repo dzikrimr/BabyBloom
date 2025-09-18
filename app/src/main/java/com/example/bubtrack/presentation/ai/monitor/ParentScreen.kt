@@ -1,4 +1,4 @@
-package com.example.bubtrack.presentation.ai.cobamonitor
+package com.example.bubtrack.presentation.ai.monitor
 
 import android.util.Log
 import android.widget.Toast
@@ -48,25 +48,7 @@ fun ParentScreen(
 
     val state by viewModel.state.collectAsState()
 
-    // Permission handler
-    val permissionRequestLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
-        val allGranted = permissions.all { it.value }
-        Log.d("ParentScreen", "Permissions granted: $allGranted")
-        if (!allGranted) {
-            Toast.makeText(context, "Camera and Audio permissions required", Toast.LENGTH_LONG).show()
-        }
-    }
 
-    LaunchedEffect(Unit) {
-        permissionRequestLauncher.launch(
-            arrayOf(
-                android.Manifest.permission.CAMERA,
-                android.Manifest.permission.RECORD_AUDIO
-            )
-        )
-    }
 
     // Timer logic
     LaunchedEffect(isMonitoring) {
@@ -120,7 +102,7 @@ fun ParentScreen(
                     )
                 }
                 Text(
-                    "Parent Device (Monitor)",
+                    "Perangkat Ortu (Monitor)",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color(0xFF2D3748)
@@ -129,7 +111,7 @@ fun ParentScreen(
             }
 
             Text(
-                text = if (isMonitoring) "Monitoring Active" else "Ready to Monitor",
+                text = if (isMonitoring) "Monitoring Aktif" else "Siap Memulai Pemantauan",
                 fontSize = 14.sp,
                 color = Color(0xFF718096),
                 textAlign = TextAlign.Center,
@@ -202,7 +184,7 @@ fun ParentScreen(
                                     )
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Text(
-                                        text = "Monitor Feed Hidden",
+                                        text = "Monitor Disembunyikan",
                                         color = Color.White,
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.Medium
@@ -224,14 +206,14 @@ fun ParentScreen(
                                     )
                                     Spacer(modifier = Modifier.height(16.dp))
                                     Text(
-                                        text = "Waiting for Baby Device",
+                                        text = "Menunggu Perangkat Bayi",
                                         color = Color.White,
                                         fontSize = 18.sp,
                                         fontWeight = FontWeight.Bold
                                     )
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Text(
-                                        text = "Share Room ID with baby device",
+                                        text = "Bagikan Room ID dengan perangkat bayi",
                                         color = Color.White.copy(alpha = 0.8f),
                                         fontSize = 14.sp
                                     )
@@ -419,7 +401,7 @@ fun ParentScreen(
                     Spacer(modifier = Modifier.height(24.dp))
 
                     Text(
-                        text = "Mulai Baby Monitor",
+                        text = "Mulai Monitor Tidur",
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF2D3748),

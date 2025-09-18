@@ -96,7 +96,7 @@ fun AiScreen(
                 ) {
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "Smart Baby Care",
+                        text = "Perawatan Bayi Cerdas",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.Black,
@@ -107,7 +107,7 @@ fun AiScreen(
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
-                        text = "AI-powered features to help you understand and monitor your baby better",
+                        text = "Fitur berbasis AI untuk membantu Anda memahami dan memantau bayi dengan lebih mudah.",
                         fontSize = 14.sp,
                         color = Color.Gray,
                         textAlign = TextAlign.Center,
@@ -126,10 +126,10 @@ fun AiScreen(
             ) {
                 // Cry Detection Card
                 BabyCareCard(
-                    title = "Cry Detection & Analysis",
-                    description = "Advanced AI analyzes your baby's cries to identify their needs instantly",
+                    title = "Deteksi & Analisis Tangisan",
+                        description = "AI canggih menganalisis tangisan bayi untuk memahami kebutuhannya secara instan.",
                     img = R.drawable.img_cry,
-                    btnText = "Start Cry Analysis",
+                    btnText = "Mulai Analisis Tangisan",
                     onClick = onStartCryAnalysis,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -138,10 +138,10 @@ fun AiScreen(
 
                 // Sleep Monitor Card
                 BabyCareCard(
-                    title = "Real-time Sleep Monitor",
-                    description = "Monitor your baby remotely using another phone's camera with instant notifications",
+                    title = "Pemantau Tidur Real-time",
+                    description = "Pantau tidur bayi dari jauh menggunakan kamera ponsel lain, lengkap dengan notifikasi instan.",
                     img = R.drawable.img_sleep,
-                    btnText = "Start Monitoring",
+                    btnText = "Mulai Monitoring",
                     onClick = onStartMonitoring,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -150,10 +150,10 @@ fun AiScreen(
 
                 // Growth & Development Analysis Card
                 BabyCareCard(
-                    title = "Growth & Development Analysis",
-                    description = "Personalized analysis of your baby's progress, milestones, and recommendations.",
+                    title = "Analisis Tumbuh Kembang",
+                    description = "Analisis personal untuk memantau progres, pencapaian, dan rekomendasi tumbuh kembang bayi Anda.",
                     img = R.drawable.img_analysis,
-                    btnText = "Start Analysis",
+                    btnText = "Mulai Analisis",
                     onClick = onStartAnalysis,
                     badgeDrawableId = R.drawable.gemini_badge,
                     modifier = Modifier.fillMaxWidth()

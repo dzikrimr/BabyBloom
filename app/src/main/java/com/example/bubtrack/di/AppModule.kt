@@ -4,8 +4,6 @@ import android.content.Context
 import com.example.bubtrack.data.cloudinary.CloudinaryManager
 import com.example.bubtrack.data.home.HomeRepoImpl
 import com.example.bubtrack.data.notification.FcmApi
-import com.example.bubtrack.domain.ai.SimpleSleepRepository
-import com.example.bubtrack.domain.ai.SleepRepository
 import com.example.bubtrack.domain.home.HomeRepo
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
@@ -31,12 +29,6 @@ abstract class AppModule {
     abstract fun bindHomeRepo(
         homeRepoImpl: HomeRepoImpl
     ): HomeRepo
-
-    @Binds
-    @Singleton
-    abstract fun bindSleepRepository(
-        simpleSleepRepository: SimpleSleepRepository
-    ): SleepRepository
 
     companion object {
         @Provides

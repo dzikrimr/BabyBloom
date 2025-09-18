@@ -1,13 +1,13 @@
 package com.example.bubtrack.di
 
 import android.content.Context
-import dagger.Module
-import dagger.Provides
 import com.example.bubtrack.data.ai.AudioRepoImpl
 import com.example.bubtrack.data.ai.ModelRepoImpl
 import com.example.bubtrack.domain.ai.audio.MFCCExtractor
 import com.example.bubtrack.domain.usecase.ClassifyAudioUseCase
 import com.example.bubtrack.domain.usecase.RecordAudioUseCase
+import dagger.Module
+import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent

@@ -1,5 +1,6 @@
 package com.example.bubtrack.di
 
+import com.example.bubtrack.data.activites.ActivitiesRepoImpl
 import com.example.bubtrack.data.article.ArticleRepoImpl
 import com.example.bubtrack.data.auth.AuthRepoImpl
 import com.example.bubtrack.data.growth.BabyGrowthRepoImpl
@@ -34,5 +35,10 @@ abstract class RepoModule {
     abstract fun bindAuthRepo(
         authRepoImpl: AuthRepoImpl
     ): AuthRepo
+
+    @Binds
+    abstract fun bindActivitiesRepo(
+        impl: ActivitiesRepoImpl
+    ): ActivitiesRepo
 
 }

@@ -29,6 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.bubtrack.ui.theme.AppBackground
 import com.example.bubtrack.ui.theme.BubTrackTheme
 
 @Composable
@@ -76,7 +77,8 @@ fun PeriodDropdown(
             expanded = showDropdown,
             onDismissRequest = { showDropdown = false },
             modifier = Modifier.width(360.dp),
-            offset = DpOffset(0.dp, 10.dp)
+            offset = DpOffset(0.dp, 10.dp),
+            containerColor = AppBackground
         ) {
             periods.forEach { period ->
                 DropdownMenuItem(

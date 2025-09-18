@@ -52,7 +52,7 @@ fun OnBoardingScreen(
     val onBoardingItems = listOf(
         OnBoardingItem(
             img = R.drawable.img_onboard1,
-            title = "Baby Bloom",
+            title = "BabyBloom",
             desc = "Pantau perkembangan Buah Hati Anda dengan mudah dan menyenangkan."
         ),
         OnBoardingItem(

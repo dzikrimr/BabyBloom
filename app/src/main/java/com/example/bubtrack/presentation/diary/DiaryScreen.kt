@@ -57,7 +57,7 @@ import java.util.Locale
 @Composable
 fun DiaryScreen(
     modifier: Modifier = Modifier,
-    initialTab: String = "Diary",
+    initialTab: String = "Catatan",
     viewModel: DiaryViewModel = hiltViewModel()
 ) {
     var selectedTab by remember { mutableStateOf(initialTab) }
@@ -160,21 +160,21 @@ fun DiaryScreen(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     OutlinedButton(
-                        onClick = { selectedTab = "Diary" },
+                        onClick = { selectedTab = "Catatan" },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(50.dp)
                             .weight(1f),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = if (selectedTab == "Diary") AppPurple else Color(0xFFF3F4F6),
+                            containerColor = if (selectedTab == "Catatan") AppPurple else Color(0xFFF3F4F6),
                         ),
                         shape = RoundedCornerShape(14.dp),
                         border = BorderStroke(width = 0.dp, color = Color.Transparent)
                     ) {
                         Text(
-                            "Diary",
+                            "Catatan",
                             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                            color = if (selectedTab == "Diary") Color.White else Color(0xFF6B7280)
+                            color = if (selectedTab == "Catatan") Color.White else Color(0xFF6B7280)
                         )
                     }
                     Spacer(modifier = Modifier.width(12.dp))
@@ -201,7 +201,7 @@ fun DiaryScreen(
         }
         item {
             when (selectedTab) {
-                "Diary" -> DevelopmentScreen(
+                "Catatan" -> DevelopmentScreen(
                     modifier = Modifier.padding(horizontal = 14.dp),
                     viewModel = viewModel
                 )
@@ -253,7 +253,7 @@ fun DiaryScreen(
                         border = BorderStroke(width = 0.dp, color = Color.Transparent)
                     ) {
                         Text(
-                            "Cancel",
+                            "Batal",
                             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                             color = Color.Black
                         )

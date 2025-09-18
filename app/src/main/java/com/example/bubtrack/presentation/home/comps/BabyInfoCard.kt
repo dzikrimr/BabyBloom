@@ -74,7 +74,7 @@ fun BabyInfoCard(
                     .padding(vertical = 6.dp, horizontal = 8.dp)
             ) {
                 Text(
-                    "Growing Well",
+                    "Tumbuh Sehat",
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.White
                 )

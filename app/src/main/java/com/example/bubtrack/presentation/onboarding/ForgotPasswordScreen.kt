@@ -62,7 +62,7 @@ fun ForgotPasswordScreen(
             modifier = modifier.size(250.dp)
         )
         Text(
-            "Lupa Password",
+            "Lupa Sandi",
             style = MaterialTheme.typography.headlineSmall.copy(
                 fontWeight = FontWeight.Bold
             )

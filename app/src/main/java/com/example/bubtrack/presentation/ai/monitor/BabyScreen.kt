@@ -1,11 +1,9 @@
-package com.example.bubtrack.presentation.ai.cobamonitor
+package com.example.bubtrack.presentation.ai.monitor
 
 import android.util.Log
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -104,7 +102,7 @@ fun BabyScreen(
                     )
                 }
                 Text(
-                    "Baby Device (Camera)",
+                    "Perangkat Bayi (Camera)",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color(0xFF2D3748)
@@ -115,9 +113,9 @@ fun BabyScreen(
             // Subtitle
             Text(
                 text = when {
-                    isAnalyzingPose -> "AI Motion Detection Active"
-                    isStreaming -> "Streaming to Parent"
-                    else -> "Ready to Connect"
+                    isAnalyzingPose -> "AI Deteksi Gerakan Aktif"
+                    isStreaming -> "Streaming ke Perangkat Ortu"
+                    else -> "Siap Terhubung"
                 },
                 fontSize = 14.sp,
                 color = Color(0xFF718096),
@@ -264,32 +262,6 @@ fun BabyScreen(
                             update = { pv -> previewView = pv }
                         )
 
-                        // AI Status Overlay
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.TopStart)
-                                .padding(16.dp)
-                                .background(
-                                    Color(0xFF10B981).copy(alpha = 0.9f),
-                                    RoundedCornerShape(20.dp)
-                                )
-                                .padding(horizontal = 12.dp, vertical = 6.dp)
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(8.dp)
-                                        .background(Color.White, CircleShape)
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(
-                                    text = "AI Active",
-                                    color = Color.White,
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
 
                         // Current Pose Display
                         Column(
@@ -303,13 +275,13 @@ fun BabyScreen(
                                 .padding(12.dp)
                         ) {
                             Text(
-                                text = "Motion Detection",
+                                text = "Deteksi Gerakan",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = Color.White.copy(alpha = 0.8f),
                                 fontWeight = FontWeight.Medium
                             )
                             Text(
-                                text = if (poseState.isNotEmpty()) poseState else "Analyzing...",
+                                text = if (poseState.isNotEmpty()) poseState else "Menganalisis...",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = Color(0xFFFBBF24),
                                 fontWeight = FontWeight.Bold

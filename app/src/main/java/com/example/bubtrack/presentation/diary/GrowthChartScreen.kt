@@ -61,7 +61,10 @@ import androidx.compose.foundation.layout.width
 import com.example.bubtrack.presentation.diary.helper.GrowthUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 import kotlin.math.roundToInt
 
 @Composable
@@ -81,6 +84,11 @@ fun GrowthChartScreen(
     var ageInMonths by remember { mutableStateOf("") }
     val context = LocalContext.current
     val babyStats by viewModel.babyStats.collectAsState()
+
+    val userProfile by viewModel.userProfile.collectAsState()
+    val birthDate = Instant.ofEpochMilli(userProfile.birthDate)
+        .atZone(ZoneId.systemDefault()).toLocalDate()
+    val months = ChronoUnit.MONTHS.between(birthDate, LocalDate.now()).toInt()
 
     // Dynamically get the latest stats from Firestore
     val latestStats = chartState.isSuccess
@@ -265,10 +273,8 @@ fun GrowthChartScreen(
                             val heightValue = height.toDoubleOrNull()
                             val headCircumValue = headCircumference.toDoubleOrNull()
                             val armCircumValue = armCircumference.toDoubleOrNull()
-                            val ageInMonthsValue = ageInMonths.toIntOrNull()
                             if (weightValue == null || heightValue == null ||
-                                headCircumValue == null || armCircumValue == null ||
-                                ageInMonthsValue == null
+                                headCircumValue == null || armCircumValue == null
                             ) {
                                 Toast.makeText(context, "Input harus berupa angka valid!", Toast.LENGTH_SHORT).show()
                             } else {
@@ -278,7 +284,7 @@ fun GrowthChartScreen(
                                     height = heightValue,
                                     headCircumference = headCircumValue,
                                     armLength = armCircumValue,
-                                    ageInMonths = ageInMonthsValue
+                                    ageInMonths = months ?: 8
                                 )
                                 // Reset form
                                 isExpanded = false
@@ -288,7 +294,6 @@ fun GrowthChartScreen(
                                 height = ""
                                 headCircumference = ""
                                 armCircumference = ""
-                                ageInMonths = ""
                                 Toast.makeText(context, "Data berhasil disimpan!", Toast.LENGTH_SHORT).show()
                             }
                         }
@@ -333,58 +338,5 @@ fun GrowthChartScreen(
             )
         }
         Spacer(modifier = Modifier.height(16.dp)) // Bottom padding
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun GrowthChartScreenPreview() {
-    val mockUiState = MutableStateFlow(
-        GrowthUiState(
-            isSuccess = listOf(
-                BabyGrowth(
-                    id = "1",
-                    date = System.currentTimeMillis(),
-                    weight = 3.2,
-                    height = 52.0,
-                    headCircumference = 35.0,
-                    armLength = 18.0,
-                    ageInMonths = 0
-                ),
-                BabyGrowth(
-                    id = "2",
-                    date = System.currentTimeMillis() - 86400000, // 1 day ago
-                    weight = 3.0,
-                    height = 50.0,
-                    headCircumference = 34.5,
-                    armLength = 17.5,
-                    ageInMonths = 0
-                )
-            )
-        )
-    )
-    val mockSelectedDate = MutableStateFlow<LocalDate?>(null)
-    val mockViewModel = object {
-        val uiState: StateFlow<GrowthUiState> = mockUiState
-        val selectedDate: StateFlow<LocalDate?> = mockSelectedDate
-        fun addGrowthRecord(
-            date: Long,
-            weight: Double,
-            height: Double,
-            headCircumference: Double,
-            armLength: Double,
-            ageInMonths: Int
-        ) {
-            // No-op for preview
-        }
-        fun setSelectedDate(date: LocalDate?) {
-            // No-op for preview
-        }
-    }
-    BubTrackTheme {
-        GrowthChartScreen(
-            modifier = Modifier.padding(16.dp),
-            viewModel = mockViewModel as DiaryViewModel
-        )
     }
 }

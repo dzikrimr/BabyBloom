@@ -1,6 +1,5 @@
 package com.example.bubtrack.data.article
 
-import android.util.Log
 import com.example.bubtrack.domain.article.Article
 import com.example.bubtrack.domain.article.ArticleRepo
 import com.example.bubtrack.utill.Resource

@@ -1,8 +1,7 @@
-package com.example.bubtrack.presentation.ai.cobamonitor
+package com.example.bubtrack.presentation.ai.monitor
 
 import android.app.Application
 import android.content.Context
-import android.graphics.Bitmap
 import android.util.Log
 import androidx.annotation.OptIn
 import androidx.camera.core.*
@@ -25,26 +24,14 @@ import com.example.bubtrack.utill.Utility
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.gson.Gson
-import com.google.mlkit.vision.common.InputImage
-import com.google.mlkit.vision.face.FaceDetection
-import com.google.mlkit.vision.face.FaceDetector
-import com.google.mlkit.vision.face.FaceDetectorOptions
-import com.google.mlkit.vision.pose.PoseLandmark
-import com.google.mlkit.vision.pose.accurate.AccuratePoseDetectorOptions
-import com.google.mlkit.vision.pose.PoseDetection
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
 import java.util.concurrent.Executors
 import org.webrtc.IceCandidate
 import org.webrtc.SessionDescription
 import org.webrtc.SurfaceViewRenderer
-import java.io.IOException
 import javax.inject.Inject
 
 @OptIn(ExperimentalGetImage::class)
@@ -54,10 +41,13 @@ class MonitorRoomViewModel @Inject constructor(
     private val webRTCFactory: WebRTCFactory,
     private val gson: Gson,
     private val fcmRepo: FcmRepo,
+    private val sleepAnalyzer : SleepDetectionAnalyzer,
     private val application: Application
 ) : ViewModel() {
 
     companion object { private const val TAG = "MonitorVM" }
+
+
 
     // UI states
     private val _state = MutableStateFlow<MonitorState>(MonitorState.Idle)
@@ -78,14 +68,6 @@ class MonitorRoomViewModel @Inject constructor(
     private var parentToken: String? = null
     private var lastPose: String? = null
 
-
-    // ML Kit pose detector (stream mode)
-    private val poseDetector by lazy {
-        val options = AccuratePoseDetectorOptions.Builder()
-            .setDetectorMode(AccuratePoseDetectorOptions.STREAM_MODE)
-            .build()
-        PoseDetection.getClient(options)
-    }
     private var lastAnalyzedTime = 0L
     private val THROTTLE_MS = 500L // 2 fps
 
@@ -93,10 +75,6 @@ class MonitorRoomViewModel @Inject constructor(
     fun initRemoteSurface(renderer: SurfaceViewRenderer) {
         remoteSurface = renderer
         webRTCFactory.initSurfaceView(renderer)
-    }
-
-    fun startLocalStream(surface: SurfaceViewRenderer) {
-        webRTCFactory.prepareLocalStream(surface)
     }
 
     // --- Parent flow ---
@@ -284,6 +262,7 @@ class MonitorRoomViewModel @Inject constructor(
         }, ContextCompat.getMainExecutor(context))
     }
 
+    @ExperimentalGetImage
     private fun analyzePose(imageProxy: ImageProxy) {
         val now = System.currentTimeMillis()
         if (now - lastAnalyzedTime < THROTTLE_MS) {
@@ -292,73 +271,23 @@ class MonitorRoomViewModel @Inject constructor(
         }
         lastAnalyzedTime = now
 
-        val mediaImage = imageProxy.image ?: run {
+        viewModelScope.launch {
+            val status = sleepAnalyzer.analyzeFrame(imageProxy)
+            _poseState.value = status.overallStatus
+
+            if (role == "baby" && roomId != null && status.overallStatus != lastPose) {
+                lastPose = status.overallStatus
+                fetchParentToken { token ->
+                    token?.let {
+                        sendFcmToParent(it, "Update", status.overallStatus)
+                        saveNotification(status.overallStatus)
+                    }
+                }
+            }
             imageProxy.close()
-            return
         }
-
-        val inputImage = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
-
-        faceDetector.process(inputImage)
-            .addOnSuccessListener { faces ->
-                var currentLabel = "Unknown"
-
-                if (faces.isNotEmpty()) {
-                    val face = faces[0]
-                    val leftProb = face.leftEyeOpenProbability ?: -1f
-                    val rightProb = face.rightEyeOpenProbability ?: -1f
-
-                    if (leftProb >= 0f && rightProb >= 0f) {
-                        val eyeOpenAvg = (leftProb + rightProb) / 2f
-                        currentLabel = if (eyeOpenAvg < 0.3f) "Sleeping" else "Awake"
-                    } else {
-                        currentLabel = "Face detected (no eye data)"
-                    }
-                } else {
-                    currentLabel = "No face detected"
-                }
-
-                // update state
-                _poseState.value = currentLabel
-
-                // kirim FCM kalau berubah
-                if (role == "baby" && roomId != null && currentLabel != lastPose) {
-                    lastPose = currentLabel
-                    fetchParentToken { token ->
-                        token?.let {
-                            when (currentLabel) {
-                                "Sleeping" -> {
-                                    sendFcmToParent(it, "Update", "Baby is sleeping (eyes closed).")
-                                    saveNotification("Baby is sleeping (eyes closed).")
-                                }
-                                "Awake" -> {
-                                    sendFcmToParent(it, "Update", "Baby is awake (eyes open).")
-                                    saveNotification("Baby is awake (eyes open).")
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            .addOnFailureListener { e ->
-                Log.e(TAG, "face detect failed: ${e.message}")
-            }
-            .addOnCompleteListener {
-                imageProxy.close()
-            }
     }
 
-
-    // optional helper to programmatically stop pose analysis
-    fun stopPoseAnalysis(lifecycleOwner: LifecycleOwner, context: Context) {
-        _isAnalyzingPose.value = false
-        _state.value = MonitorState.Idle
-        // CameraX lifecycle owner unbind handled by CameraX when UI unbinds; if needed:
-        ProcessCameraProvider.getInstance(context).addListener({
-            val cp = ProcessCameraProvider.getInstance(context).get()
-            cp.unbindAll()
-        }, ContextCompat.getMainExecutor(context))
-    }
 
     fun saveParentToken(roomId: String) {
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
@@ -409,15 +338,6 @@ class MonitorRoomViewModel @Inject constructor(
         viewModelScope.launch {
             fcmRepo.saveNotification(notificationItem)
         }
-    }
-
-    private val faceDetector: FaceDetector by lazy {
-        val options = FaceDetectorOptions.Builder()
-            .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_FAST)
-            .setLandmarkMode(FaceDetectorOptions.LANDMARK_MODE_ALL)
-            .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL) // penting untuk eye open prob
-            .build()
-        FaceDetection.getClient(options)
     }
 
 
