@@ -76,7 +76,7 @@ Yes, BabyBloom uses **Firebase + Google Cloud** security, with no third-party tr
 
 ## Developer Team 🧑‍💻👩‍💻  
 
-[dzikrimr](https://github.com/dzikrimr): Developer
+[dzikrimr](https://github.com/dzikrimr): Developer,
 [audyfh](https://github.com/audyfh): Developer
 
 ---
