@@ -1,5 +1,5 @@
 <div align="center">
-    <img src="https://github.com/username/BabyBloom/blob/main/Banner_Presentation_BabyBloom.png">
+    <img src="https://github.com/dzikrimr/BabyBloom/blob/main/banner_babybloom.png">
     <h1>BabyBloom</h1>
     <p>An AI-powered app that helps parents monitor, document, and support the growth of their babies and toddlers.</p>
     <p><i>Watch, Understand, and Cherish Every Moment of Your Little One’s Growth</i></p>
